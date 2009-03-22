@@ -1,7 +1,7 @@
 # 
 
 SOURCES = b16.lyx Makefile \
-	b16.nw b16.v b16.fs
+	b16.nw b16.v b16.fs b16.fig
 
 all:	b16.v b16.pdf
 
@@ -9,9 +9,12 @@ all:	b16.v b16.pdf
 	-rm $@
 	lyx -e literate $<
 
-%.tex:	%.nw
+%.tex:	%.nw %.eps
 	noweave -delay -latex $< | sed -e 's/1<<dep/1<{}<dep/g' >$@
 	latex $@
+
+%.eps:	%.fig
+	fig2dev -L eps $< $@
 
 %.v:	%.nw
 	notangle -Rb16.v $< >$@
