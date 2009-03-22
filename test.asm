@@ -108,6 +108,8 @@ $2000 org
 $3FFE org
      boot ;;
 $2000 $2000 .hex b16.hex	\ print verilog hex for $2000 bytes
+$2000 $2000 .hexh b16h.hex	\ print verilog hex for $2000 bytes
+$2000 $2000 .hexl b16l.hex	\ print verilog hex for $2000 bytes
 $2000 $2000 .hexb b16b.hex	\ print verilog hex for $2000 bytes
 .mif test.mif
 $21FE org

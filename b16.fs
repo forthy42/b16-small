@@ -330,6 +330,16 @@ $800 Value rom-end
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # # # 2drop bl hold # # # # '@ hold #>
 	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+: .hexl ( start n "file" -- ) over swap hex
+    parse-word new-fd
+    bounds ?DO
+	I over - 2/ 0 <# I ram@ 0 # # 2drop bl hold # # # # '@ hold #>
+	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+: .hexh ( start n "file" -- ) over swap hex
+    parse-word new-fd
+    bounds ?DO
+	I over - 2/ 0 <# I ram@ 8 rshift 0 # # 2drop bl hold # # # # '@ hold #>
+	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
 : .hexb ( start n "file" -- ) over swap hex
     parse-word new-fd
     bounds ?DO
