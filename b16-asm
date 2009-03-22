@@ -1,0 +1,3 @@
+#!/bin/bash
+
+b16.fs -e "asm-load $1 bye"

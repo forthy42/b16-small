@@ -1,0 +1,4720 @@
+#LyX 1.6.0rc4 created this file. For more info see http://www.lyx.org/
+\lyxformat 344
+\begin_document
+\begin_header
+\textclass literate-article
+\begin_preamble
+\usepackage[dvips,colorlinks=true,linkcolor=blue]{hyperref}
+\end_preamble
+\use_default_options false
+\language american
+\inputencoding auto
+\font_roman ae
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4paper
+\use_geometry true
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\leftmargin 36pt
+\topmargin 1in
+\rightmargin 36pt
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 2
+\papersides 1
+\paperpagestyle fancy
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+b16 Documentation
+\end_layout
+
+\begin_layout Author
+
+\noun on
+Bernd Paysan
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+lhead{
+\end_layout
+
+\end_inset
+
+b16 Documentation
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\backslash
+chead{
+\end_layout
+
+\end_inset
+
+
+\noun on
+Bernd Paysan
+\noun default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Abstract
+This article presents architecture and implementation of the b16 stack processor.
+ This processor is inspired by 
+\noun on
+Chuck Moore'
+\noun default
+s newest Forth processors.
+ The minimalistic design fits into small FPGAs and ASICs and is ideally
+ suited for applications that need both control and calculations.
+ The factor is shifted towards control to save space.
+ The synthesizible implementation uses Verilog.
+\end_layout
+
+\begin_layout Section*
+Introduction
+\end_layout
+
+\begin_layout Standard
+Minimalistic CPUs can be used in many designs.
+ A state machine often is too complicated and too difficult to develop,
+ when there are more than a few states.
+ A program with subroutines can perform a lot more complex tasks, and is
+ easier to develop at the same time.
+ Also, ROM- and RAM blocks occupy much less place on silicon than 
+\begin_inset Quotes eld
+\end_inset
+
+random logic
+\begin_inset Quotes erd
+\end_inset
+
+.
+ That's also valid for FPGAs, where 
+\begin_inset Quotes eld
+\end_inset
+
+block RAM
+\begin_inset Quotes erd
+\end_inset
+
+ is---in contrast to logic elements---plenty.
+\end_layout
+
+\begin_layout Standard
+The architecture is inspired by the c18 from
+\noun on
+ Chuck Moore
+\noun default
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "c18"
+
+\end_inset
+
+.
+ The exact instruction mix is different; it also differs from the standard
+ b16 core.
+ I left out multiplication and division step, but implemented Forth-typical
+ logic operations.
+ Also, this architecture is byte-addressed.
+\end_layout
+
+\begin_layout Standard
+A word about Verilog: Verilog is a C-like language, but tailored for the
+ purpose to simulate logic, and to write synthesizible code.
+ Variables are bits and bit vectors, and assignments are typically non-blocking,
+ i.e.
+ on assignments first all right sides are computed, and the left sides are
+ modified afterwards.
+ Also, Verilog has events, like changing of values or clock edges, and blocks
+ can wait on them.
+\end_layout
+
+\begin_layout Section
+Architectural Overview
+\end_layout
+
+\begin_layout Standard
+The core components are
+\end_layout
+
+\begin_layout Itemize
+An ALU
+\end_layout
+
+\begin_layout Itemize
+A data stack with top and next of stack (T and N) as inputs for the ALU
+\end_layout
+
+\begin_layout Itemize
+A return stack
+\end_layout
+
+\begin_layout Itemize
+An instruction pointer P 
+\end_layout
+
+\begin_layout Itemize
+An address mux 
+\family typewriter
+addr
+\family default
+, to address external memory
+\end_layout
+
+\begin_layout Itemize
+An instruction latch I
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "blockdiagram"
+
+\end_inset
+
+ shows a block diagram.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename b16.eps
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Block Diagram
+\begin_inset CommandInset label
+LatexCommand label
+name "blockdiagram"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Register
+\end_layout
+
+\begin_layout Standard
+In addition to the user-visible latches there are control latches for external
+ RAM (
+\family typewriter
+rd
+\family default
+ and 
+\family typewriter
+wr
+\family default
+), stack pointers (
+\family typewriter
+sp
+\family default
+ and 
+\family typewriter
+rp
+\family default
+), and a carry 
+\family typewriter
+c
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="left" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+Function
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+T
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Top of Stack
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+I
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Instruction Bundle
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+P
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Program Counter
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+R
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Top of Returnstack
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+state
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Processor State
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+sp
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Stack Pointer
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+rp
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Return Stack Pointer
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Carry Flag
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<register declarations>>=
+\begin_inset Newline newline
+\end_inset
+
+reg [sdep-1:0] sp;
+\begin_inset Newline newline
+\end_inset
+
+reg [rdep-1:0] rp;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+reg `L T, I, P, R;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+reg [1:0] state;
+\begin_inset Newline newline
+\end_inset
+
+reg c;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Section
+Instruction Set
+\end_layout
+
+\begin_layout Standard
+There are 32 different instructions.
+ Since several instructions fit into a 16 bit word, we call the bits to
+ store the packed instructions in an instruction word 
+\begin_inset Quotes eld
+\end_inset
+
+slot
+\begin_inset Quotes erd
+\end_inset
+
+, and the instruction word itself 
+\begin_inset Quotes eld
+\end_inset
+
+bundle
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The arrangement here is 1,5,5,5, i.e.
+ the first slot is only one bit large (the more significant bits are filled
+ with 0), and the others all 5 bits.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The operations in one instruction word are executed one after the other.
+ Each instruction takes one cycle, memory operation (including instruction
+ fetch) need another cycle.
+ Which instruction is to be executed is stored in the variable 
+\family typewriter
+state
+\family default
+.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The instruction set is divided into four groups: jumps, ALU, memory, and
+ stack.
+ Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "instructions"
+
+\end_inset
+
+ shows an overview over the instruction set.
+ Note: Some special characters indicate functions as follows: 
+\begin_inset Quotes eld
+\end_inset
+
+!
+\begin_inset Quotes erd
+\end_inset
+
+: 
+\begin_inset Quotes eld
+\end_inset
+
+store
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+@
+\begin_inset Quotes erd
+\end_inset
+
+: 
+\begin_inset Quotes eld
+\end_inset
+
+load
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+>
+\begin_inset Quotes erd
+\end_inset
+
+: 
+\begin_inset Quotes eld
+\end_inset
+
+to
+\begin_inset Quotes erd
+\end_inset
+
+ if before, 
+\begin_inset Quotes eld
+\end_inset
+
+from
+\begin_inset Quotes erd
+\end_inset
+
+ if afterwards.
+\end_layout
+
+\begin_layout Standard
+Operations will be described using a 
+\begin_inset Quotes eld
+\end_inset
+
+stack effect
+\begin_inset Quotes erd
+\end_inset
+
+.
+ This is a template for the stack elements before and after the operation,
+ separated by a long dash.
+ The names are listed in the order bottom to top, unchanged stack elements
+ below are not listed.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide true
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="10">
+<features>
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="left" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+7 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+Comment
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+nop
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+call
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+jmp
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ret
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+jz
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+jnz
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+jc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+jnc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+exec
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+goto
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ret
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+gz
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+gnz
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+gc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+gnc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+for slot 3 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+8 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+xor
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+com
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+and
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+or
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
++
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
++c
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $*+$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $/-$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+!+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+@+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+@
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+lit
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c!+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c@+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c@
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+litc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+!.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+@.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+@
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+lit
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c!.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c@.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c@
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+litc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+for slot 1
+\emph default
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+18 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+nip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+drop
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+over
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+dup
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+>r
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+r>
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Instruction Set
+\begin_inset CommandInset label
+LatexCommand label
+name "instructions"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Jumps use the rest of the instruction word as target address (except 
+\family typewriter
+ret
+\family default
+).
+ The lower bits of the instruction pointer P are replaced, there's nothing
+ added.
+ For instructions in the last slot, no address remains, so they use T (TOS)
+ as target.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<instruction selection>>=
+\begin_inset Newline newline
+\end_inset
+
+// instruction and branch target selection   
+\begin_inset Newline newline
+\end_inset
+
+reg [4:0] inst;
+\begin_inset Newline newline
+\end_inset
+
+reg `L jmp;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+always @(state or I or data or atpg)
+\begin_inset Newline newline
+\end_inset
+
+   case(state[1:0])
+\begin_inset Newline newline
+\end_inset
+
+     2'b00: inst <= { 4'b0000, data[15] & !atpg };
+\begin_inset Newline newline
+\end_inset
+
+     2'b01: inst <=   I[14:10];
+\begin_inset Newline newline
+\end_inset
+
+     2'b10: inst <=   I[9:5];
+\begin_inset Newline newline
+\end_inset
+
+     2'b11: inst <=   I[4:0];
+\begin_inset Newline newline
+\end_inset
+
+   endcase // casez(state)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+always @(state or I or P or T or data)
+\begin_inset Newline newline
+\end_inset
+
+   case(state[1:0])
+\begin_inset Newline newline
+\end_inset
+
+     2'b00: jmp <= { data[14:0], 1'b0 };
+\begin_inset Newline newline
+\end_inset
+
+     2'b01: jmp <= { P[15:11], I[9:0], 1'b0 };
+\begin_inset Newline newline
+\end_inset
+
+     2'b10: jmp <= { P[15:6], I[4:0], 1'b0 };
+\begin_inset Newline newline
+\end_inset
+
+     2'b11: jmp <= { T[15:1], 1'b0 };
+\begin_inset Newline newline
+\end_inset
+
+   endcase // casez(state)
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+The instructions themselves are executed depending on 
+\family typewriter
+inst
+\family default
+:
+\end_layout
+
+\begin_layout Scrap
+<<instructions>>=
+\begin_inset Newline newline
+\end_inset
+
+casez(inst)
+\begin_inset Newline newline
+\end_inset
+
+   <<control flow>>
+\begin_inset Newline newline
+\end_inset
+
+   <<ALU operations>>
+\begin_inset Newline newline
+\end_inset
+
+   <<load/store>>
+\begin_inset Newline newline
+\end_inset
+
+   <<stack operations>>
+\begin_inset Newline newline
+\end_inset
+
+endcase // case(inst)
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+Jumps
+\end_layout
+
+\begin_layout Standard
+In detail, jumps are performed as follows: the target address is stored
+ in the address latch 
+\family typewriter
+addr
+\family default
+, which addresses memory, not in the P register.
+ The register P will be set to the incremented value of 
+\family typewriter
+addr
+\family default
+, after the instruction fetch cycle.
+ Apart from 
+\family typewriter
+call
+\family default
+, 
+\family typewriter
+jmp
+\family default
+ and 
+\family typewriter
+ret
+\family default
+ there are conditional jumps, which test for 0 and carry.
+ The lowest bit of the return stack is used to save the carry flag across
+ calls.
+ Conditional instructions don't consume the tested value, which is different
+ from Forth.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To make it easier to understand, I also define the effect of an instruction
+ in a pseudo language:
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+nop (---)
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+call (---r:P ) 
+\begin_inset Formula $\mathrm{P}\leftarrow jmp$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{c}\leftarrow0$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+jmp (---) 
+\begin_inset Formula $\mathrm{P}\leftarrow jmp$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+ret ( r:a---) 
+\begin_inset Formula $\mathrm{P}\leftarrow a\wedge\$\mathrm{FFFE}$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{c}\leftarrow a\wedge1$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+jz ( n---) 
+\begin_inset Formula $\mathbf{if}(n=0)\,\mathrm{P}\leftarrow jmp$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+jnz ( n---) 
+\begin_inset Formula $\mathbf{if}(n\ne0)\,\mathrm{P}\leftarrow jmp$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+jc ( x---) 
+\begin_inset Formula $\mathbf{if}(c)\,\mathrm{P}\leftarrow jmp$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+jnc ( x---) 
+\begin_inset Formula $\mathbf{if}(c=0)\,\mathrm{P}\leftarrow jmp$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<control flow>>=
+\begin_inset Newline newline
+\end_inset
+
+5'b00001: begin
+\begin_inset Newline newline
+\end_inset
+
+   rp <= rpdec;
+\begin_inset Newline newline
+\end_inset
+
+   R <= { state == 2'b00 ? incaddr[15:1] : P[15:1], c };
+\begin_inset Newline newline
+\end_inset
+
+   P <= jmp;
+\begin_inset Newline newline
+\end_inset
+
+   c <= 1'b0;
+\begin_inset Newline newline
+\end_inset
+
+   if(state == 2'b11) `DROP;
+\begin_inset Newline newline
+\end_inset
+
+end // case: 5'b00001
+\begin_inset Newline newline
+\end_inset
+
+5'b00010: begin
+\begin_inset Newline newline
+\end_inset
+
+   P <= jmp;
+\begin_inset Newline newline
+\end_inset
+
+   if(state == 2'b11) `DROP;
+\begin_inset Newline newline
+\end_inset
+
+end
+\begin_inset Newline newline
+\end_inset
+
+5'b00011: { rp, c, P, R } <= 
+\begin_inset Newline newline
+\end_inset
+
+          { rpinc, R[0], R[l-1:1], 1'b0, toR };
+\begin_inset Newline newline
+\end_inset
+
+5'b001??: begin
+\begin_inset Newline newline
+\end_inset
+
+   if((inst[1] ? c : zero) ^ inst[0]) 
+\begin_inset Newline newline
+\end_inset
+
+      P <= jmp;
+\begin_inset Newline newline
+\end_inset
+
+   `DROP;
+\begin_inset Newline newline
+\end_inset
+
+end
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+ALU Operations
+\end_layout
+
+\begin_layout Standard
+The ALU instructions use the ALU, which computes a result 
+\family typewriter
+res
+\family default
+ and a carry bit from T and N.
+ The instruction 
+\family typewriter
+com
+\family default
+ is an exception, since it only inverts T---that doesn't require an ALU.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ordinary ALU instructions just write the result of the ALU into T and c,
+ and reload N.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+xor ( a b---r ) 
+\begin_inset Formula $r\leftarrow a\oplus b$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+com ( a---r ) 
+\begin_inset Formula $r\leftarrow a\oplus\$\mathrm{FFFF}$
+\end_inset
+
+, 
+\begin_inset Formula $\mathrm{c}\leftarrow1$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+and ( a b---r ) 
+\begin_inset Formula $r\leftarrow a\wedge b$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+or ( a b---r ) 
+\begin_inset Formula $r\leftarrow a\vee b$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
++ ( a b---r ) 
+\begin_inset Formula $\mathrm{c},r\leftarrow a+b$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
++c ( a b---r) 
+\begin_inset Formula $\mathrm{c},r\leftarrow a+b+\mathrm{c}$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+\begin_inset Formula $*$
+\end_inset
+
++ ( a b---a r ) 
+\begin_inset Formula $\mathbf{if}(\mathrm{c})\, c_{n},r\leftarrow a+b\,\mathbf{else}\, c_{n},r\leftarrow0,b$
+\end_inset
+
+; 
+\begin_inset Formula $r,\mathrm{A},\mathrm{c}\leftarrow c_{n},r,\mathrm{A}$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+/-- ( a b---a r ) 
+\begin_inset Formula $c_{n},r_{n}\leftarrow a+b+1;$
+\end_inset
+
+ 
+\begin_inset Formula $\mathbf{if}(\mathrm{c}\vee c_{n})\, r\leftarrow r_{n}$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{c},r,\mathrm{A}\leftarrow r,\mathrm{A},\mathrm{c}\vee c_{n}$
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<ALU operations>>=
+\begin_inset Newline newline
+\end_inset
+
+5'b01001: { c, T } <= { 1'b1, ~T };
+\begin_inset Newline newline
+\end_inset
+
+5'b01110: { T, R, c } <= 
+\begin_inset Newline newline
+\end_inset
+
+   { c ? { carry, res } : { 1'b0, T }, R };
+\begin_inset Newline newline
+\end_inset
+
+5'b01111: { c, T, R } <= 
+\begin_inset Newline newline
+\end_inset
+
+   { (c | carry) ? res : T, R, (c | carry) };
+\begin_inset Newline newline
+\end_inset
+
+`ifndef FPGA
+\begin_inset Newline newline
+\end_inset
+
+5'b01???: { sp, c, T } <= { spinc, carry, res }; 
+\begin_inset Newline newline
+\end_inset
+
+`else
+\begin_inset Newline newline
+\end_inset
+
+5'b01000: { sp, c, T } <= { spinc, carry, res };
+\begin_inset Newline newline
+\end_inset
+
+5'b01010: { sp, c, T } <= { spinc, carry, res };
+\begin_inset Newline newline
+\end_inset
+
+5'b01011: { sp, c, T } <= { spinc, carry, res };
+\begin_inset Newline newline
+\end_inset
+
+5'b01100: { sp, c, T } <= { spinc, carry, res };
+\begin_inset Newline newline
+\end_inset
+
+5'b01101: { sp, c, T } <= { spinc, carry, res }; 
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+Memory Instructions
+\end_layout
+
+\begin_layout Standard
+Memory instructions use either T as address, and N as data (source or destinatio
+n), or P as address, and T as destination (literals).
+ The address is auto-incremented, except for instructions in the first slot
+ which use T as address---this is to implement read-modify-write instructions
+ (non-incremeting is written as @.
+ or !.
+ in the assembler, don't care as @* or !*).
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+!+ ( n A---A' ) 
+\begin_inset Formula $mem[A]\leftarrow n$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{A'}\leftarrow\mathrm{A}+2$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+@+ ( A---n A' ) 
+\begin_inset Formula $n\leftarrow mem[\mathrm{A}]$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{A'}\leftarrow\mathrm{A}+2$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+@ ( A---n ) 
+\begin_inset Formula $n\leftarrow mem[\mathrm{A}]$
+\end_inset
+
+; 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+lit (---n ) 
+\begin_inset Formula $n\leftarrow mem[\mathrm{P}]$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{P}\leftarrow\mathrm{P}+2$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+c!+ ( c A---A' ) 
+\begin_inset Formula $mem.b[\mathrm{A}]\leftarrow c$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{A'}\leftarrow\mathrm{A}+1$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+c@+ ( A---c A' ) 
+\begin_inset Formula $c\leftarrow mem.b[\mathrm{A}]$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{A'}\leftarrow\mathrm{A}+1$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+c@ ( A---c ) 
+\begin_inset Formula $c\leftarrow mem.b[\mathrm{A}]$
+\end_inset
+
+; 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+litc (---c ) 
+\begin_inset Formula $c\leftarrow mem.b[\mathrm{P}]$
+\end_inset
+
+; 
+\begin_inset Formula $\mathrm{P}\leftarrow\mathrm{P}+1$
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<address handling>>=
+\begin_inset Newline newline
+\end_inset
+
+wire `L incaddr, dataw, datas;
+\begin_inset Newline newline
+\end_inset
+
+wire tos2r, tos2n;
+\begin_inset Newline newline
+\end_inset
+
+wire incby, bswap, addrsel, access, rd;
+\begin_inset Newline newline
+\end_inset
+
+wire [1:0] wr;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+assign incby = (inst[4:2] != 3'b101);
+\begin_inset Newline newline
+\end_inset
+
+assign access = (inst[4:3]==2'b10);
+\begin_inset Newline newline
+\end_inset
+
+assign addrsel = rd ? 
+\begin_inset Newline newline
+\end_inset
+
+      (access & (inst[1:0] != 2'b11)) : |wr;
+\begin_inset Newline newline
+\end_inset
+
+assign rd = (state==2'b00) || 
+\begin_inset Newline newline
+\end_inset
+
+            (access && (inst[1:0]!=2'b00));
+\begin_inset Newline newline
+\end_inset
+
+assign wr = (access && (inst[1:0]==2'b00)) ?
+\begin_inset Newline newline
+\end_inset
+
+            { ~inst[2] | ~T[0], 
+\begin_inset Newline newline
+\end_inset
+
+              ~inst[2] | T[0] } : 2'b00;
+\begin_inset Newline newline
+\end_inset
+
+mux #(l) addrmux(addr, addrsel, 1'b0, T, P);
+\begin_inset Newline newline
+\end_inset
+
+assign incaddr = addr + incby + 1;
+\begin_inset Newline newline
+\end_inset
+
+assign tos2n = (!rd | (inst[1:0] == 2'b11));
+\begin_inset Newline newline
+\end_inset
+
+mux #(l) toNmux(toN, tos2n, atpg, T, dataw);
+\begin_inset Newline newline
+\end_inset
+
+assign bswap = incby ^ addr[0];
+\begin_inset Newline newline
+\end_inset
+
+assign datas = bswap ? data : { data[7:0], data[l-1:8] };
+\begin_inset Newline newline
+\end_inset
+
+assign dataw = incby ? datas : { 8'h00, datas[7:0] }; 
+\begin_inset Newline newline
+\end_inset
+
+assign dataout = { bswap ? N[15:8] : N[7:0], 
+\begin_inset Newline newline
+\end_inset
+
+                   bswap ? N[7:0]  : N[15:8] }; 
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+Memory access can't just be done word wise, but also byte wise.
+ Therefore two write lines exist.
+ For byte wise store the lower byte of T is copied to the higher one.
+\end_layout
+
+\begin_layout Scrap
+<<load/store>>=
+\begin_inset Newline newline
+\end_inset
+
+5'b10?0?: begin
+\begin_inset Newline newline
+\end_inset
+
+   if(nextstate != 2'b10) T <= incaddr;
+\begin_inset Newline newline
+\end_inset
+
+   sp <= rd ? spdec : spinc;
+\begin_inset Newline newline
+\end_inset
+
+end
+\begin_inset Newline newline
+\end_inset
+
+5'b10?1?: T <= dataw;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+Memory accesses need an extra cycle.
+ Here the result of the memory access is handled.
+\end_layout
+
+\begin_layout Scrap
+<<load-store>>=
+\begin_inset Newline newline
+\end_inset
+
+<<pointer increment>>
+\begin_inset Newline newline
+\end_inset
+
+if(|state[1:0]) begin 
+\begin_inset Newline newline
+\end_inset
+
+   <<store afterwork>>
+\begin_inset Newline newline
+\end_inset
+
+end else begin 
+\begin_inset Newline newline
+\end_inset
+
+   <<ifetch>>
+\begin_inset Newline newline
+\end_inset
+
+end
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<debug>>=
+\begin_inset Newline newline
+\end_inset
+
+$write("%b[%b] T=%b%x:%x[%x], ",
+\begin_inset Newline newline
+\end_inset
+
+       inst, state, c, T, N, sp);
+\begin_inset Newline newline
+\end_inset
+
+$write("P=%x, I=%x, R=%x[%x], res=%b%x
+\backslash
+n",
+\begin_inset Newline newline
+\end_inset
+
+       P, I, R, rp, carry, res);
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+After the access is completed, the result for a load has to be pushed on
+ the stack, or into the instruction register; for stores, the TOS is to
+ be dropped.
+\end_layout
+
+\begin_layout Scrap
+<<store afterwork>>=
+\begin_inset Newline newline
+\end_inset
+
+if(rd && { inst[4:3], inst[1:0] } != 4'b1010) 
+\begin_inset Newline newline
+\end_inset
+
+   sp <= spdec;
+\begin_inset Newline newline
+\end_inset
+
+if(|wr) sp <= spinc;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+Furthermore, the incremented address may go back to the pointer.
+\end_layout
+
+\begin_layout Scrap
+<<pointer increment>>=
+\begin_inset Newline newline
+\end_inset
+
+if(~|state[1:0] || 
+\begin_inset Newline newline
+\end_inset
+
+   ((inst[4:3] == 2'b10) && (inst[1:0] == 2'b11))) 
+\begin_inset Newline newline
+\end_inset
+
+   P <= incaddr;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+To shortcut a 
+\family typewriter
+nop
+\family default
+ in the first instruction, there's some special logic.
+ That's the second part of NEXT.
+\end_layout
+
+\begin_layout Scrap
+<<ifetch>>=
+\begin_inset Newline newline
+\end_inset
+
+I <= data; 
+\begin_inset Newline newline
+\end_inset
+
+if(!data[15]) state[1:0] <= 2'b01;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsubsection
+Peripherals
+\end_layout
+
+\begin_layout Standard
+Peripherals should only use address bits [15:1], read a whole word, and
+ select the bytes written to based on the two write bits (bit 1 for most
+ significant byte, bit 0 for least significant byte).
+\end_layout
+
+\begin_layout Subsection
+Stack Instructions
+\end_layout
+
+\begin_layout Standard
+Stack instructions change the stack pointer and move values into and out
+ of latches.
+ With the 8 used stack operations, one notes that 
+\family typewriter
+swap
+\family default
+ is missing.
+ Instead, there's 
+\family typewriter
+nip
+\family default
+.
+ The reason is a possible implementation option: it's possible to omit N,
+ and fetch this value directly out of the stack RAM.
+ This consumes more time, but saves space.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+nip ( a b---b )
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+drop ( a---)
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+over ( a b---a b a )
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+dup ( a---a a )
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+>r ( a---r:a )
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+r> ( r:a---a )
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<stack operations>>=
+\begin_inset Newline newline
+\end_inset
+
+5'b11000: sp <= spinc;
+\begin_inset Newline newline
+\end_inset
+
+5'b11001: `DROP;
+\begin_inset Newline newline
+\end_inset
+
+5'b11010: { sp, T } <= { spdec, N };
+\begin_inset Newline newline
+\end_inset
+
+5'b11011: sp <= spdec;
+\begin_inset Newline newline
+\end_inset
+
+5'b11100: begin
+\begin_inset Newline newline
+\end_inset
+
+   R <= T; rp <= rpdec; `DROP;
+\begin_inset Newline newline
+\end_inset
+
+end // case: 5'b11100
+\begin_inset Newline newline
+\end_inset
+
+5'b11110: begin
+\begin_inset Newline newline
+\end_inset
+
+   { sp, T, R } <= { spdec, R, toR };
+\begin_inset Newline newline
+\end_inset
+
+   rp <= rpinc;
+\begin_inset Newline newline
+\end_inset
+
+end // case: 5'b11110
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Section
+The Rest of the Implementation
+\end_layout
+
+\begin_layout Standard
+First the implementation file with comment and modules.
+\end_layout
+
+\begin_layout Scrap
+<<b16.v>>=
+\begin_inset Newline newline
+\end_inset
+
+/*
+\begin_inset Newline newline
+\end_inset
+
+ * b16 core: 16 bits, 
+\begin_inset Newline newline
+\end_inset
+
+ * inspired by c18 core from Chuck Moore
+\begin_inset Newline newline
+\end_inset
+
+ *
+\begin_inset Newline newline
+\end_inset
+
+<<inst-comment>>
+\begin_inset Newline newline
+\end_inset
+
+ */
+\begin_inset Newline newline
+\end_inset
+
+ 
+\begin_inset Newline newline
+\end_inset
+
+`define L [l-1:0]
+\begin_inset Newline newline
+\end_inset
+
+`define DROP { sp, T } <= { spinc, N } 
+\begin_inset Newline newline
+\end_inset
+
+`define DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+// `define FPGA
+\begin_inset Newline newline
+\end_inset
+
+`timescale 1ns / 1ns
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<<ALU>>
+\begin_inset Newline newline
+\end_inset
+
+<<Stack>>
+\begin_inset Newline newline
+\end_inset
+
+<<mux>>
+\begin_inset Newline newline
+\end_inset
+
+<<cpu>>
+\begin_inset Newline newline
+\end_inset
+
+<<debugger>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<inst-comment>>= 
+\begin_inset Newline newline
+\end_inset
+
+ * Instruction set:
+\begin_inset Newline newline
+\end_inset
+
+ * 1, 5, 5, 5 bits
+\begin_inset Newline newline
+\end_inset
+
+ *     0    1    2    3    4    5    6    7
+\begin_inset Newline newline
+\end_inset
+
+ *  0: nop  call jmp  ret  jz   jnz  jc   jnc
+\begin_inset Newline newline
+\end_inset
+
+ *  /3      exec goto ret  gz   gnz  gc   gnc
+\begin_inset Newline newline
+\end_inset
+
+ *  8: xor  com  and  or   +    +c   *+   /-
+\begin_inset Newline newline
+\end_inset
+
+ * 10: !+   @+   @    lit  c!+  c@+  c@   litc
+\begin_inset Newline newline
+\end_inset
+
+ *  /1 !.
+   @.
+   @    lit  c!.
+  c@.
+  c@   litc
+\begin_inset Newline newline
+\end_inset
+
+ * 18: nip  drop over dup  >r        r>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<mux>>=
+\begin_inset Newline newline
+\end_inset
+
+module mux(out, sel, atpg, in1, in0); 
+\begin_inset Newline newline
+\end_inset
+
+   parameter l=16; 
+\begin_inset Newline newline
+\end_inset
+
+   input `L in1, in0; 
+\begin_inset Newline newline
+\end_inset
+
+   input sel, atpg; 
+\begin_inset Newline newline
+\end_inset
+
+   output `L out;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+   assign out = (sel | atpg) ? in1 : in0; 
+\begin_inset Newline newline
+\end_inset
+
+endmodule // mux
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+Top Level
+\end_layout
+
+\begin_layout Standard
+The CPU consists of several parts, which are all implemented in the same
+ Verilog module.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<cpu>>=
+\begin_inset Newline newline
+\end_inset
+
+module cpu(clk, run, reset, addr, rd, wr, data, 
+\begin_inset Newline newline
+\end_inset
+
+           dataout, READY, scanning, atpg 
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING,
+\begin_inset Newline newline
+\end_inset
+
+           dr, dw, daddr, din, dout, bp`endif);
+\begin_inset Newline newline
+\end_inset
+
+   <<port declarations>>
+\begin_inset Newline newline
+\end_inset
+
+   <<register declarations>>
+\begin_inset Newline newline
+\end_inset
+
+   <<instruction selection>>
+\begin_inset Newline newline
+\end_inset
+
+   <<ALU instantiation>>
+\begin_inset Newline newline
+\end_inset
+
+   <<address handling>>
+\begin_inset Newline newline
+\end_inset
+
+   <<stack pushs>>
+\begin_inset Newline newline
+\end_inset
+
+   <<stack instantiation>>
+\begin_inset Newline newline
+\end_inset
+
+   <<state changes>>
+\begin_inset Newline newline
+\end_inset
+
+   <<debugging read>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+   always @(posedge clk or negedge reset)
+\begin_inset Newline newline
+\end_inset
+
+      <<register updates>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+endmodule // cpu
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+First, Verilog needs port declarations, so that it can now what's input
+ and output.
+ The parameter are used to configure other word sizes and stack depths.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<port declarations>>=
+\begin_inset Newline newline
+\end_inset
+
+parameter rstaddr=16'h07FE, show=0,
+\begin_inset Newline newline
+\end_inset
+
+          l=16, sdep=2, rdep=2;
+\begin_inset Newline newline
+\end_inset
+
+input clk, run, reset, READY, scanning, atpg;
+\begin_inset Newline newline
+\end_inset
+
+output `L addr;
+\begin_inset Newline newline
+\end_inset
+
+output rd;
+\begin_inset Newline newline
+\end_inset
+
+output [1:0] wr;
+\begin_inset Newline newline
+\end_inset
+
+input  `L data;
+\begin_inset Newline newline
+\end_inset
+
+output `L dataout;
+\begin_inset Newline newline
+\end_inset
+
+<<debugging-ports>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+The ALU is instantiated with the configured width, and the necessary wires
+ are declared
+\end_layout
+
+\begin_layout Scrap
+<<ALU instantiation>>=
+\begin_inset Newline newline
+\end_inset
+
+wire `L res, toN, toR, N;
+\begin_inset Newline newline
+\end_inset
+
+wire carry, zero;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+alu #(l) alu16(res, carry, zero, 
+\begin_inset Newline newline
+\end_inset
+
+               T, N, c, inst[2:0]);
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+Since the stacks work in parallel, we have to calculated, when a value is
+ pushed onto the stack (thus 
+\series bold
+only
+\series default
+ if something is stored there).
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<stack pushs>>=
+\begin_inset Newline newline
+\end_inset
+
+reg dpush, rpush;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+always @(state or inst or rd or READY<<dbg senselist>>)
+\begin_inset Newline newline
+\end_inset
+
+  begin
+\begin_inset Newline newline
+\end_inset
+
+     rpush <= 1'b0;
+\begin_inset Newline newline
+\end_inset
+
+     dpush <= (|state[1:0] & rd) |
+\begin_inset Newline newline
+\end_inset
+
+              (inst[4] && inst[3] && inst[1]);
+\begin_inset Newline newline
+\end_inset
+
+     casez(inst)
+\begin_inset Newline newline
+\end_inset
+
+        5'b00001: rpush <= |state[1:0] | READY;
+\begin_inset Newline newline
+\end_inset
+
+        5'b11100: rpush <= 1'b1;
+\begin_inset Newline newline
+\end_inset
+
+     endcase // case(inst)
+\begin_inset Newline newline
+\end_inset
+
+     <<stack debugging>>
+\begin_inset Newline newline
+\end_inset
+
+  end
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+The stacks don't only consist of the two stack modules, but also need an
+ incremented and decremented stack pointer.
+ The return stack even allows to write the top of return stack even without
+ changing the return stack depth.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<stack instantiation>>=
+\begin_inset Newline newline
+\end_inset
+
+wire [sdep-1:0] spdec, spinc;
+\begin_inset Newline newline
+\end_inset
+
+wire [rdep-1:0] rpdec, rpinc;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+stack #(sdep,l) dstack(clk, sp, spdec, 
+\begin_inset Newline newline
+\end_inset
+
+                       dpush, scanning, toN, N);
+\begin_inset Newline newline
+\end_inset
+
+stack #(rdep,l) rstack(clk, rp, rpdec, 
+\begin_inset Newline newline
+\end_inset
+
+                       rpush, scanning, R, toR);
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+assign spdec = sp-{{(sdep-1){1'b0}}, 1'b1};
+\begin_inset Newline newline
+\end_inset
+
+assign spinc = sp+{{(sdep-1){1'b0}}, 1'b1};
+\begin_inset Newline newline
+\end_inset
+
+assign rpdec = rp-{{(rdep-1){1'b0}}, 1'b1};
+\begin_inset Newline newline
+\end_inset
+
+assign rpinc = rp+{{(rdep-1){1'b0}}, 1'b1};
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+The basic core is the fully synchronous register update.
+ Each register needs a reset value, and depending on the state transition,
+ the corresponding assignments have to be coded.
+ Most of that is from above, only the instruction fetch and the assignment
+ of the next value of 
+\family typewriter
+incby
+\family default
+ has to be done.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<register updates>>=
+\begin_inset Newline newline
+\end_inset
+
+if(!reset) begin
+\begin_inset Newline newline
+\end_inset
+
+   <<resets>>
+\begin_inset Newline newline
+\end_inset
+
+end else if(run) begin
+\begin_inset Newline newline
+\end_inset
+
+   if(show) begin
+\begin_inset Newline newline
+\end_inset
+
+      <<debug>>
+\begin_inset Newline newline
+\end_inset
+
+   end
+\begin_inset Newline newline
+\end_inset
+
+   <<load-store>>
+\begin_inset Newline newline
+\end_inset
+
+   state <= nextstate;
+\begin_inset Newline newline
+\end_inset
+
+   <<instructions>>
+\begin_inset Newline newline
+\end_inset
+
+end else begin // debug
+\begin_inset Newline newline
+\end_inset
+
+   <<debugging>>
+\begin_inset Newline newline
+\end_inset
+
+end // else: !if(reset)
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+As reset value, we initialize the CPU so that it is about to fetch the next
+ instruction from address 0.
+ The stacks are all empty, the registers contain all zeros.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<resets>>=
+\begin_inset Newline newline
+\end_inset
+
+state <= 2'b11;
+\begin_inset Newline newline
+\end_inset
+
+P <= rstaddr;
+\begin_inset Newline newline
+\end_inset
+
+T <= 16'h0000;
+\begin_inset Newline newline
+\end_inset
+
+I <= 16'h0000;
+\begin_inset Newline newline
+\end_inset
+
+R <= 16'h0000;
+\begin_inset Newline newline
+\end_inset
+
+c <= 1'b0;
+\begin_inset Newline newline
+\end_inset
+
+sp <= 0;
+\begin_inset Newline newline
+\end_inset
+
+rp <= 0;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+The transition to the next state (the NEXT within a bundle) is done separately.
+ That's necessary, since the assignments of the other variables are not
+ just dependent on the current state, but partially also on the next state
+ (e.g.
+ when to fetch the next instruction word).
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<state changes>>=
+\begin_inset Newline newline
+\end_inset
+
+wire [1:0] nextstate;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+assign nextstate = ((~|inst) || (|inst[4:3])) ?
+\begin_inset Newline newline
+\end_inset
+
+                   state[1:0] + 2'b01 : 2'b00;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+Debugging
+\end_layout
+
+\begin_layout Standard
+For debugging purposes, all registers are memory read--writable.
+ This requires an external bus master attached to the debugging interface.
+ The debugging interface is configured with the DEBUGGING flag.
+ It's only active when the processor is stopped, so the processor itself
+ can't access its own registers.
+\end_layout
+
+\begin_layout Standard
+The debugging module offers the following registers as address space:
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="3">
+<features>
+<column alignment="right" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+Address
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+read
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+write
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFE0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+stack[sp++]
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+push+T
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFE2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+rstack[rp++]
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+rpush+R
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFE4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+bp
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+bp
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFE6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+state+stop
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+state
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFE8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+P
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+P
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFEA
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+T
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+T
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFEC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+R
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+R
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$FFEE
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+I
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+I
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The stacks and the state register change state when being read, so be careful!
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<debugger>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+module debugger(clk, nreset,
+\begin_inset Newline newline
+\end_inset
+
+                addr, data, r, w,
+\begin_inset Newline newline
+\end_inset
+
+                cpu_addr, cpu_r,
+\begin_inset Newline newline
+\end_inset
+
+                drun, dr, dw, bp);
+\begin_inset Newline newline
+\end_inset
+
+parameter l=16, dbgaddr = 12'hFFE;
+\begin_inset Newline newline
+\end_inset
+
+input clk, nreset, r, cpu_r;
+\begin_inset Newline newline
+\end_inset
+
+input [1:0] w;
+\begin_inset Newline newline
+\end_inset
+
+input `L addr, data, cpu_addr;
+\begin_inset Newline newline
+\end_inset
+
+output drun, dr, dw;
+\begin_inset Newline newline
+\end_inset
+
+output `L bp;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+reg drun, drun1;
+\begin_inset Newline newline
+\end_inset
+
+reg `L bp;
+\begin_inset Newline newline
+\end_inset
+
+wire dsel = (addr[l-1:4] == dbgaddr);
+\begin_inset Newline newline
+\end_inset
+
+assign dr = dsel & r;
+\begin_inset Newline newline
+\end_inset
+
+assign dw = dsel & |w;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+always @(posedge clk or negedge nreset)
+\begin_inset Newline newline
+\end_inset
+
+if(!nreset) begin
+\begin_inset Newline newline
+\end_inset
+
+   drun <= 1;
+\begin_inset Newline newline
+\end_inset
+
+   drun1 <= 1;
+\begin_inset Newline newline
+\end_inset
+
+   bp <= 16'hffff;
+\begin_inset Newline newline
+\end_inset
+
+end else begin
+\begin_inset Newline newline
+\end_inset
+
+   if(cpu_addr == bp && cpu_r) { drun, drun1 } <= 0;
+\begin_inset Newline newline
+\end_inset
+
+   else drun <= drun1;
+\begin_inset Newline newline
+\end_inset
+
+   if((dr | dw) && (addr[3:1] == 3'h3)) begin
+\begin_inset Newline newline
+\end_inset
+
+      drun <= !dr & dw;
+\begin_inset Newline newline
+\end_inset
+
+      drun1 <= !dr & dw & data[12];
+\begin_inset Newline newline
+\end_inset
+
+   end
+\begin_inset Newline newline
+\end_inset
+
+   if(dw && addr[3:1] == 3'h2) bp <= data;
+\begin_inset Newline newline
+\end_inset
+
+end
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+endmodule
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<debugging>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+if(dw) casez(daddr)
+\begin_inset Newline newline
+\end_inset
+
+   3'h0: { sp, T } <= { spdec, din };
+\begin_inset Newline newline
+\end_inset
+
+   3'h1: { rp, R } <= { rpdec, din };
+\begin_inset Newline newline
+\end_inset
+
+   3'h3: { c, state, sp, rp } <= 
+\begin_inset Newline newline
+\end_inset
+
+           { din[10:8],
+\begin_inset Newline newline
+\end_inset
+
+             din[sdep+3:4], din[rdep-1:0] };
+\begin_inset Newline newline
+\end_inset
+
+   3'h4: P <= din;
+\begin_inset Newline newline
+\end_inset
+
+   3'h5: T <= din;
+\begin_inset Newline newline
+\end_inset
+
+   3'h6: R <= din;
+\begin_inset Newline newline
+\end_inset
+
+   3'h7: I <= din;
+\begin_inset Newline newline
+\end_inset
+
+endcase
+\begin_inset Newline newline
+\end_inset
+
+if(dr) casez(daddr)
+\begin_inset Newline newline
+\end_inset
+
+   3'h0: sp <= spinc;
+\begin_inset Newline newline
+\end_inset
+
+   3'h1: rp <= rpinc;
+\begin_inset Newline newline
+\end_inset
+
+endcase
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<debugging read>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+reg `L dout;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+always @(daddr or dr or run or P or T or R or I or
+\begin_inset Newline newline
+\end_inset
+
+         state or sp or rp or c or N or toR or bp)
+\begin_inset Newline newline
+\end_inset
+
+`ifndef FPGA
+\begin_inset Newline newline
+\end_inset
+
+if(!dr || run) dout <= 'hz;
+\begin_inset Newline newline
+\end_inset
+
+`else
+\begin_inset Newline newline
+\end_inset
+
+if(!dr || run) dout <= 'h0;
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+else casez(daddr)
+\begin_inset Newline newline
+\end_inset
+
+   3'h0: dout <= N;
+\begin_inset Newline newline
+\end_inset
+
+   3'h1: dout <= toR;
+\begin_inset Newline newline
+\end_inset
+
+   3'h2: dout <= bp;
+\begin_inset Newline newline
+\end_inset
+
+   3'h3: dout <= { run, 4'h0, c, state,
+\begin_inset Newline newline
+\end_inset
+
+                   {4-sdep{1'b0}}, sp,
+\begin_inset Newline newline
+\end_inset
+
+                   {4-rdep{1'b0}}, rp };
+\begin_inset Newline newline
+\end_inset
+
+   3'h4: dout <= P;
+\begin_inset Newline newline
+\end_inset
+
+   3'h5: dout <= T;
+\begin_inset Newline newline
+\end_inset
+
+   3'h6: dout <= R;
+\begin_inset Newline newline
+\end_inset
+
+   3'h7: dout <= I;
+\begin_inset Newline newline
+\end_inset
+
+endcase
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<debugging-ports>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+   input [2:0] daddr;
+\begin_inset Newline newline
+\end_inset
+
+   input dr, dw;
+\begin_inset Newline newline
+\end_inset
+
+   input `L din, bp;
+\begin_inset Newline newline
+\end_inset
+
+   output `L dout;
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<dbg senselist>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+or run or dw or daddr
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<stack debugging>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifdef DEBUGGING
+\begin_inset Newline newline
+\end_inset
+
+if(!run && dw) casez(daddr)
+\begin_inset Newline newline
+\end_inset
+
+   3'h0: dpush <= 1;
+\begin_inset Newline newline
+\end_inset
+
+   3'h1: rpush <= 1;
+\begin_inset Newline newline
+\end_inset
+
+endcase
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+ALU
+\end_layout
+
+\begin_layout Standard
+The ALU just computes the sum with possible carry-ins, the logical operations,
+ and a zero flag.
+ It would be possible to share common resources (the XORs of the full adder
+ could also compute the XOR operation, and the carry propagation logic could
+ compute OR and AND), but this optimization is left to the synthesis tool.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<ALU>>=
+\begin_inset Newline newline
+\end_inset
+
+module alu(res, carry, zero, T, N, c, inst);
+\begin_inset Newline newline
+\end_inset
+
+   <<ALU ports>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+   wire        `L r1, r2;
+\begin_inset Newline newline
+\end_inset
+
+   wire [l:0]  carries;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+   assign #1 r1 = T ^ N ^ carries;
+\begin_inset Newline newline
+\end_inset
+
+   assign #1 r2 = (T & N) | 
+\begin_inset Newline newline
+\end_inset
+
+                  (T & carries`L) | 
+\begin_inset Newline newline
+\end_inset
+
+                  (N & carries`L);
+\begin_inset Newline newline
+\end_inset
+
+   assign #1 carries = 
+\begin_inset Newline newline
+\end_inset
+
+        prop ? { r2[l-1:0], (c | selr) & andor } 
+\begin_inset Newline newline
+\end_inset
+
+             : { c, {(l){andor}}};
+\begin_inset Newline newline
+\end_inset
+
+   assign #1 res = (selr & ~prop) ? r2 : r1;
+\begin_inset Newline newline
+\end_inset
+
+   assign #1 carry = carries[l];
+\begin_inset Newline newline
+\end_inset
+
+   assign #1 zero = ~|T;
+\begin_inset Newline newline
+\end_inset
+
+endmodule // alu
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Standard
+The ALU has ports T and N, carry in, and the lowest 3 bits of the instruction
+ as input, a result, carry out, and test for zero as output.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<ALU ports>>=
+\begin_inset Newline newline
+\end_inset
+
+parameter l=16;
+\begin_inset Newline newline
+\end_inset
+
+input `L T, N;
+\begin_inset Newline newline
+\end_inset
+
+input c;
+\begin_inset Newline newline
+\end_inset
+
+input [2:0] inst;
+\begin_inset Newline newline
+\end_inset
+
+output `L res;
+\begin_inset Newline newline
+\end_inset
+
+output carry, zero;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+wire prop, andor, selr;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+assign #1 { prop, selr, andor } = inst;
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Subsection
+Stacks
+\end_layout
+
+\begin_layout Standard
+The stacks are modeled as block RAM in the FPGA.
+ Therefore, they should have only one port, since these block RAMs are available
+ even in small FPGAs.
+ In an ASIC, this sort of stack is implemented with latches.
+ Here it's possible to separate read and write port (also for FPGAs that
+ support dual-ported RAM), and save the multiplexer for 
+\family typewriter
+spset
+\family default
+.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+filbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Scrap
+<<Stack>>=
+\begin_inset Newline newline
+\end_inset
+
+module stack(clk, sp, spdec, push, scan, in, out);
+\begin_inset Newline newline
+\end_inset
+
+   parameter dep=2, l=16;
+\begin_inset Newline newline
+\end_inset
+
+   input clk, push, scan;
+\begin_inset Newline newline
+\end_inset
+
+   input [dep-1:0] sp, spdec; 
+\begin_inset Newline newline
+\end_inset
+
+   input `L in;
+\begin_inset Newline newline
+\end_inset
+
+   output `L out; 
+\begin_inset Newline newline
+\end_inset
+
+`ifdef SYNCSTACK
+\begin_inset Newline newline
+\end_inset
+
+// ugly hack to have the same code running
+\begin_inset Newline newline
+\end_inset
+
+// on a Cyclone and an Apex
+\begin_inset Newline newline
+\end_inset
+
+   reg `L sm0, sm1, sm2, sm3; 
+\begin_inset Newline newline
+\end_inset
+
+   always @(posedge clk)
+\begin_inset Newline newline
+\end_inset
+
+     if(push) 
+\begin_inset Newline newline
+\end_inset
+
+       case(spdec) 
+\begin_inset Newline newline
+\end_inset
+
+         2'b00: sm0 <= in; 
+\begin_inset Newline newline
+\end_inset
+
+         2'b01: sm1 <= in; 
+\begin_inset Newline newline
+\end_inset
+
+         2'b10: sm2 <= in; 
+\begin_inset Newline newline
+\end_inset
+
+         2'b11: sm3 <= in; 
+\begin_inset Newline newline
+\end_inset
+
+       endcase 
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+   assign out = sp[1] ? (sp[0] ? sm3 : sm2) 
+\begin_inset Newline newline
+\end_inset
+
+                      : (sp[0] ? sm1 : sm0);
+\begin_inset Newline newline
+\end_inset
+
+`else 
+\begin_inset Newline newline
+\end_inset
+
+   wire [dep-1:0] #1 spset = spdec;
+\begin_inset Newline newline
+\end_inset
+
+   wire #1 write = push & ~clk;
+\begin_inset Newline newline
+\end_inset
+
+   wire `L #1 ind = in;
+\begin_inset Newline newline
+\end_inset
+
+   reg `L stackmem[0:(1@<<dep)-1];
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+`ifndef FPGA
+\begin_inset Newline newline
+\end_inset
+
+  always @(write or spset or ind or scan)
+\begin_inset Newline newline
+\end_inset
+
+     if(scan) begin
+\begin_inset Newline newline
+\end_inset
+
+        stackmem[0] <= ind;
+\begin_inset Newline newline
+\end_inset
+
+        stackmem[1] <= ind;
+\begin_inset Newline newline
+\end_inset
+
+        stackmem[2] <= ind;
+\begin_inset Newline newline
+\end_inset
+
+        stackmem[3] <= ind;
+\begin_inset Newline newline
+\end_inset
+
+     end else if(write) stackmem[spset] <= ind;
+\begin_inset Newline newline
+\end_inset
+
+`else
+\begin_inset Newline newline
+\end_inset
+
+  always @(posedge clk)
+\begin_inset Newline newline
+\end_inset
+
+     if(push)
+\begin_inset Newline newline
+\end_inset
+
+        stackmem[spset] <= #1 ind; 
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  assign #1 out = stackmem[sp]; 
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+endmodule // stack
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "c18"
+
+\end_inset
+
+
+\emph on
+c18 ColorForth Compiler,
+\emph default
+ 
+\noun on
+Chuck Moore
+\noun default
+, 
+\begin_inset Formula $17^{\mathrm{th}}$
+\end_inset
+
+ EuroForth Conference Proceedings, 2001
+\end_layout
+
+\end_body
+\end_document
