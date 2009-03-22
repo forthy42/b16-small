@@ -1,5 +1,5 @@
-#LyX 1.6.0rc4 created this file. For more info see http://www.lyx.org/
-\lyxformat 344
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass literate-article
@@ -233,7 +233,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename b16.eps
+	filename b16.fig
 	width 100col%
 
 \end_inset
