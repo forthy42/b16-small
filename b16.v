@@ -16,7 +16,7 @@
 `define L [l-1:0]
 `define DROP { sp, T } <= { spinc, N } 
 `define DEBUGGING
-// `define FPGA
+`define FPGA
 `timescale 1ns / 1ns
 
 module alu(res, carry, zero, T, N, c, inst);
@@ -101,7 +101,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
            dataout, READY, scanning, atpg 
 `ifdef DEBUGGING,
            dr, dw, daddr, din, dout, bp`endif);
-   parameter rstaddr=16'h07FE, show=0,
+   parameter rstaddr=16'h3FFE, show=0,
              l=16, sdep=2, rdep=2;
    input clk, run, reset, READY, scanning, atpg;
    output `L addr;
@@ -207,6 +207,9 @@ module cpu(clk, run, reset, addr, rd, wr, data,
                       state[1:0] + 2'b01 : 2'b00;
    `ifdef DEBUGGING
    reg `L dout;
+
+   // SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, P );
+
 
    always @(daddr or dr or run or P or T or R or I or
             state or sp or rp or c or N or toR or bp)
