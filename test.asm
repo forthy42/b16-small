@@ -9,7 +9,7 @@
 \
 macro: swap ( a b -- b a ) over >r nip r> end-macro
 $2000 org
-	$AA55 ,
+	$AA56 ,
 : error  BEGIN  AGAIN
 : stack			\ stack test
     1 #c 2 #c 3 #	\ fill stack with 1 2 3 4 5 6 7 8 9 A B
@@ -43,20 +43,60 @@ $2000 org
     /-  /- /- /- /-  /- /- /- /-  /- /- /- /-  /- /- /- /-
     			\ 17 div-step instructions
     nip nip r> over >r nip	\ reorder results
-    dup -cIF		\ branch if carry set
-        dup *+ drop r>	\ divide correction if carry was clear
-    ;			\ return to caller
-    THEN		\ resolve -cIF branch
-    dup *+ drop r>	\ mul-step divides by two
-    $8000 # +		\ insert carry
+    0 # dup +c *+ drop r>	\ insert carry
 ;			\ return to caller
 : muldiv
 	$1234 # $5678 # mul
 	$0626 # xor IF  error  THEN
 	$0060 # xor IF  error  THEN
+	$45C7 # $0626 # $0678 # div
+	$042F # xor IF  error  THEN
+	$F35D # xor IF  error  THEN 
+	$45C7 # $0626 # $1678 # div
+	$0E47 # xor IF  error  THEN
+	$4610 # xor IF  error  THEN 
+	$45C7 # $0626 # $2678 # div
+	$0F27 # xor IF  error  THEN
+	$28EC # xor IF  error  THEN 
+	$45C7 # $0626 # $3678 # div
+	$35F7 # xor IF  error  THEN
+	$1CE6 # xor IF  error  THEN 
+	$45C7 # $0626 # $4678 # div
+	$02FF # xor IF  error  THEN
+	$1657 # xor IF  error  THEN 
 	$45C7 # $0626 # $5678 # div
 	$4567 # xor IF  error  THEN
 	$1234 # xor IF  error  THEN 
+	$45C7 # $0626 # $6678 # div
+	$042F # xor IF  error  THEN
+	$0F5D # xor IF  error  THEN 
+	$45C7 # $0626 # $7678 # div
+	$658F # xor IF  error  THEN
+	$0D49 # xor IF  error  THEN 
+	$45C7 # $0626 # $8678 # div
+	$0AEF # xor IF  error  THEN
+	$0BB5 # xor IF  error  THEN 
+	$45C7 # $0626 # $9678 # div
+	$3A77 # xor IF  error  THEN
+	$0A76 # xor IF  error  THEN 
+	$45C7 # $0626 # $A678 # div
+	$9F67 # xor IF  error  THEN
+	$0974 # xor IF  error  THEN 
+	$45C7 # $0626 # $B678 # div
+	$7AC7 # xor IF  error  THEN
+	$08A0 # xor IF  error  THEN 
+	$45C7 # $0626 # $C678 # div
+	$7A37 # xor IF  error  THEN
+	$07EE # xor IF  error  THEN 
+	$45C7 # $0626 # $D678 # div
+	$1AFF # xor IF  error  THEN
+	$0757 # xor IF  error  THEN 
+	$45C7 # $0626 # $E678 # div
+	$9A67 # xor IF  error  THEN
+	$06D4 # xor IF  error  THEN 
+	$45C7 # $0626 # $F678 # div
+	$255F # xor IF  error  THEN
+	$0663 # xor IF  error  THEN 
 	\ multiply 1234 with 5678 (hex)
 	$0123 # $0626 # $a987 # div
 	$942b # xor IF  error  THEN
@@ -108,8 +148,6 @@ $2000 org
 $3FFE org
      boot ;;
 $2000 $2000 .hex b16.hex	\ print verilog hex for $2000 bytes
-$2000 $2000 .hexh b16h.hex	\ print verilog hex for $2000 bytes
-$2000 $2000 .hexl b16l.hex	\ print verilog hex for $2000 bytes
 $2000 $2000 .hexb b16b.hex	\ print verilog hex for $2000 bytes
 .mif test.mif
 $21FE org
