@@ -121,13 +121,13 @@ $2000 org
     $5678 # $1234 # 0 # !+ !+ drop
     0 # @+ @+ drop +
     dup $68AC # xor IF  error  THEN
-\    1 # @+ @+ drop +
-\    dup $AC68 # xor IF  error  THEN
-\    $5678 # $1234 # 1 # !+ !+ drop
-\    0 # @+ @+ drop +
-\    dup $AC68 # xor IF  error  THEN
-\    1 # @+ @+ drop +
-\    dup $68AC # xor IF  error  THEN
+    1 # @+ @+ drop +
+    dup $AC68 # xor IF  error  THEN
+    $5678 # $1234 # 1 # !+ !+ drop
+    0 # @+ @+ drop +
+    dup $AC68 # xor IF  error  THEN
+    1 # @+ @+ drop +
+    dup $68AC # xor IF  error  THEN
     $1234 # 4 # !+ drop
     4 # c@+ c@+ drop +
     dup $46 # xor  IF error  THEN
