@@ -186,24 +186,30 @@ wire [1:0] w;
 wire [15:0] dwrite, addr;
 reg [15:0] data, addr_i;
 reg [2:0] sel;
+reg READY;
+wire run=&counter[20:0];
 
-
-   cpu b16(clk, &counter[22:0], nreset, addr, r, w, data, dwrite, 1'b1, 1'b0, 1'b0
+   cpu b16(clk, run, nreset, addr, r, w, data, dwrite, READY, 1'b0, 1'b0
 `ifdef DEBUGGING, dr, dw, daddr, din, dout, bp`endif);
 
 
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, addr );
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, KEY[1] ? addr : SRAM_DQ );
 
    reg [7:0] bootraml[0:4095], bootramh[0:4095];
 
-   always @(negedge clk)
-   begin
-     addr_i <= addr;
-     if(sel[1]) begin
-	   if(w[1]) bootramh[addr[12:1]] <= dwrite[15:8];
-	   if(w[0]) bootraml[addr[12:1]] <= dwrite[ 7:0];
+   always @(negedge clk or negedge nreset)
+     if(!nreset) begin
+       READY <= 1;
+       addr_i <= 0;
+     end else if(run) begin
+       addr_i <= addr;
+       if(|sel[1:0])
+         READY <= ~READY;
+       if(sel[1]) begin
+	     if(w[1]) bootramh[addr[12:1]] <= dwrite[15:8];
+	     if(w[0]) bootraml[addr[12:1]] <= dwrite[ 7:0];
+       end
      end
-   end
 
    always @(r or sel or addr_i or SRAM_DQ)
 	 casez({ r, sel })
@@ -218,13 +224,15 @@ reg [2:0] sel;
       else if(addr[15:13] == 3'h1) sel <= 3'b010;
 	   else sel <= 3'b001;
 
-   assign SRAM_WE_N = ~(sel[0] & |w);
-   assign SRAM_CE_N = ~sel[0] | (|w & clk);
+   assign SRAM_WE_N = ~sel[0] | (|w ? READY : 1'b1);
+   assign SRAM_CE_N = ~sel[0] | (|w ? READY : ~r);
    assign SRAM_OE_N = ~(sel[0] & r);
    assign SRAM_DQ = SRAM_OE_N ? dwrite : 16'hzzzz;
    assign SRAM_ADDR = ~sel[0] ? 16'hzzzz : addr[15:1];
-   assign SRAM_UB_N = SRAM_WE_N | ~w[1];
-   assign SRAM_LB_N = SRAM_WE_N | ~w[0];
+   assign SRAM_UB_N = ~r & (SRAM_WE_N | ~w[1]);
+   assign SRAM_LB_N = ~r & (SRAM_WE_N | ~w[0]);
+   
+   assign LEDG = { SRAM_WE_N, SRAM_CE_N, SRAM_OE_N, SRAM_UB_N, SRAM_LB_N, sel };
    
    initial
       begin

@@ -8,6 +8,7 @@
 \ Self test first checkin
 \
 macro: swap ( a b -- b a ) over >r nip r> end-macro
+macro: ! ( a b -- )  !. drop  end-macro
 $2000 org
 	$AA56 ,
 : error  BEGIN  AGAIN
@@ -119,27 +120,28 @@ $2000 org
     9 # xor IF  error  THEN ;
 : loadstore
     $5678 # $1234 # 0 # !+ !+ drop
-    0 # @+ @+ drop +
-    dup $68AC # xor IF  error  THEN
-    1 # @+ @+ drop +
-    dup $AC68 # xor IF  error  THEN
+    0 # @+ @+ drop + dup dup 4 # !
+    $68AC # xor IF  error  THEN
+    1 # @+ @+ drop + dup 6 # !
+    $AC68 # xor IF  error  THEN
     $5678 # $1234 # 1 # !+ !+ drop
-    0 # @+ @+ drop +
-    dup $AC68 # xor IF  error  THEN
-    1 # @+ @+ drop +
-    dup $68AC # xor IF  error  THEN
+    0 # @+ @+ drop + dup 8 # !
+    $AC68 # xor IF  error  THEN
+    1 # @+ @+ drop + dup 10 # !
+    $68AC # xor IF  error  THEN
     $1234 # 4 # !+ drop
-    4 # c@+ c@+ drop +
-    dup $46 # xor  IF error  THEN
+    4 # c@+ c@+ drop + dup 12 # !
+    $46 # xor  IF error  THEN
 ;
 : boot
 	$0 # $10 # !* drop
 	$0 # $42E # !* drop
-    BEGIN stack		\ call stack test
+    BEGIN
+	loadstore           \ call load store tests
+	stack		\ call stack test
 	alu			\ call ALU test
 	muldiv		\ call muldiv tests
 	jumps -jumps	\ call jump tests
-	loadstore           \ call load store tests
 	stackop
 	$F000 # $0102 # !* drop
 	$0000 # $0100 # !* drop

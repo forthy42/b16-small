@@ -503,3 +503,5 @@ set_global_assignment -name VERILOG_FILE SEG7_LUT.v
 set_global_assignment -name VERILOG_FILE SEG7_LUT_4.v
 set_global_assignment -name VERILOG_FILE b16.v
 set_global_assignment -name VERILOG_FILE b16top.v
+set_global_assignment -name FMAX_REQUIREMENT "50 MHz"
+set_global_assignment -name MISC_FILE "C:/cygwin/home/bernd/b16-small/b16top.dpf"
