@@ -189,7 +189,7 @@ reg [2:0] sel;
 reg READY;
 wire run=SW[1] ? &counter[22:0] : &READY;
 
-   cpu b16(clk, run, nreset, addr, r, w, data, dwrite, 1'b1, 1'b0, 1'b0
+   cpu b16(clk, run, nreset, addr, r, w, data, dwrite, 1'b0, 1'b0
 `ifdef DEBUGGING, dr, dw, daddr, din, dout, bp`endif);
 
 

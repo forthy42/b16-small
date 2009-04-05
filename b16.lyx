@@ -2926,7 +2926,7 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
-// `define FPGA
+`define FPGA
 \begin_inset Newline newline
 \end_inset
 
@@ -3080,7 +3080,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 \begin_inset Newline newline
 \end_inset
 
-           dataout, READY, scanning, atpg 
+           dataout, scanning, atpg 
 \begin_inset Newline newline
 \end_inset
 
@@ -3175,7 +3175,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-parameter rstaddr=16'h07FE, show=0,
+parameter rstaddr=16'h3FFE, show=0,
 \begin_inset Newline newline
 \end_inset
 
@@ -3183,7 +3183,7 @@ parameter rstaddr=16'h07FE, show=0,
 \begin_inset Newline newline
 \end_inset
 
-input clk, run, reset, READY, scanning, atpg;
+input clk, run, reset, scanning, atpg;
 \begin_inset Newline newline
 \end_inset
 
@@ -3282,7 +3282,7 @@ reg dpush, rpush;
 \begin_inset Newline newline
 \end_inset
 
-always @(state or inst or rd or READY<<dbg senselist>>)
+always @(state or inst or rd <<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 
@@ -3306,7 +3306,7 @@ always @(state or inst or rd or READY<<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 
-        5'b00001: rpush <= |state[1:0] | READY;
+        5'b00001: rpush <= |state[1:0];
 \begin_inset Newline newline
 \end_inset
 

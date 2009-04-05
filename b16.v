@@ -98,12 +98,12 @@ module mux(out, sel, atpg, in1, in0);
    assign out = (sel | atpg) ? in1 : in0; 
 endmodule // mux
 module cpu(clk, run, reset, addr, rd, wr, data, 
-           dataout, READY, scanning, atpg 
+           dataout, scanning, atpg 
 `ifdef DEBUGGING,
            dr, dw, daddr, din, dout, bp`endif);
    parameter rstaddr=16'h3FFE, show=0,
              l=16, sdep=2, rdep=2;
-   input clk, run, reset, READY, scanning, atpg;
+   input clk, run, reset, scanning, atpg;
    output `L addr;
    output rd;
    output [1:0] wr;
@@ -171,15 +171,15 @@ module cpu(clk, run, reset, addr, rd, wr, data,
                       bswap ? N[7:0]  : N[15:8] }; 
    reg dpush, rpush;
 
-   always @(state or inst or rd or READY`ifdef DEBUGGING
-                                        or run or dw or daddr
-                                        `endif)
+   always @(state or inst or rd `ifdef DEBUGGING
+                                or run or dw or daddr
+                                `endif)
      begin
         rpush <= 1'b0;
         dpush <= (|state[1:0] & rd) |
                  (inst[4] && inst[3] && inst[1]);
         casez(inst)
-           5'b00001: rpush <= |state[1:0] | READY;
+           5'b00001: rpush <= |state[1:0];
            5'b11100: rpush <= 1'b1;
         endcase // case(inst)
         `ifdef DEBUGGING
@@ -207,9 +207,6 @@ module cpu(clk, run, reset, addr, rd, wr, data,
                       state[1:0] + 2'b01 : 2'b00;
    `ifdef DEBUGGING
    reg `L dout;
-
-   // SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, P );
-
 
    always @(daddr or dr or run or P or T or R or I or
             state or sp or rp or c or N or toR or bp)
