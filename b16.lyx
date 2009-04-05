@@ -3306,7 +3306,7 @@ always @(state or inst or rd <<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 
-        5'b00001: rpush <= |state[1:0];
+        5'b00001: rpush <= |state[1:0] | run;
 \begin_inset Newline newline
 \end_inset
 

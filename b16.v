@@ -179,7 +179,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
         dpush <= (|state[1:0] & rd) |
                  (inst[4] && inst[3] && inst[1]);
         casez(inst)
-           5'b00001: rpush <= |state[1:0];
+           5'b00001: rpush <= |state[1:0] | run;
            5'b11100: rpush <= 1'b1;
         endcase // case(inst)
         `ifdef DEBUGGING
