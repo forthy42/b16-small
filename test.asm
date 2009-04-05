@@ -11,7 +11,7 @@ macro: swap ( a b -- b a ) over >r nip r> end-macro
 macro: ! ( a b -- )  !. drop  end-macro
 $2000 org
 	$AA56 ,
-: error  BEGIN  AGAIN
+macro: error  BEGIN  AGAIN  end-macro
 : stack			\ stack test
     1 #c 2 #c 3 #	\ fill stack with 1 2 3 4 5 6 7 8 9 A B
     4 #c 5 #c

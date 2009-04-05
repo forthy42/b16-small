@@ -187,47 +187,48 @@ wire [15:0] dwrite, addr;
 reg [15:0] data, addr_i;
 reg [2:0] sel;
 reg READY;
-wire run=&counter[20:0];
+wire run=SW[1] ? &counter[22:0] : &READY;
 
-   cpu b16(clk, run, nreset, addr, r, w, data, dwrite, READY, 1'b0, 1'b0
+   cpu b16(clk, run, nreset, addr, r, w, data, dwrite, 1'b1, 1'b0, 1'b0
 `ifdef DEBUGGING, dr, dw, daddr, din, dout, bp`endif);
 
 
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, KEY[1] ? addr : SRAM_DQ );
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[0] ? addr : data);
 
    reg [7:0] bootraml[0:4095], bootramh[0:4095];
 
    always @(negedge clk or negedge nreset)
      if(!nreset) begin
-       READY <= 1;
+       READY <= -1;
        addr_i <= 0;
-     end else if(run) begin
+     end else begin
        addr_i <= addr;
-       if(|sel[1:0])
-         READY <= ~READY;
-       if(sel[1]) begin
+       if(sel[0]) READY <= READY + 1;
+       if(sel[1] & !r) begin
 	     if(w[1]) bootramh[addr[12:1]] <= dwrite[15:8];
 	     if(w[0]) bootraml[addr[12:1]] <= dwrite[ 7:0];
        end
      end
 
-   always @(r or sel or addr_i or SRAM_DQ)
-	 casez({ r, sel })
-//	   4'b1100: data <= addr[1] ? dout_out : din;
-       4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
-	   4'b1001: data <= SRAM_DQ;
-	   4'b????: data <= 16'h0000;
-	 endcase // case(sel)
+   always @(r or w or sel or addr_i or SRAM_DQ)
+     begin
+       data <= 0;
+	   casez({ r, sel })
+//	     4'b1100: data <= addr[1] ? dout_out : din;
+         4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
+	     4'b1001: data <= SRAM_DQ;
+	   endcase // case(sel)
+	 end
 	 
    always @(addr)
       if(addr[15:2] == 14'h3fff) sel <= 3'b100;
       else if(addr[15:13] == 3'h1) sel <= 3'b010;
 	   else sel <= 3'b001;
 
-   assign SRAM_WE_N = ~sel[0] | (|w ? READY : 1'b1);
-   assign SRAM_CE_N = ~sel[0] | (|w ? READY : ~r);
+   assign SRAM_WE_N = ~sel[0] | (|w ? &READY : 1'b1);
+   assign SRAM_CE_N = ~sel[0] | (|w ? &READY : ~r);
    assign SRAM_OE_N = ~(sel[0] & r);
-   assign SRAM_DQ = SRAM_OE_N ? dwrite : 16'hzzzz;
+   assign SRAM_DQ = (SRAM_OE_N & sel[0]) ? dwrite : 16'hzzzz;
    assign SRAM_ADDR = ~sel[0] ? 16'hzzzz : addr[15:1];
    assign SRAM_UB_N = ~r & (SRAM_WE_N | ~w[1]);
    assign SRAM_LB_N = ~r & (SRAM_WE_N | ~w[0]);
