@@ -3282,7 +3282,7 @@ reg dpush, rpush;
 \begin_inset Newline newline
 \end_inset
 
-always @(state or inst or rd <<dbg senselist>>)
+always @(state or inst or rd or run <<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 

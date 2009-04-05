@@ -171,9 +171,9 @@ module cpu(clk, run, reset, addr, rd, wr, data,
                       bswap ? N[7:0]  : N[15:8] }; 
    reg dpush, rpush;
 
-   always @(state or inst or rd `ifdef DEBUGGING
-                                or run or dw or daddr
-                                `endif)
+   always @(state or inst or rd or run `ifdef DEBUGGING
+                                       or run or dw or daddr
+                                       `endif)
      begin
         rpush <= 1'b0;
         dpush <= (|state[1:0] & rd) |
