@@ -201,11 +201,14 @@ wire run=SW[1] ? &counter[22:0] : &READY;
      if(!nreset) begin
 	dox <= 0;
 	od <= 0;
+     end else begin
+       if(dix) od <= id;
+       dox <= dix;
      end
      
-   uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, rate);
+   uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, rate, LEDR);
    
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, { rate, id } /* SW[0] ? addr : data */);
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, { rate, od } /* SW[0] ? addr : data */);
 
    reg [7:0] bootraml[0:4095], bootramh[0:4095];
 
