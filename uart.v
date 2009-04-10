@@ -34,6 +34,7 @@ module uart(clk, nreset, rx, tx, id, od, dix, dox, rate, debug);
 	lastrx <= 3'b11;
 	bitcnt <= 0;
 	bitcnto <= 0;
+	tx <= 1;
      end else begin
 	lastrx <= { lastrx[0], rx };
 	if(srset) begin
