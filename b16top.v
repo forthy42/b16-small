@@ -192,8 +192,20 @@ wire run=SW[1] ? &counter[22:0] : &READY;
    cpu b16(clk, run, nreset, addr, r, w, data, dwrite, 1'b0, 1'b0
 `ifdef DEBUGGING, dr, dw, daddr, din, dout, bp`endif);
 
+   reg [7:0] od;
+   wire [7:0] id, rate;
+   reg 	      dox;
+   wire       dix;
 
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[0] ? addr : data);
+   always @(posedge clk or negedge nreset)
+     if(!nreset) begin
+	dox <= 0;
+	od <= 0;
+     end
+     
+   uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, rate);
+   
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, { rate, id } /* SW[0] ? addr : data */);
 
    reg [7:0] bootraml[0:4095], bootramh[0:4095];
 
