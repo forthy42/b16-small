@@ -204,7 +204,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
    dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
-		   csu, addru, ru, wru, data, datau, { 7'b001000, drun });
+		   csu, addru, ru, wru, data, datau, { 7'b0010000, drun });
 
    wire [15:0] addr = csu ? addru : addrc;
    wire [15:0] dwrite = csu ? datau : dwritec;
@@ -221,8 +221,8 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    
    SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[1] ? SW[0] ? addru : { rate, od } : SW[0] ? addr : data);
 
-   reg [7:0] bootraml[0:4095] /* synthesis ramstyle="M512, no_rw_check" */;
-   reg [7:0] bootramh[0:4095] /* synthesis ramstyle="M512, no_rw_check" */;
+   reg [7:0] bootraml[0:4095] /* synthesis ramstyle="no_rw_check" */;
+   reg [7:0] bootramh[0:4095] /* synthesis ramstyle="no_rw_check" */;
 
    always @(negedge clk or negedge nreset)
      if(!nreset) begin
