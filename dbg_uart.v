@@ -29,7 +29,7 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
    reg [15:0] 	 addru, datau;
    reg [1:0] 	 wru;
    wire 	 csu = |{wru, ru};
-   wire [7:0] 	 status = 0;
+   wire [7:0] 	 status = 8'h21;
 
    always @(posedge clk or negedge nreset)
      if(!nreset) begin
