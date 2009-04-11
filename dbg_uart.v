@@ -14,9 +14,9 @@
  */
 
 module dbg_uart(clk, nreset, dix, dox, id, od,
-		csu, addru, ru, wru, data, datau);
+		csu, addru, ru, wru, data, datau, status);
    input clk, nreset, dix;
-   input [7:0] id;
+   input [7:0] id, status;
    input [15:0] data;
    output 	dox, csu, ru;
    output [7:0] od;
@@ -29,7 +29,6 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
    reg [15:0] 	 addru, datau;
    reg [1:0] 	 wru;
    wire 	 csu = |{wru, ru};
-   wire [7:0] 	 status = 8'h21;
 
    always @(posedge clk or negedge nreset)
      if(!nreset) begin
