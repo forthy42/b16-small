@@ -42,9 +42,9 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 	dox <= 0;
 	if(csu) begin
 	   addru <= addru + 1;
-	   r <= 0;
-	   wr <= 0;
-	   if(r)
+	   ru <= 0;
+	   wru <= 0;
+	   if(ru)
 	     { dox, od } <= { 1'b1, addru[0] ? data[15:8] : data[7:0] };
 	end else if(dix) begin
 	   case(state)
@@ -52,14 +52,14 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 		      "a": state <= 2;
 		      "i": { dox, od } <= { 1'b1, status };
 		      "w": state <= 1;
-		      "r": r <= 1;
+		      "r": ru <= 1;
 		    endcase // casez (id)
 	     2'b01: begin
 		if(addru[0])
 		  datau[15:8] <= id;
 		else
 		  datau[7:0] <= id;
-		wr <= addru[0] ? 2'b10 : 2'b01;
+		wru <= addru[0] ? 2'b10 : 2'b01;
 		state <= 0;
 	     end
 	     2'b10: begin
