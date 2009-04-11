@@ -39,7 +39,7 @@ module uart(clk, nreset, rx, tx, id, od, dix, dox, wip, rate, debug);
      end else begin
 	lastrx <= { lastrx[0], rx };
 	if(srset) begin
-	   // receve part
+	   // receive part
 	   dix <= 0;
 	   if(!bitcnt) begin
 	      if(lastrx == 2'b10) begin
