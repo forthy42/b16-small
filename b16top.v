@@ -173,42 +173,51 @@ assign	I2C_SDAT	=	1'bz;
 assign	GPIO_0		=	36'hzzzzzzzzz;
 assign	GPIO_1		=	36'hzzzzzzzzz;
 
-// SEG7_LUT_4 			u0	(	HEX0,HEX1,HEX2,HEX3,{~SW[7:0],Cont[27:20]} );
+   reg [27:0] 	counter;
+   wire 	clk = CLOCK_50;
 
-reg [27:0] counter;
-always@(posedge CLOCK_50)		counter	<=	counter+1'b1;
-
-
-wire clk = CLOCK_50;
-wire nreset = KEY[0];
-wire r;
-wire [1:0] w;
-wire [15:0] dwrite, addr;
-reg [15:0] data, addr_i;
-reg [2:0] sel;
-reg READY;
-wire run=SW[1] ? &counter[22:0] : &READY;
-
-   cpu b16(clk, run, nreset, addr, r, w, data, dwrite, 1'b0, 1'b0
-`ifdef DEBUGGING, dr, dw, daddr, din, dout, bp`endif);
+   always@(posedge clk or negedge nreset)
+     if(!nreset)
+       counter <= 0;
+     else
+       counter <= counter + 1;
+   
+   wire 	nreset = KEY[0];
+   wire 	rc;
+   wire [1:0] 	wc;
+   wire [15:0] 	addrc, dwritec;
+   reg [15:0] 	data, addr_i;
+   reg [2:0] 	sel;
+   reg 	  READY;
 
    reg [7:0] od;
    wire [7:0] id, rate;
-   reg 	      dox;
-   wire       dix;
+   wire       dox;
+   wire       dix, wip;
 
-   always @(posedge clk or negedge nreset)
-     if(!nreset) begin
-	dox <= 0;
-	od <= 0;
-     end else begin
-       if(dix) od <= id;
-       dox <= dix;
-     end
-     
-   uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, rate, LEDR);
+   wire   dr, dbgr, drun;
+   wire [1:0] dw, dbgw;
+   wire [15:0] caddr, cin, cout;
+   wire [15:0] daddr, din, dout, bp;
+   wire        run = drun & (SW[2] ? &counter[22:0] : &READY);
+
+   uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
+
+   dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
+		   csu, addru, ru, wru, data, datau);
+
+   wire [15:0] addr = csu ? addru : addrc;
+   wire [15:0] dwrite = csu ? datau : dwritec;
    
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, { rate, od } /* SW[0] ? addr : data */);
+   debugger dbg(clk, nreset,
+                daddr, din, dbgr, dbgw,
+                addr, r,
+                drun, dr, dw, bp);
+   
+   cpu b16(clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0, 1'b0,
+	   dr, dw, daddr[3:1], din, dout, bp);
+   
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[1} ? { rate, od } : SW[0] ? addr : data);
 
    reg [7:0] bootraml[0:4095], bootramh[0:4095];
 

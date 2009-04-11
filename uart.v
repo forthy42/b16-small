@@ -4,13 +4,13 @@
  * Uart module
  */
 
-module uart(clk, nreset, rx, tx, id, od, dix, dox, rate, debug);
+module uart(clk, nreset, rx, tx, id, od, dix, dox, wip, rate, debug);
    input clk, nreset, rx, dox;
    input [7:0] od;
    output [7:0] id;
    output [7:0] rate;
    output [9:0] debug;
-   output 	dix, tx;
+   output 	dix, wip, tx;
 
    reg [9:0] 	disr, dosr;
    reg 		dix, srset, tx;
@@ -21,6 +21,7 @@ module uart(clk, nreset, rx, tx, id, od, dix, dox, rate, debug);
    assign id = disr[8:1];
    assign rate = cntmax[10:3];
    assign debug = { srset, lastrx, bitcnt, disr[9:7] };
+   assign wip = |bitcnto;
    
    always @(posedge clk or negedge nreset)
      if(!nreset) begin
@@ -59,7 +60,7 @@ module uart(clk, nreset, rx, tx, id, od, dix, dox, rate, debug);
 	      end
 	   end // else: !if(!bitcnt)
 	   // send part
-	   if(|bitcnto) begin
+	   if(wip) begin
 	      if(cnto == 1) begin
 		 { dosr, tx } <= { 1'b1, dosr };
 		 bitcnto <= bitcnto + 1;
