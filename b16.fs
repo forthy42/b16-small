@@ -384,8 +384,13 @@ dos also
 : init ( addr u -- )  r/w bin open-file throw to b16
     B115200 b16 filehandle @ set-baud ;
 
-: check-in ( n -- addr u )
-    BEGIN  dup b16 check-read u<  WHILE  1 ms  REPEAT
+Variable timeout
+
+: waitx  10 ms timeout @ 0 after - 0< ;
+
+: check-in ( n -- addr u ) &100 after timeout !
+    BEGIN  dup b16 check-read u>  WHILE  waitx  UNTIL
+	true abort" timeout!"  THEN
     pad swap b16 read-file throw pad swap ;
 
 : hold16 ( n -- )  dup hold 8 rshift hold ;
@@ -427,6 +432,25 @@ $FFEE Constant DBG_I
 : b16-run  ( -- ) DBG_STATE u@ $1000 or DBG_STATE u! ;
 : b16-step  ( -- ) DBG_STATE u@ $1000 invert and DBG_STATE u! ;
 : b16-steps ( n -- ) 0 ?DO  b16-step  LOOP ;
+: b16-reset ( -- )  b16-stop  $3FFE DBG_P u! 0 DBG_I u! 0 DBG_STATE u! ;
+
+\ upload program
+
+$2000 Value rom-offset
+Variable spi-addr
+
+: >hex ( addr u -- )  base @ >r hex
+    over c@ '@ = IF
+	0. 2swap 1 /string >number 2swap drop 2* rom-offset + spi-addr !
+	bl skip THEN  0. 2swap >number 2drop drop spi-addr @
+    2 spi-addr +!  r> base ! ;
+
+: include-hex ( addr u -- )
+    b16-reset
+    r/o open-file throw >r
+    BEGIN  pad c/l r@ read-line throw  WHILE  pad swap >hex u!
+    REPEAT  drop r> close-file throw ;
+
 
 \ read processor status
 
