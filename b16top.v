@@ -204,7 +204,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
    dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
-		   csu, addru, ru, wru, data, datau, { 6'b001000, &READY, drun });
+		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 6'b001000, &READY, drun });
 
    wire [15:0] addr = csu ? addru : addrc;
    wire [15:0] dwrite = csu ? datau : dwritec;
@@ -237,11 +237,9 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
        end
      end
 
-   always @(r or w or sel or addr_i or SRAM_DQ or dr or data_dbg)
+   always @(r or w or sel or addr_i or SRAM_DQ)
      begin
 	data <= 0;
-	if(dr) data <= data_dbg;
-	else
 	  casez({ r, sel })
             4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
 	    4'b1001: data <= SRAM_DQ;
