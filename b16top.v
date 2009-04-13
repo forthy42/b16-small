@@ -198,13 +198,13 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    wire   dr, drun;
    wire [1:0] dw, wru;
    wire [15:0] caddr, cin, cout;
-   wire [15:0] addru, datau, bp;
+   wire [15:0] addru, datau, data_dbg, bp;
    wire        run = ~csu & drun & (SW[2] ? &counter[22:0] : &READY);
 
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
    dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
-		   csu, addru, ru, wru, data, datau, { 7'b0010000, drun });
+		   csu, addru, ru, wru, data, datau, { 6'b001000, &READY, drun });
 
    wire [15:0] addr = csu ? addru : addrc;
    wire [15:0] dwrite = csu ? datau : dwritec;
@@ -217,7 +217,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
                 drun, dr, dw, bp);
    
    cpu b16(clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0, 1'b0,
-	   dr, dw, addru[3:1], din, dout, bp);
+	   dr, dw, addru[3:1], datau, data_dbg, bp);
    
    SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[1] ? SW[0] ? addru : datau : SW[0] ? addr : data);
 
@@ -237,15 +237,16 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
        end
      end
 
-   always @(r or w or sel or addr_i or SRAM_DQ)
+   always @(r or w or sel or addr_i or SRAM_DQ or dr or data_dbg)
      begin
-       data <= 0;
-	   casez({ r, sel })
-//	     4'b1100: data <= addr[1] ? dout_out : din;
-         4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
-	     4'b1001: data <= SRAM_DQ;
-	   endcase // case(sel)
-	 end
+	data <= 0;
+	if(dr) data <= data_dbg;
+	else
+	  casez({ r, sel })
+            4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
+	    4'b1001: data <= SRAM_DQ;
+	  endcase // case(sel)
+     end
 	 
    always @(addr)
       if(addr[15:2] == 14'h3fff) sel <= 3'b100;

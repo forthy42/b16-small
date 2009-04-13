@@ -45,7 +45,7 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 	od <= 0;
      end else begin
 	dox <= 0;
-	if(csu) begin
+	if(csu && status[1]) begin
 	   addru <= addru + ru + wru[0] + wru[1];
 	   ru <= 0;
 	   wru <= 0;

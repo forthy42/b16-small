@@ -175,6 +175,7 @@ Variable bundle bundle off
 Variable extra-inc  extra-inc off 0 c, 0 c, 0 c, 0 c, 0 c, 0 c,
 Variable old-einc
 Variable listing  listing on
+[IFUNDEF] sourceline#  : sourceline# line @ ; [THEN]
 
 : .#4 base @ >r hex 0 <# # # # # #> type r> base ! ;
 : .#2 base @ >r hex 0 <# # # #> type r> base ! ;
@@ -322,26 +323,26 @@ $800 Value rom-end
     0 <# #S #> fd write-file throw s"  : " fd write-file throw
     0 <# # # # # #> fd write-file throw s" ;" fd write-line throw ;
 : .mif ( "file" -- )  hex inst,
-    parse-word .mif-head16
+    parse-name .mif-head16
     rom-end rom-start ?DO I ram@ I rom-start - 2/ .mif16-dump 2 +LOOP
     .mif-tail decimal ;
 : .hex ( start n "file" -- ) over swap hex
-    parse-word new-fd
+    parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # # # 2drop bl hold # # # # '@ hold #>
 	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
 : .hexl ( start n "file" -- ) over swap hex
-    parse-word new-fd
+    parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # 2drop bl hold # # # # '@ hold #>
 	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
 : .hexh ( start n "file" -- ) over swap hex
-    parse-word new-fd
+    parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 8 rshift 0 # # 2drop bl hold # # # # '@ hold #>
 	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
 : .hexb ( start n "file" -- ) over swap hex
-    parse-word new-fd
+    parse-name new-fd
     bounds ?DO
 	I over -    0 <# I ram@ 8 rshift 0 # # 2drop bl hold # # # # '@ hold #>
 	fd write-line throw
@@ -380,8 +381,65 @@ include serial.fs
 dos also
 
 0 value b16
-: init ( -- )  s" /dev/b16" r/w bin open-file throw to b16
+: init ( addr u -- )  r/w bin open-file throw to b16
     B115200 b16 filehandle @ set-baud ;
+
+: check-in ( n -- addr u )
+    BEGIN  dup b16 check-read u<  WHILE  1 ms  REPEAT
+    pad swap b16 read-file throw pad swap ;
+
+: hold16 ( n -- )  dup hold 8 rshift hold ;
+
+\ load store
+
+: addr ( addr -- )  <# hold16 'a hold 0. #> b16 write-file throw ;
+
+: u@ ( addr -- u )  addr s" rl" b16 write-file throw  2 check-in
+    0 -rot bounds ?DO  8 lshift I c@ or  LOOP ;
+
+: u@s ( addr addr1 u -- ) rot addr dup 0 ?DO s" rl" b16 write-file throw LOOP
+    2* check-in rot swap move ;
+
+: uc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
+    0 -rot bounds ?DO  8 lshift I c@ or  LOOP ;
+
+: u! ( u addr -- )  addr <# hold16 'W hold 0. #>
+    b16 write-file throw ;
+
+: uc! ( u addr -- )  addr <# hold 'w hold 0. #>
+    b16 write-file throw ;
+
+: status@ ( -- n ) s" i" b16 write-file throw  1 check-in drop c@ ;
+
+\ debugging reg map
+
+$FFE0 Constant DBG_P
+$FFE2 Constant DBG_T
+$FFE4 Constant DBG_R
+$FFE6 Constant DBG_I
+$FFE8 Constant DBG_STATE
+$FFEA Constant DBG_S[]
+$FFEC Constant DBG_R[]
+$FFEE Constant DBG_STARTSTOP
+
+: b16-stop ( -- ) DBG_STARTSTOP u@ drop ;
+: b16-run  ( -- ) 1 DBG_STARTSTOP u! ;
+: b16-step  ( -- ) 0 DBG_STARTSTOP u! ;
+: b16-steps ( n -- ) 0 ?DO  b16-step  LOOP ;
+
+\ read processor status
+
+Create regs  5 2* allot
+here 8 2* allot
+Constant stack
+
+: load-reg
+  DBG_P regs 4 u@s
+  0 DBG_I u! \ set instruction register to 0 to read stacks
+  DBG_STATE regs 8 + 3 u@s
+  stack 16 + stack 4 + DO  DBG_S[] I 2 u@s  4 +LOOP
+  regs 6 + w@ DBG_I u! ;
+
 
 : ?in ( -- )  pad b16 check-read b16 read-file throw pad swap type ;
 : ?flush ( -- )  pad $100 + b16 check-read b16 read-file throw drop ;
@@ -411,7 +469,7 @@ previous b16-asm also Forth
 : sim  ( >defs -- )
     IP @ >r prog r@ P ! ['] run catch r> org ;
 
-init
+s" /dev/ttyUSB0" init
 
 previous Forth
 [ELSE]
