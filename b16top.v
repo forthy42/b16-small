@@ -204,7 +204,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
    dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
-		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 6'b001000, dr | &READY, drun });
+		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 6'b001000, |{ dr, dw, &READY }, drun });
 
    wire [15:0] addr = csu ? addru : addrc;
    wire [15:0] dwrite = csu ? datau : dwritec;
