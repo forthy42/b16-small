@@ -398,7 +398,8 @@ dos also
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP ;
 
 : u@s ( addr addr1 u -- ) rot addr dup 0 ?DO s" rl" b16 write-file throw LOOP
-    2* check-in rot swap move ;
+    2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
+    rot swap move ;
 
 : uc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP ;
@@ -413,18 +414,18 @@ dos also
 
 \ debugging reg map
 
-$FFE0 Constant DBG_P
-$FFE2 Constant DBG_T
-$FFE4 Constant DBG_R
-$FFE6 Constant DBG_I
-$FFE8 Constant DBG_STATE
-$FFEA Constant DBG_S[]
-$FFEC Constant DBG_R[]
-$FFEE Constant DBG_STARTSTOP
+$FFE0 Constant DBG_S[]
+$FFE2 Constant DBG_R[]
+$FFE4 Constant DBG_BP
+$FFE6 Constant DBG_STATE
+$FFE8 Constant DBG_P
+$FFEA Constant DBG_T
+$FFEC Constant DBG_R
+$FFEE Constant DBG_I
 
-: b16-stop ( -- ) DBG_STARTSTOP u@ drop ;
-: b16-run  ( -- ) 1 DBG_STARTSTOP u! ;
-: b16-step  ( -- ) 0 DBG_STARTSTOP u! ;
+: b16-stop ( -- ) DBG_STATE u@ drop ;
+: b16-run  ( -- ) DBG_STATE u@ $1000 or DBG_STATE u! ;
+: b16-step  ( -- ) DBG_STATE u@ $1000 invert and DBG_STATE u! ;
 : b16-steps ( n -- ) 0 ?DO  b16-step  LOOP ;
 
 \ read processor status
@@ -433,16 +434,26 @@ Create regs  5 2* allot
 here 8 2* allot
 Constant stack
 
-: load-reg
+also forth
+
+: load-regs ( -- )
   DBG_P regs 4 u@s
+  DBG_STATE u@ regs 8 + w!
   0 DBG_I u! \ set instruction register to 0 to read stacks
-  DBG_STATE regs 8 + 3 u@s
-  stack 16 + stack 4 + DO  DBG_S[] I 2 u@s  4 +LOOP
+  stack 16 + stack DO  DBG_S[] I 2 u@s  4 +LOOP
   regs 6 + w@ DBG_I u! ;
 
+: .regs ( -- ) base @ >r hex
+    ." P: " regs w@ 4 0.r ."  I: " regs 6 + w@ 4 0.r ."  S: " regs 8 + w@ 4 0.r cr
+    ." T: " regs 2 + w@ 4 0.r
+    stack 16 bounds DO  I w@ space 4 0.r 4 +LOOP cr
+    ." R: " regs 4 + w@ 4 0.r
+    stack 2+ 16 bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
 
 : ?in ( -- )  pad b16 check-read b16 read-file throw pad swap type ;
 : ?flush ( -- )  pad $100 + b16 check-read b16 read-file throw drop ;
+
+previous
 
 : program ( addr u addr -- ) ?flush
     <# over hold $100 /mod swap hold hold '0 hold 0. #>
@@ -471,7 +482,7 @@ previous b16-asm also Forth
 
 s" /dev/ttyUSB0" init
 
-previous Forth
+Forth
 [ELSE]
 b16-asm also Forth
 [THEN]
