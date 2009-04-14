@@ -388,34 +388,41 @@ Variable timeout
 
 : waitx  10 ms timeout @ 0 after - 0< ;
 
-: check-in ( n -- addr u ) &100 after timeout !
+: check-in ( n -- addr u ) &200 after timeout !
     BEGIN  dup b16 check-read u>  WHILE  waitx  UNTIL
 	true abort" timeout!"  THEN
     pad swap b16 read-file throw pad swap ;
+
+: b16-clear ( -- )  pad b16 check-read b16 read-file throw drop ;
 
 : hold16 ( n -- )  dup hold 8 rshift hold ;
 
 \ load store
 
-: addr ( addr -- )  <# hold16 'a hold 0. #> b16 write-file throw ;
+Variable addr' -1 addr' !
+
+: addr ( addr -- )  addr' @ over addr' ! over <> IF 
+	<# hold16 'a hold 0. #> b16 write-file throw
+    ELSE  drop  THEN ;
 
 : u@ ( addr -- u )  addr s" rl" b16 write-file throw  2 check-in
-    0 -rot bounds ?DO  8 lshift I c@ or  LOOP ;
+    0 -rot bounds ?DO  8 lshift I c@ or  LOOP  2 addr' +! ;
 
 : u@s ( addr addr1 u -- ) rot addr dup 0 ?DO s" rl" b16 write-file throw LOOP
     2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
-    rot swap move ;
+    rot swap dup addr' +! move ;
 
 : uc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
-    0 -rot bounds ?DO  8 lshift I c@ or  LOOP ;
+    0 -rot bounds ?DO  8 lshift I c@ or  LOOP  1 addr' +! ;
 
 : u! ( u addr -- )  addr <# hold16 'W hold 0. #>
-    b16 write-file throw ;
+    b16 write-file throw 2 addr' +! ;
 
 : uc! ( u addr -- )  addr <# hold 'w hold 0. #>
-    b16 write-file throw ;
+    b16 write-file throw 1 addr' +! ;
 
-: status@ ( -- n ) s" i" b16 write-file throw  1 check-in drop c@ ;
+: status@ ( -- n )  b16-clear
+    s" i" b16 write-file throw  1 check-in drop c@ ;
 
 \ debugging reg map
 
