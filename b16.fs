@@ -382,18 +382,20 @@ dos also
 
 0 value b16
 : init ( addr u -- )  r/w bin open-file throw to b16
-    B115200 b16 filehandle @ set-baud ;
+    B230400 b16 filehandle @ set-baud ;
 
 Variable timeout
 
 : waitx  10 ms timeout @ 0 after - 0< ;
 
+: b16-clear ( -- )  pad b16 check-read b16 read-file throw drop ;
+
 : check-in ( n -- addr u ) &200 after timeout !
     BEGIN  dup b16 check-read u>  WHILE  waitx  UNTIL
-	true abort" timeout!"  THEN
+	s" iii" b16 write-file throw
+	&100 ms b16-clear
+	pad 0 EXIT  THEN
     pad swap b16 read-file throw pad swap ;
-
-: b16-clear ( -- )  pad b16 check-read b16 read-file throw drop ;
 
 : hold16 ( n -- )  dup hold 8 rshift hold ;
 
