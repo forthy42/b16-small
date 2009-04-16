@@ -330,12 +330,12 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 
 endmodule // cpu
 `ifdef DEBUGGING
-module debugger(clk, nreset,
+module debugger(clk, nreset, run,
                 addr, data, r, w,
                 cpu_addr, cpu_r,
                 drun, dr, dw, bp);
 parameter l=16, dbgaddr = 12'hFFE;
-input clk, nreset, r, cpu_r;
+input clk, nreset, run, r, cpu_r;
 input [1:0] w;
 input `L addr, data, cpu_addr;
 output drun, dr, dw;
@@ -354,7 +354,7 @@ if(!nreset) begin
    bp <= 16'hffff;
 end else begin
    if(cpu_addr == bp && cpu_r) { drun, drun1 } <= 0;
-   else drun <= drun1;
+   else if(run) drun <= drun1;
    if((dr | dw) && (addr[3:1] == 3'h3)) begin
       drun <= !dr & dw;
       drun1 <= !dr & dw & data[12];

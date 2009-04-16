@@ -3914,7 +3914,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-module debugger(clk, nreset,
+module debugger(clk, nreset, run,
 \begin_inset Newline newline
 \end_inset
 
@@ -3934,7 +3934,7 @@ parameter l=16, dbgaddr = 12'hFFE;
 \begin_inset Newline newline
 \end_inset
 
-input clk, nreset, r, cpu_r;
+input clk, nreset, run, r, cpu_r;
 \begin_inset Newline newline
 \end_inset
 
@@ -4010,7 +4010,7 @@ end else begin
 \begin_inset Newline newline
 \end_inset
 
-   else drun <= drun1;
+   else if(run) drun <= drun1;
 \begin_inset Newline newline
 \end_inset
 
