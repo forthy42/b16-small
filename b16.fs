@@ -410,9 +410,12 @@ Variable addr' -1 addr' !
 : u@ ( addr -- u )  addr s" rl" b16 write-file throw  2 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP  2 addr' +! ;
 
-: u@s ( addr addr1 u -- ) rot addr dup 0 ?DO s" rl" b16 write-file throw LOOP
-    2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
-    rot swap dup addr' +! move ;
+: u@s ( addr addr1 u -- ) rot addr
+    BEGIN  2dup 8 min
+	dup 0 ?DO s" rl" b16 write-file throw LOOP
+	2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
+	rot swap dup addr' +! move
+    $10 /string  50 ms dup 0= UNTIL  2drop ;
 
 : uc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP  1 addr' +! ;
