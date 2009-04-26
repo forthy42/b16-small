@@ -27,8 +27,62 @@ how:
   : params   DF[ 0 ]DF s" b16 state" ;
 class;
 
+component class b16-debug
+public:
+ ( [varstart] )  ( [varend] ) 
+how:
+  : params   DF[ 0 ]DF s" b16 Debugger" ;
+class;
+
+component class b16-mem
+public:
+  infotextfield ptr addr#
+  infotextfield ptr data#
+  infotextfield ptr n#
+  infotextfield ptr status#
+ ( [varstart] )  ( [varend] ) 
+how:
+  : params   DF[ 0 ]DF s" b16 load store" ;
+class;
+
+b16-mem implements
+ ( [methodstart] ) : assign drop ; ( [methodend] ) 
+  : widget  ( [dumpstart] )
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Addr" infotextfield new  ^^bind addr#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Data" infotextfield new  ^^bind data#
+            ^^ S[ addr# get drop u@ 0 data# assign ]S ( MINOS ) X" @" button new 
+            ^^ S[ addr# get drop uc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
+            ^^ S[ data# get drop addr# get drop u! ]S ( MINOS ) X" !" button new 
+            ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
+          #4 hatbox new #1 hskips
+        #3 habox new vfixbox  #1 hskips
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
+          ^^ S[ addr# get drop scratch n# get 2/ drop u@s
+base @ >r hex  addr# get drop
+scratch n# get drop bounds ?DO
+  I $F and 0= IF
+    cr dup 0 <# # # # # #> type ." : " $10 +
+  THEN
+  I c@ 0 <# # # #> type space
+LOOP  drop  r> base ! ]S ( MINOS ) X" Dump" button new 
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" status" infotextfield new  ^^bind status#
+          ^^ S[ status@ 0 status# assign ]S ( MINOS ) X" status@" button new 
+        #4 habox new vfixbox  #1 hskips
+      #2 vabox new panel
+    ( [dumpend] ) ;
+class;
+
+b16-debug implements
+ ( [methodstart] )  ( [methodend] ) 
+  : widget  ( [dumpstart] )
+        ^^ CP[  ]CP ( MINOS ) b16-mem new 
+        ^^ CP[  ]CP ( MINOS ) b16-state new 
+      #2 vabox new
+    ( [dumpend] ) ;
+class;
+
 b16-state implements
- ( [methodstart] ) \ : assign drop ;
+ ( [methodstart] ) : assign drop ;
 : update  stopped @ 0= ?EXIT  load-regs stopped dup @ >r off
   regs 0 + w@ 0 p# assign
   regs 2 + w@ 0 t# assign
@@ -76,7 +130,7 @@ b16-state implements
 class;
 
 : main
-  b16-state open-app
+  b16-debug open-app
   event-loop bye ;
 script? [IF]  main  [THEN]
 previous previous previous
