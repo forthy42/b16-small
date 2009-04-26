@@ -57,14 +57,16 @@ b16-mem implements
           #4 hatbox new #1 hskips
         #3 habox new vfixbox  #1 hskips
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
-          ^^ S[ addr# get drop scratch n# get 2/ drop u@s
-base @ >r hex  addr# get drop
-scratch n# get drop bounds ?DO
-  I $F and 0= IF
-    cr dup 0 <# # # # # #> type ." : " $10 +
-  THEN
-  I c@ 0 <# # # #> type space
-LOOP  drop  r> base ! ]S ( MINOS ) X" Dump" button new 
+          ^^ S[ wini/o at? 2drop
+addr# get drop n# get drop base @ >r hex
+BEGIN  2dup scratch swap 2/ 8 min u@s
+    cr over 0 <# # # # # #> type ." : "
+    scratch over $10 umin bounds ?DO
+        I c@ 0 <# # # #> type space
+    LOOP
+    $10 /string dup 0= UNTIL
+2drop r> base !
+ ]S ( MINOS ) X" Dump" button new 
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" status" infotextfield new  ^^bind status#
           ^^ S[ status@ 0 status# assign ]S ( MINOS ) X" status@" button new 
         #4 habox new vfixbox  #1 hskips
