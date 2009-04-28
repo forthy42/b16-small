@@ -388,6 +388,7 @@ Variable timeout
 
 : waitx  10 ms timeout @ 0 after - 0< ;
 
+[IFDEF] linux
 : b16-clear ( -- )  pad b16 check-read b16 read-file throw drop ;
 
 : check-in ( n -- addr u ) &200 after timeout !
@@ -396,6 +397,16 @@ Variable timeout
 	&100 ms b16-clear
 	pad 0 EXIT  THEN
     pad swap b16 read-file throw pad swap ;
+[ELSE]
+: b16-clear ( -- )  pad 100 b16 read-file throw drop ;
+
+: check-in ( n -- addr u )  &200 after timeout !  pad swap
+    BEGIN  2dup b16 read-file throw /string  dup 0>  WHILE  waitx  UNTIL
+        s" iii" b16 write-file throw
+        &100 ms b16-clear
+        pad 0 EXIT  THEN
+    + pad tuck - ; 
+[THEN]
 
 : hold16 ( n -- )  dup hold 8 rshift hold ;
 
@@ -486,8 +497,13 @@ also forth
     ." R: " regs 4 + w@ 4 0.r
     stack 2+ 16 bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
 
+[IFDEF] linux
 : ?in ( -- )  pad b16 check-read b16 read-file throw pad swap type ;
 : ?flush ( -- )  pad $100 + b16 check-read b16 read-file throw drop ;
+[ELSE]
+: ?in ( -- )  pad 100 b16 read-file throw drop ;
+: ?flush ( -- )  pad $100 + 100 b16 read-file throw drop ;
+[THEN]
 
 previous
 
@@ -516,7 +532,11 @@ previous b16-asm also Forth
 : sim  ( >defs -- )
     IP @ >r prog r@ P ! ['] run catch r> org ;
 
+[IFDEF] linux
 s" /dev/ttyUSB0" init
+[ELSE]
+s" COM1" init
+[THEN]
 
 Forth
 [ELSE]

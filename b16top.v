@@ -191,15 +191,17 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    reg 	  READY;
 
    wire [7:0] od;
-   wire [7:0] id, rate;
+   wire [7:0] id;
+   wire [15:0] rate;
    wire       dox;
    wire       dix, wip;
 
    wire   dr, drun;
    wire [1:0] dw, wru;
+   wire [2:0] dstate;
    wire [15:0] caddr, cin, cout;
    wire [15:0] addru, datau, data_dbg, bp;
-   wire        run = ~csu & drun & (SW[2] ? &counter[22:0] : &READY);
+   wire        run = ~csu & drun & (SW[3] ? &counter[22:0] : &READY);
 
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
@@ -211,7 +213,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    wire [1:0] w = csu ? wru : wc;
    wire r = csu ? ru : rc;
    
-   debugger dbg(clk, nreset,
+   debugger dbg(clk, nreset, ~csu & &READY,
                 addru, datau, ru, wru,
                 addr, r,
                 drun, dr, dw, bp);
@@ -219,7 +221,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    cpu b16(clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0, 1'b0,
 	   dr, dw, addru[3:1], datau, data_dbg, bp);
    
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[1] ? SW[0] ? addru : datau : SW[0] ? addr : data);
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : /* SW[1] ? SW[0] ? addru : datau :*/ SW[0] ? addr : data);
 
    reg [7:0] bootraml[0:4095] /* synthesis ramstyle="no_rw_check" */;
    reg [7:0] bootramh[0:4095] /* synthesis ramstyle="no_rw_check" */;
@@ -231,6 +233,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
      end else begin
        addr_i <= addr;
        if(sel[0]) READY <= READY + 1;
+       else READY <= -1;
        if(sel[1] & !r) begin
 	     if(w[1]) bootramh[addr[12:1]] <= dwrite[15:8];
 	     if(w[0]) bootraml[addr[12:1]] <= dwrite[ 7:0];

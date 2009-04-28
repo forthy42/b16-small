@@ -8,18 +8,18 @@ module uart(clk, nreset, rx, tx, id, od, dix, dox, wip, rate, debug);
    input clk, nreset, rx, dox;
    input [7:0] od;
    output [7:0] id;
-   output [7:0] rate;
+   output [15:0] rate;
    output [9:0] debug;
    output 	dix, wip, tx;
 
    reg [9:0] 	disr, dosr;
    reg 		dix, srset, tx;
    reg [1:0] 	lastrx;
-   reg [10:0] 	cnt, cnto, cntmax;
+   reg [15:0] 	cnt, cnto, cntmax;
    reg [3:0] 	bitcnt, bitcnto;
 
    assign id = disr[8:1];
-   assign rate = cntmax[10:3];
+   assign rate = cntmax;
    assign debug = { srset, lastrx, bitcnt, disr[9:7] };
    assign wip = |bitcnto;
    

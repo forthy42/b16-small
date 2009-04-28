@@ -18,7 +18,7 @@
  */
 
 module dbg_uart(clk, nreset, dix, dox, id, od,
-		csu, addru, ru, wru, data, datau, status);
+		csu, addru, ru, wru, data, datau, status, state);
    input clk, nreset, dix;
    input [7:0] id, status;
    input [15:0] data;
@@ -26,6 +26,7 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
    output [7:0] od;
    output [15:0] addru, datau;
    output [1:0]  wru;
+   output [2:0] state;
 
    reg 		 dox, ru;
    reg [2:0] 	 state;
@@ -45,7 +46,7 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 	od <= 0;
      end else begin
 	dox <= 0;
-	if(csu && status[1]) begin
+	if(csu & status[1]) begin
 	   addru <= addru + ru + wru[0] + wru[1];
 	   ru <= 0;
 	   wru <= 0;
@@ -62,6 +63,7 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 		      "W": state <= 4;
 		      "r": ru <= 1;
 		      "l": { addru, dox, od } <= { addru + 1, 1'b1, lowbyte };
+		      8'hzz: state <= 0;
 		    endcase // casez (id)
 	     3'b001: begin
 		datau <= { id, id };
@@ -85,6 +87,8 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 		wru <= 2'b11;
 		state <= 0;
 	     end
+	     3'b110: state <= 0;
+	     3'b111: state <= 0;
 	   endcase // case (state)
 	end // if (dix)
      end // else: !if(!nreset)
