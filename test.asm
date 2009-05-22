@@ -9,6 +9,7 @@
 \
 macro: swap ( a b -- b a ) over >r nip r> end-macro
 macro: ! ( a b -- )  !. drop  end-macro
+include regmap.asm
 $2000 org
 	$AA56 ,
 macro: error  BEGIN  AGAIN  end-macro
@@ -145,7 +146,7 @@ macro: error  BEGIN  AGAIN  end-macro
 	stackop
 	$F000 # $0102 # !* drop
 	$0000 # $0100 # !* drop
-	$10 # @ 1 # + $10 # !* drop
+	LED7 # @ 1 # + LED7 # !* drop
     AGAIN ;
 $3FFE org
      boot ;;

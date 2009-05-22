@@ -25,8 +25,8 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
    genvar 	 i;
    generate for(i=0; i<36; i=i+1)
      begin : triout
-	assign gpio0[i] = gpio_0t[i] ? gpio_0o[i] : 1'bz;
-	assign gpio1[i] = gpio_1t[i] ? gpio_1o[i] : 1'bz;
+	assign gpio_0[i] = gpio_0t[i] ? gpio_0o[i] : 1'bz;
+	assign gpio_1[i] = gpio_1t[i] ? gpio_1o[i] : 1'bz;
      end
    endgenerate
    
@@ -46,7 +46,7 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	gpio_1t <= 0;
 	tval0 <= 0;
 	tval1 <= 0;
-     end else begin
+     end else if(sel) begin
 	if(w[1]) begin
 	   casez(addr)
 	     8'h00: LED7`hb <= dwrite`hb;
@@ -61,7 +61,8 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	     8'h3a: gpio_1t`hb1 <= dwrite`hb;
 	     8'h3c: gpio_1t`hb <= dwrite`hb;
 	   endcase
-	end else if(w[0]) begin
+	end
+        if(w[0]) begin
 	   casez(addr)
 	     8'h00: LED7`lb <= dwrite`lb;
 	     8'h10: tval0`lb <= dwrite`lb;
@@ -82,8 +83,9 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	end
      end
 
-   always @(addr or r or LED7 or gpio or tval0 or tval1 or timerval)
-     if(r) casez(addr)
+   always @(addr or r or sel or LED7 or tval0 or tval1 or timerval
+            or gpio_0 or gpio_1 or gpio_0t or gpio_1t)
+     if(r & sel) casez(addr)
 	     8'h00: sfr_data <= LED7;
 	     8'h10: sfr_data <= tval0;
 	     8'h12: sfr_data <= tval1;
@@ -102,6 +104,6 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	     8'h3a: sfr_data <= gpio_1t[31:16];
 	     8'h3c: sfr_data <= gpio_1t[15:0];
 	     8'hzz: sfr_data <= 0;
-     endcase
+     endcase else sfr_data <= 0;
    
 endmodule // sfr
