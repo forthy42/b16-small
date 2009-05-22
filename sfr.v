@@ -22,7 +22,7 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
    reg [15:0] 	 sfr_data, LED7, tval0, tval1;
    reg [35:0] 	 gpio_0o, gpio_1o, gpio_0t, gpio_1t;
    reg [31:0] 	 timerval;
-   reg [7:0] 	 irqmask, irqact;
+   reg 	 irqmask, irqact;
 
    assign irqrun = |{irqmask & irqact};
 
@@ -53,11 +53,9 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	irqact <= 8'hff;
 	irqmask <= 8'hff;
      end else begin
-	if(timerval == {tval0, tval1})
-	  irqen[0] <= 1;
 	if(sel) begin
 	   if(w[1]) begin
-	      casez(addr)
+	      casez({ addr[7:1], 1'b0 })
 		8'h00: LED7`hb <= dwrite`hb;
 		8'h08: irqmask <= dwrite`hb;
 		8'h10: tval0`hb <= dwrite`hb;
@@ -73,9 +71,9 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	      endcase
 	   end
            if(w[0]) begin
-	      casez(addr)
+	      casez({ addr[7:1], 1'b0 })
 		8'h00: LED7`lb <= dwrite`lb;
-		8'h08: irqact <= dwrite`hb;
+		8'h08: irqact <= dwrite`lb;
 		8'h10: tval0`lb <= dwrite`lb;
 		8'h12: tval1`lb <= dwrite`lb;
 		8'h20: gpio_0o[35:32] <= dwrite`lb;
@@ -93,14 +91,16 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
 	      endcase
 	   end // if (w[0])
 	end
+	if(timerval == {tval0, tval1})
+	  irqact <= 1;
      end
 
    always @(addr or r or sel or LED7 or tval0 or tval1 or timerval
-            or gpio_0 or gpio_1 or gpio_0t or gpio_1t)
+            or gpio_0 or gpio_1 or gpio_0t or gpio_1t or irqmask or irqact)
      if(r & sel)
        casez(addr)
 	 8'h00: sfr_data <= LED7;
-	 8'h08: sfr_data <= { irqmask, irqact };
+	 8'h08: sfr_data <= { irqmask, 7'h00, irqact };
 	 8'h10: sfr_data <= tval0;
 	 8'h12: sfr_data <= tval1;
 	 8'h14: sfr_data <= timerval[31:16];

@@ -143,7 +143,7 @@ macro: error  BEGIN  AGAIN  end-macro
 	jumps -jumps	\ call jump tests
 	stackop
 	LED7 # @ 1 # + LED7 # !
-	TVAL0 # @ 1 # + TVAL0 # !
+	TVAL0 # @ $10 # + TVAL0 # !
 	0 # IRQACT # c!* drop
     AGAIN ;
 $3FFE org
