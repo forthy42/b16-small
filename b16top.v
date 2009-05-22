@@ -170,8 +170,6 @@ assign	FL_DQ		=	8'hzz;
 assign	SRAM_DQ		=	16'hzzzz;
 assign	SD_DAT		=	1'bz;
 assign	I2C_SDAT	=	1'bz;
-assign	GPIO_0		=	36'hzzzzzzzzz;
-assign	GPIO_1		=	36'hzzzzzzzzz;
 
    reg [27:0] 	counter;
    wire 	clk = CLOCK_50;
@@ -199,7 +197,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    wire   dr, drun;
    wire [1:0] dw, wru;
    wire [2:0] dstate;
-   wire [15:0] caddr, cin, cout;
+   wire [15:0] caddr, cin, cout, LED7;
    wire [15:0] addru, datau, data_dbg, bp;
    wire        run = ~csu & drun & (SW[3] ? &counter[22:0] : &READY);
 
@@ -221,7 +219,7 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
    cpu b16(clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0, 1'b0,
 	   dr, dw, addru[3:1], datau, data_dbg, bp);
    
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : /* SW[1] ? SW[0] ? addru : datau :*/ SW[0] ? addr : data);
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) : LED7);
 
    reg [7:0] bootraml[0:4095] /* synthesis ramstyle="no_rw_check" */;
    reg [7:0] bootramh[0:4095] /* synthesis ramstyle="no_rw_check" */;
@@ -240,10 +238,16 @@ assign	GPIO_1		=	36'hzzzzzzzzz;
        end
      end
 
+   wire [15:0] sfr_data;
+   
+   sfr sfr_block(clk, nreset, sel[2], addr[7:0], r, w, dwrite, sfr_data,
+		 LED7, GPIO_0, GPIO_1);
+   
    always @(r or w or sel or addr_i or SRAM_DQ)
      begin
 	data <= 0;
 	  casez({ r, sel })
+	    4'b1100: data <= sfr_data;
             4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
 	    4'b1001: data <= SRAM_DQ;
 	  endcase // case(sel)
