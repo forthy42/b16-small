@@ -194,12 +194,12 @@ assign	I2C_SDAT	=	1'bz;
    wire       dox;
    wire       dix, wip;
 
-   wire   dr, drun;
+   wire   dr, drun, irqrun;
    wire [1:0] dw, wru;
    wire [2:0] dstate;
    wire [15:0] caddr, cin, cout, LED7;
    wire [15:0] addru, datau, data_dbg, bp;
-   wire        run = ~csu & drun & (SW[3] ? &counter[22:0] : &READY);
+   wire        run = irqrun & ~csu & drun & (SW[3] ? &counter[22:0] : &READY);
 
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
@@ -241,7 +241,7 @@ assign	I2C_SDAT	=	1'bz;
    wire [15:0] sfr_data;
    
    sfr sfr_block(clk, nreset, sel[2], addr[7:0], r, w, dwrite, sfr_data,
-		 LED7, GPIO_0, GPIO_1);
+		 LED7, GPIO_0, GPIO_1, irqrun);
    
    always @(r or w or sel or addr_i or SRAM_DQ)
      begin

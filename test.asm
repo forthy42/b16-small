@@ -135,8 +135,6 @@ macro: error  BEGIN  AGAIN  end-macro
     $46 # xor  IF error  THEN
 ;
 : boot
-	$0 # $10 # !* drop
-	$0 # $42E # !* drop
     BEGIN
 	loadstore           \ call load store tests
 	stack		\ call stack test
@@ -144,9 +142,9 @@ macro: error  BEGIN  AGAIN  end-macro
 	muldiv		\ call muldiv tests
 	jumps -jumps	\ call jump tests
 	stackop
-	$F000 # $0102 # !* drop
-	$0000 # $0100 # !* drop
-	LED7 # @ 1 # + LED7 # !* drop
+	LED7 # @ 1 # + LED7 # !
+	TVAL0 # @ 1 # + TVAL0 # !
+	0 # IRQACT # c!* drop
     AGAIN ;
 $3FFE org
      boot ;;

@@ -1,6 +1,9 @@
 \ b16 FPGA board regmap
 $FF00 org
 | LED7 0 ,
+$FF08 org
+| IRQMASK 0 c,
+| IRQACT 0 c,
 $FF10 org
 | TVAL0 0 ,
 | TVAL1 0 ,
