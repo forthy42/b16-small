@@ -20,6 +20,8 @@
 
 warnings off
 
+[IFUNDEF] $! include string.fs [THEN]
+
 : 0.r ( n r -- )  0 swap <# 0 ?DO # LOOP #> type ;
 
 \ Variables
@@ -174,7 +176,23 @@ Variable IP     IP off
 Variable bundle bundle off
 Variable extra-inc  extra-inc off 0 c, 0 c, 0 c, 0 c, 0 c, 0 c,
 Variable old-einc
-Variable listing  listing on
+Variable listing
+Create pos-field 0 , 0 , 0 , 0 ,
+: pos,  pos-field 2! pos-field 2 cells + 2!
+    pos-field 4 cells listing $+! ;
+: search-listing ( addr step -- line char )
+    listing @ 0= ?EXIT
+    listing $@ bounds ?DO
+        over I cell+ @ u<=  over I @ u<= and
+        IF  2drop I 2 cells + 2@ swap 1- swap unloop EXIT  THEN
+    4 cells +LOOP  2drop 0 0 ;
+
+: search-line ( line -- addr/-1 )
+    listing @ 0= ?EXIT
+    listing $@ bounds ?DO
+        dup I 3 cells + @ = I @ 0= and  IF  drop I cell+ @ unloop  EXIT  THEN
+    4 cells +LOOP  drop -1 ;
+
 [IFUNDEF] sourceline#  : sourceline# line @ ; [THEN]
 
 : .#4 base @ >r hex 0 <# # # # # #> type r> base ! ;
@@ -184,11 +202,13 @@ Variable listing  listing on
 	'# emit sourceline# . >in @ .
 	'$ emit IP @ 2 +  extra-inc @ + .#4 space
 	slot# @ 1- .#1 ."  pos," cr
+	sourceline# >in @ IP @ 2 + extra-inc @ + slot# @ 1- pos,
     THEN ;
 : .slot#2 ( -- )    listing @ IF
 	'# emit sourceline# . >in @ .
 	'$ emit IP @ .#4 space
 	slot# @ .#1 ."  pos," cr
+	sourceline# >in @ IP @ slot# @ pos,
     THEN ;
 : slot, ( -- )
     listing @ IF
@@ -457,6 +477,14 @@ $FFEE Constant DBG_I
 : b16-steps ( n -- ) 0 ?DO  b16-step  LOOP ;
 : b16-reset ( -- )  b16-stop  $3FFE DBG_P u! 0 DBG_I u! 0 DBG_STATE u! ;
 
+Variable breakpoint
+
+: bp! ( addr -- )  dup breakpoint ! DBG_BP u! ;
+: set-bp ( addr -- )  bp! ;
+: clear-bp ( addr -- )  drop 0 set-bp ;
+: find-bp? ( addr -- inst flag )
+    breakpoint @ = 0 swap ;
+
 \ upload program
 
 $2000 Value rom-offset
@@ -474,6 +502,8 @@ Variable spi-addr
     BEGIN  pad c/l r@ read-line throw  WHILE  pad swap >hex u!
     REPEAT  drop r> close-file throw ;
 
+: postfix? ( addr1 u1 addr2 u2 -- flag )
+    tuck 2>r over swap - 0 max /string 2r> str= ;
 
 \ read processor status
 
@@ -543,7 +573,11 @@ Forth
 b16-asm also Forth
 [THEN]
 
-: asm-load ( -- )  b16-asm definitions include forth definitions ;
+: asm-load ( -- )
+    s" " listing $! b16-asm definitions include forth definitions ;
+
+: asm-included ( addr u -- )
+    s" " listing $! b16-asm definitions included forth definitions ;
 
 previous Forth
 \ asm-load boot.asm

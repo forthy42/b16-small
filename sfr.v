@@ -9,9 +9,9 @@
 `define hb1 [31:24]
 `define lb1 [23:16]
 
-module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
+module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
 	   LED7, gpio_0, gpio_1, irqrun);
-   input clk, nreset, sel, r;
+   input clk, nreset, drun, sel, r;
    input [7:0] addr;
    input [15:0] dwrite;
    input [1:0] 	w;
@@ -38,7 +38,7 @@ module sfr(clk, nreset, sel, addr, r, w, dwrite, sfr_data,
      if(!nreset) begin
 	timerval <= 0;
      end else begin
-	timerval <= timerval + 1;
+	timerval <= timerval + drun;
      end
    
    always @(negedge clk or negedge nreset)

@@ -45,6 +45,63 @@ how:
   : params   DF[ 0 ]DF s" b16 load store" ;
 class;
 
+component class b16-ide
+public:
+  canvas ptr breakpoints
+  stredit ptr code-source
+ ( [varstart] ) cell var first-time ( [varend] ) 
+how:
+  : params   DF[ 0 ]DF s" b16 IDE" ;
+class;
+
+b16-ide implements
+ ( [methodstart] ) : assign drop ;
+: load-args
+  argc @ arg# @ 1+ > IF
+      argc @ arg# @ 1+ ?DO
+                  I arg s" .asm" postfix? IF
+                      I arg r/o open-file throw
+                      code-source assign code-source resized
+                      I arg asm-included
+                  THEN
+      LOOP
+  THEN ;
+: show first-time @ 0= IF load-args first-time on THEN
+  super show ; ( [methodend] ) 
+  : widget  ( [dumpstart] )
+          ^^ S[  ]S ( MINOS )  icon" icons/load" icon-but new 
+          ^^ S[  ]S ( MINOS )  icon" icons/save" icon-but new 
+          ^^ S[  ]S ( MINOS )  icon" icons/run" icon-but new 
+          $0 $1 *hfil $80 $1 *vfilll rule new 
+        #4 vabox new hfixbox 
+        1 1 viewport new  DS[ 
+          CV[ 2 outer with code-source rows @ endwith
+tuck 1 max steps
+1 dpy xrc font@ font
+1 2 textpos
+hex
+0 ?DO
+    1 I home!
+    I search-line dup -1 <> IF
+       dup find-bp? nip IF  $CC $55 $55 rgb>pen
+       ELSE  $55 $CC $55 rgb>pen  THEN  drawcolor
+       0 <# # # # # #> text
+    ELSE  drop  THEN
+LOOP ]CV ( MINOS ) ^^ CK[ ( x y b n -- )
+dup 1 and IF  2drop 2drop  EXIT  THEN
+2drop nip
+breakpoints h @ code-source rows @ / /
+1+ search-line dup -1 = IF  drop  EXIT  THEN
+dup find-bp? nip IF  clear-bp  ELSE  set-bp  THEN
+breakpoints draw ]CK ( MINOS ) $20 $0 *hpix $0 $1 *vfilll canvas new  ^^bind breakpoints
+             (straction stredit new  ^^bind code-source $40 setup-edit 
+            $0 $1 *hfil $0 $1 *vfilll rule new 
+          #2 vabox new
+        #2 habox new ]DS ( MINOS ) 
+      #2 habox new
+    ( [dumpend] ) ;
+class;
+
 b16-mem implements
  ( [methodstart] ) : assign drop ; ( [methodend] ) 
   : widget  ( [dumpstart] )
@@ -70,7 +127,7 @@ BEGIN  2dup scratch swap 2/ 8 min u@s
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" status" infotextfield new  ^^bind status#
           ^^ S[ status@ 0 status# assign ]S ( MINOS ) X" status@" button new 
         #4 habox new vfixbox  #1 hskips
-      #2 vabox new panel
+      #2 vabox new vfixbox  panel
     ( [dumpend] ) ;
 class;
 
@@ -79,7 +136,8 @@ b16-debug implements
   : widget  ( [dumpstart] )
         ^^ CP[  ]CP ( MINOS ) b16-mem new 
         ^^ CP[  ]CP ( MINOS ) b16-state new 
-      #2 vabox new
+        ^^ CP[  ]CP ( MINOS ) b16-ide new 
+      #3 vabox new
     ( [dumpend] ) ;
 class;
 
@@ -127,7 +185,7 @@ b16-state implements
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" infotextfield new  ^^bind r2#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 4" infotextfield new  ^^bind r3#
         #5 hatbox new #1 hskips
-      #3 vabox new panel
+      #3 vabox new vfixbox  panel
     ( [dumpend] ) ;
 class;
 
