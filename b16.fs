@@ -176,6 +176,7 @@ Variable IP     IP off
 Variable bundle bundle off
 Variable extra-inc  extra-inc off 0 c, 0 c, 0 c, 0 c, 0 c, 0 c,
 Variable old-einc
+Variable listing? listing? off
 Variable listing
 Create pos-field 0 , 0 , 0 , 0 ,
 : pos,  pos-field 2! pos-field 2 cells + 2!
@@ -198,20 +199,24 @@ Create pos-field 0 , 0 , 0 , 0 ,
 : .#4 base @ >r hex 0 <# # # # # #> type r> base ! ;
 : .#2 base @ >r hex 0 <# # # #> type r> base ! ;
 : .#1 base @ >r hex 0 <# # #> type r> base ! ;
-: .slot# ( -- )    listing @ IF
+: .slot# ( -- )    listing? @ IF
 	'# emit sourceline# . >in @ .
 	'$ emit IP @ 2 +  extra-inc @ + .#4 space
 	slot# @ 1- .#1 ."  pos," cr
-	sourceline# >in @ IP @ 2 + extra-inc @ + slot# @ 1- pos,
+    THEN
+    listing @ IF
+    	sourceline# >in @ IP @ 2 + extra-inc @ + slot# @ 1- pos,
     THEN ;
-: .slot#2 ( -- )    listing @ IF
+: .slot#2 ( -- )    listing? @ IF
 	'# emit sourceline# . >in @ .
 	'$ emit IP @ .#4 space
 	slot# @ .#1 ."  pos," cr
-	sourceline# >in @ IP @ slot# @ pos,
+    THEN
+    listing @ IF
+    	sourceline# >in @ IP @ slot# @ pos,
     THEN ;
 : slot, ( -- )
-    listing @ IF
+    listing? @ IF
 	#tab emit source drop >in @ type cr
 	'@ emit IP @ .#4 space bundle @ .#4 cr
 	extra-inc @ 0 ?DO
@@ -582,3 +587,6 @@ b16-asm also Forth
 previous Forth
 \ asm-load boot.asm
 
+[IFDEF] b16-debug
+    b16-debug ptr b16d
+[THEN]

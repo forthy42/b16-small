@@ -4,7 +4,6 @@
 
 also editor also minos also forth
 
-include b16.fs
 component class b16-state
 public:
   infotextfield ptr p#
@@ -22,16 +21,19 @@ public:
   infotextfield ptr r1#
   infotextfield ptr r2#
   infotextfield ptr r3#
- ( [varstart] ) cell var stopped ( [varend] ) 
+ ( [varstart] ) cell var stopped
+method update ( [varend] ) 
 how:
   : params   DF[ 0 ]DF s" b16 state" ;
 class;
 
-component class b16-debug
+component class b16-ide
 public:
- ( [varstart] )  ( [varend] ) 
+  canvas ptr breakpoints
+  stredit ptr code-source
+ ( [varstart] ) cell var first-time ( [varend] ) 
 how:
-  : params   DF[ 0 ]DF s" b16 Debugger" ;
+  : params   DF[ 0 ]DF s" b16 IDE" ;
 class;
 
 component class b16-mem
@@ -45,13 +47,61 @@ how:
   : params   DF[ 0 ]DF s" b16 load store" ;
 class;
 
-component class b16-ide
+component class b16-debug
 public:
-  canvas ptr breakpoints
-  stredit ptr code-source
- ( [varstart] ) cell var first-time ( [varend] ) 
+  b16-state ptr state-comp
+  b16-ide ptr ide-comp
+ ( [varstart] )  ( [varend] ) 
 how:
-  : params   DF[ 0 ]DF s" b16 IDE" ;
+  : params   DF[ 0 ]DF s" b16 Debugger" ;
+class;
+
+include b16.fs
+b16-debug implements
+ ( [methodstart] ) : bp-watch  recursive  ^ dpy cleanup
+    status@ $1 and 0= IF
+      state-comp with
+          stoptoggle with set draw endwith update
+      endwith
+    THEN
+    ['] bp-watch ^ &100 after dpy schedule ;
+order
+: show  self F bind b16d bp-watch super show ; ( [methodend] ) 
+  : widget  ( [dumpstart] )
+        ^^ CP[  ]CP ( MINOS ) b16-mem new 
+        ^^ CP[  ]CP ( MINOS ) b16-state new  ^^bind state-comp
+        ^^ CP[  ]CP ( MINOS ) b16-ide new  ^^bind ide-comp
+      #3 vabox new
+    ( [dumpend] ) ;
+class;
+
+b16-mem implements
+ ( [methodstart] ) : assign drop ; ( [methodend] ) 
+  : widget  ( [dumpstart] )
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Addr" infotextfield new  ^^bind addr#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Data" infotextfield new  ^^bind data#
+            ^^ S[ addr# get drop u@ 0 data# assign ]S ( MINOS ) X" @" button new 
+            ^^ S[ addr# get drop uc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
+            ^^ S[ data# get drop addr# get drop u! ]S ( MINOS ) X" !" button new 
+            ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
+          #4 hatbox new #1 hskips
+        #3 habox new vfixbox  #1 hskips
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
+          ^^ S[ wini/o at? 2drop
+addr# get drop n# get drop base @ >r hex
+BEGIN  2dup scratch swap 2/ 8 min u@s
+    cr over 0 <# # # # # #> type ." : "
+    scratch over $10 umin bounds ?DO
+        I c@ 0 <# # # #> type space
+    LOOP
+    $10 /string dup 0= UNTIL
+2drop r> base !
+ ]S ( MINOS ) X" Dump" button new 
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" status" infotextfield new  ^^bind status#
+          ^^ S[ status@ 0 status# assign ]S ( MINOS ) X" status@" button new 
+        #4 habox new vfixbox  #1 hskips
+      #2 vabox new vfixbox  panel
+    ( [dumpend] ) ;
 class;
 
 b16-ide implements
@@ -102,45 +152,6 @@ breakpoints draw ]CK ( MINOS ) $20 $0 *hpix $0 $1 *vfilll canvas new  ^^bind bre
     ( [dumpend] ) ;
 class;
 
-b16-mem implements
- ( [methodstart] ) : assign drop ; ( [methodend] ) 
-  : widget  ( [dumpstart] )
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Addr" infotextfield new  ^^bind addr#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Data" infotextfield new  ^^bind data#
-            ^^ S[ addr# get drop u@ 0 data# assign ]S ( MINOS ) X" @" button new 
-            ^^ S[ addr# get drop uc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
-            ^^ S[ data# get drop addr# get drop u! ]S ( MINOS ) X" !" button new 
-            ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
-          #4 hatbox new #1 hskips
-        #3 habox new vfixbox  #1 hskips
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
-          ^^ S[ wini/o at? 2drop
-addr# get drop n# get drop base @ >r hex
-BEGIN  2dup scratch swap 2/ 8 min u@s
-    cr over 0 <# # # # # #> type ." : "
-    scratch over $10 umin bounds ?DO
-        I c@ 0 <# # # #> type space
-    LOOP
-    $10 /string dup 0= UNTIL
-2drop r> base !
- ]S ( MINOS ) X" Dump" button new 
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" status" infotextfield new  ^^bind status#
-          ^^ S[ status@ 0 status# assign ]S ( MINOS ) X" status@" button new 
-        #4 habox new vfixbox  #1 hskips
-      #2 vabox new vfixbox  panel
-    ( [dumpend] ) ;
-class;
-
-b16-debug implements
- ( [methodstart] )  ( [methodend] ) 
-  : widget  ( [dumpstart] )
-        ^^ CP[  ]CP ( MINOS ) b16-mem new 
-        ^^ CP[  ]CP ( MINOS ) b16-state new 
-        ^^ CP[  ]CP ( MINOS ) b16-ide new 
-      #3 vabox new
-    ( [dumpend] ) ;
-class;
-
 b16-state implements
  ( [methodstart] ) : assign drop ;
 : update  stopped @ 0= ?EXIT  load-regs stopped dup @ >r off
@@ -156,7 +167,9 @@ b16-state implements
   stack 8 + w@ 0 s2# assign
   stack 10 + w@ 0 r2# assign
   stack 12 + w@ 0 s3# assign
-  stack 14 + w@ 0 r3# assign r> stopped ! ;
+  stack 14 + w@ 0 r3# assign r> stopped !
+  regs w@ regs 8 + w@ 8 rshift 3 and search-listing
+  b16d ide-comp code-source at ;
 : show  '$' 0
   2dup p# keyed  2dup t# keyed  2dup r# keyed  2dup s# keyed
   2dup s0# keyed 2dup s1# keyed 2dup s2# keyed 2dup s3# keyed
