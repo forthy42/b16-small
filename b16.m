@@ -100,14 +100,17 @@ class;
 
 b16-ide implements
  ( [methodstart] ) : assign drop ;
+: load-file ( -- )
+  filename $@ r/o open-file throw
+  code-source assign
+  code-source edifile dup @ close-file swap off throw
+  code-source resized
+  filename $@ asm-included breakpoints draw ;
 : load-args
   argc @ arg# @ 1+ > IF
       argc @ arg# @ 1+ ?DO
                   I arg s" .asm" postfix? IF
-                      I arg filename $!
-                      I arg r/o open-file throw
-                      code-source assign code-source resized
-                      I arg asm-included
+                      I arg filename $! load-file
                   THEN
       LOOP
   THEN ;
@@ -115,10 +118,6 @@ b16-ide implements
   filename $@ r/w create-file throw isfile !
   :[ isfile@ write-line throw ]: code-source dump
   isfile@ close-file throw  isfile off
-  filename $@ asm-included breakpoints draw ;
-: load-file ( -- )
-  filename $@ r/o open-file throw
-  code-source assign code-source resized
   filename $@ asm-included breakpoints draw ;
 : show first-time @ 0= IF load-args first-time on THEN
   super show ; ( [methodend] ) 
