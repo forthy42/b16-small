@@ -177,6 +177,7 @@ Variable bundle bundle off
 Variable extra-inc  extra-inc off 0 c, 0 c, 0 c, 0 c, 0 c, 0 c,
 Variable old-einc
 Variable listing? listing? off
+Variable listpos? listpos? on
 Variable listing
 Create pos-field 0 , 0 , 0 , 0 ,
 : pos,  pos-field 2! pos-field 2 cells + 2!
@@ -184,7 +185,7 @@ Create pos-field 0 , 0 , 0 , 0 ,
 : search-listing ( addr step -- line char )
     listing @ 0= ?EXIT
     listing $@ bounds ?DO
-        over I cell+ @ u<=  over I @ u<= and
+        over I cell+ @ =  over I @ = and
         IF  2drop I 2 cells + 2@ swap 1- swap unloop EXIT  THEN
     4 cells +LOOP  2drop 0 0 ;
 
@@ -196,28 +197,31 @@ Create pos-field 0 , 0 , 0 , 0 ,
 
 [IFUNDEF] sourceline#  : sourceline# line @ ; [THEN]
 
+: include listpos? @ >r listpos? off ['] include catch r> listpos? ! throw ;
 : .#4 base @ >r hex 0 <# # # # # #> type r> base ! ;
 : .#2 base @ >r hex 0 <# # # #> type r> base ! ;
 : .#1 base @ >r hex 0 <# # #> type r> base ! ;
+: >in? ( -- n )  0 source drop >in @ bounds ?DO
+	I c@ #tab = IF  8 + -8 and  ELSE  1+  THEN  LOOP ;
 : .slot# ( -- )    listing? @ IF
-	'# emit sourceline# . >in @ .
+	'# emit sourceline# . >in? .
 	'$ emit IP @ 2 +  extra-inc @ + .#4 space
 	slot# @ 1- .#1 ."  pos," cr
     THEN
-    listing @ IF
-    	sourceline# >in @ IP @ 2 + extra-inc @ + slot# @ 1- pos,
+    listing @ listpos? @ and IF
+    	sourceline# >in? IP @ 2 + extra-inc @ + slot# @ 1- pos,
     THEN ;
 : .slot#2 ( -- )    listing? @ IF
-	'# emit sourceline# . >in @ .
+	'# emit sourceline# . >in? .
 	'$ emit IP @ .#4 space
 	slot# @ .#1 ."  pos," cr
     THEN
-    listing @ IF
-    	sourceline# >in @ IP @ slot# @ pos,
+    listing @ listpos? @ and IF
+    	sourceline# >in? IP @ slot# @ pos,
     THEN ;
 : slot, ( -- )
     listing? @ IF
-	#tab emit source drop >in @ type cr
+	#tab emit source drop >in? type cr
 	'@ emit IP @ .#4 space bundle @ .#4 cr
 	extra-inc @ 0 ?DO
 	    '@ emit I cell+ extra-inc + c@ IP @ I 2 + + .#4 space .#2 cr
@@ -231,7 +235,7 @@ Create pos-field 0 , 0 , 0 , 0 ,
     IP @ 1 and abort" odd IP" .slot#2 ;
 : slot ( inst -- )
     slot# @ 4 = IF slot, THEN 
-    dup 1 > slot# @ 0= and IF  1 slot# +!  THEN
+    dup 1 > slot# @ 0= and IF  .slot#2  1 slot# +!  THEN
     3 slot# @ - 5 * lshift bundle +! 1 slot# +!
     .slot# ;
 : slot1 ( inst -- )
@@ -486,13 +490,14 @@ Variable breakpoint
 
 : bp! ( addr -- )  dup breakpoint ! DBG_BP u! ;
 : set-bp ( addr -- )  bp! ;
-: clear-bp ( addr -- )  drop 0 set-bp ;
+: clear-bp ( addr -- )  drop $FFFF set-bp ;
 : find-bp? ( addr -- inst flag )
     breakpoint @ = 0 swap ;
 
 \ upload program
 
 $2000 Value rom-offset
+$2000 Value rom-size
 Variable spi-addr
 
 : >hex ( addr u -- )  base @ >r hex
@@ -509,6 +514,10 @@ Variable spi-addr
 
 : postfix? ( addr1 u1 addr2 u2 -- flag )
     tuck 2>r over swap - 0 max /string 2r> str= ;
+
+: upload ( -- )  b16-reset rom-offset rom-size bounds ?DO
+	I ram@ I u!
+    2 +LOOP b16-run ;
 
 \ read processor status
 

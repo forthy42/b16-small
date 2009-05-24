@@ -204,7 +204,7 @@ assign	I2C_SDAT	=	1'bz;
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
    dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
-		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 6'b001000, &READY, drun });
+		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 5'b00100, irqrun, &READY, drun });
 
    wire [15:0] addr = csu ? addru : addrc;
    wire [15:0] dwrite = csu ? datau : dwritec;

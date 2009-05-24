@@ -31,7 +31,9 @@ component class b16-ide
 public:
   canvas ptr breakpoints
   stredit ptr code-source
- ( [varstart] ) cell var first-time ( [varend] ) 
+ ( [varstart] ) cell var first-time
+cell var filename
+Cell var source-path ( [varend] ) 
 how:
   : params   DF[ 0 ]DF s" b16 IDE" ;
 class;
@@ -58,15 +60,7 @@ class;
 
 include b16.fs
 b16-debug implements
- ( [methodstart] ) : bp-watch  recursive  ^ dpy cleanup
-    status@ $1 and 0= IF
-      state-comp with
-          stoptoggle with set draw endwith update
-      endwith
-    THEN
-    ['] bp-watch ^ &100 after dpy schedule ;
-order
-: show  self F bind b16d bp-watch super show ; ( [methodend] ) 
+ ( [methodstart] ) : show  self F bind b16d super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
         ^^ CP[  ]CP ( MINOS ) b16-mem new 
         ^^ CP[  ]CP ( MINOS ) b16-state new  ^^bind state-comp
@@ -110,31 +104,44 @@ b16-ide implements
   argc @ arg# @ 1+ > IF
       argc @ arg# @ 1+ ?DO
                   I arg s" .asm" postfix? IF
+                      I arg filename $!
                       I arg r/o open-file throw
                       code-source assign code-source resized
                       I arg asm-included
                   THEN
       LOOP
   THEN ;
+: save-file ( -- )
+  filename $@ r/w create-file throw isfile !
+  :[ isfile@ write-line throw ]: code-source dump
+  isfile@ close-file throw  isfile off
+  filename $@ asm-included breakpoints draw ;
+: load-file ( -- )
+  filename $@ r/o open-file throw
+  code-source assign code-source resized
+  filename $@ asm-included breakpoints draw ;
 : show first-time @ 0= IF load-args first-time on THEN
   super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
-          ^^ S[  ]S ( MINOS )  icon" icons/load" icon-but new 
-          ^^ S[  ]S ( MINOS )  icon" icons/save" icon-but new 
-          ^^ S[  ]S ( MINOS )  icon" icons/run" icon-but new 
-          $0 $1 *hfil $80 $1 *vfilll rule new 
+          ^^ S[ s" Load assembler source" s" " source-path @
+IF  source-path $@  ELSE  s" *.asm"  THEN
+^ S[ 2over source-path $!
+     path+file filename $! load-file ]S fsel-action ]S ( MINOS )  icon" icons/load" icon-but new 
+          ^^ S[ save-file ]S ( MINOS )  icon" icons/save" icon-but new 
+          ^^ S[ save-file upload ]S ( MINOS )  icon" icons/run" icon-but new 
+          $0 $1 *hfil $100 $1 *vfilll rule new 
         #4 vabox new hfixbox 
-        1 1 viewport new  DS[ 
+        1 1 vviewport new  DS[ 
           CV[ 2 outer with code-source rows @ endwith
-tuck 1 max steps
+tuck 1 max steps  1 backcolor clear
 1 dpy xrc font@ font
 1 2 textpos
 hex
 0 ?DO
     1 I home!
     I search-line dup -1 <> IF
-       dup find-bp? nip IF  $CC $55 $55 rgb>pen
-       ELSE  $55 $CC $55 rgb>pen  THEN  drawcolor
+       dup find-bp? nip IF  $CC $00 $00 rgb>pen
+       ELSE  $00 $CC $00 rgb>pen  THEN  drawcolor
        0 <# # # # # #> text
     ELSE  drop  THEN
 LOOP ]CV ( MINOS ) ^^ CK[ ( x y b n -- )
@@ -154,6 +161,12 @@ class;
 
 b16-state implements
  ( [methodstart] ) : assign drop ;
+: bp-watch  recursive  ^ dpy cleanup
+    status@ $1 and 0= IF
+       stoptoggle with set draw endwith update
+    ELSE
+       ['] bp-watch ^ &100 after dpy schedule
+    THEN ;
 : update  stopped @ 0= ?EXIT  load-regs stopped dup @ >r off
   regs 0 + w@ 0 p# assign
   regs 2 + w@ 0 t# assign
@@ -169,19 +182,20 @@ b16-state implements
   stack 12 + w@ 0 s3# assign
   stack 14 + w@ 0 r3# assign r> stopped !
   regs w@ regs 8 + w@ 8 rshift 3 and search-listing
-  b16d ide-comp code-source at ;
+  2dup d0= 0= IF  b16d ide-comp code-source at
+  ELSE  2drop  THEN ;
 : show  '$' 0
   2dup p# keyed  2dup t# keyed  2dup r# keyed  2dup s# keyed
   2dup s0# keyed 2dup s1# keyed 2dup s2# keyed 2dup s3# keyed
   2dup r0# keyed 2dup r1# keyed 2dup r2# keyed 2dup r3# keyed
   i# keyed  status@ 1 and 0= dup stopped !
-  IF  update  THEN  super show ; ( [methodend] ) 
+  IF  update  ELSE  bp-watch  THEN  super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
             #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  p# get drop DBG_P u! ]SN ( MINOS ) X" P" infotextfield new  ^^bind p#
             #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  i# get drop DBG_I u! ]SN ( MINOS ) X" I" infotextfield new  ^^bind i#
             #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  s# get drop DBG_STATE u! ]SN ( MINOS ) X" S" infotextfield new  ^^bind s#
           #3 hatbox new #1 hskips
-            ^^  0 T[ stopped on b16-stop update ][ ( MINOS ) stopped off b16-run ]T ( MINOS )  2icon" icons/stop"icons/play" toggleicon new  ^^bind stoptoggle
+            ^^  0 T[ stopped on b16-stop update ][ ( MINOS ) stopped off b16-run bp-watch ]T ( MINOS )  2icon" icons/stop"icons/play" toggleicon new  ^^bind stoptoggle
             ^^ S[ steps# get ?DO  b16-step update I 1+ 0 steps# assign  LOOP ]S ( MINOS )  icon" icons/step" icon-but new 
             #1. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) textfield new  ^^bind steps#
           #3 habox new hfixbox  #1 hskips
