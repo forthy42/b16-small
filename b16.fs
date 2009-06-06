@@ -523,7 +523,7 @@ Variable spi-addr
 
 8 Constant stack-depth
 Create regs  5 2* allot
-here stack-depth 2* 2* allot
+here stack-depth 4* allot
 Constant stack
 
 also forth
@@ -532,15 +532,15 @@ also forth
   DBG_P regs 4 u@s
   DBG_STATE u@ regs 8 + w!
   0 DBG_I u! \ set instruction register to 0 to read stacks
-  stack stack-depth 2* 2* bounds DO  DBG_S[] I 2 u@s  4 +LOOP
+  stack stack-depth 4* bounds DO  DBG_S[] I 2 u@s  4 +LOOP
   regs 6 + w@ DBG_I u! ;
 
 : .regs ( -- ) base @ >r hex
     ." P: " regs w@ 4 0.r ."  I: " regs 6 + w@ 4 0.r ."  S: " regs 8 + w@ 4 0.r cr
     ." T: " regs 2 + w@ 4 0.r
-    stack stack-depth 2* bounds DO  I w@ space 4 0.r 4 +LOOP cr
+    stack stack-depth 4* bounds DO  I w@ space 4 0.r 4 +LOOP cr
     ." R: " regs 4 + w@ 4 0.r
-    stack 2+ stack-depth 2* bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
+    stack 2+ stack-depth 4* bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
 
 [IFDEF] linux
 : ?in ( -- )  pad b16 check-read b16 read-file throw pad swap type ;
