@@ -14,10 +14,11 @@ $2000 org
         $AA56 ,
 macro: error  BEGIN  AGAIN  end-macro
 : stack                 \ stack test
-    1 #c 2 #c 3 #       \ fill stack with 1 2 3 4 5 6 7 8 9 A B
-    4 #c 5 #c
-    + + + +
-    $0f # xor IF  error  THEN \ !!! this checks stack depth, too !!!
+    1 #c 2 #c 3 #       \ fill stack with 1 2 3 4 5 6 7 8 9
+    4 #c 5 #c 6 #
+    7 #c 8 #c 9 #
+    + + + + + + + +
+    $2d # xor IF  error  THEN \ !!! this checks stack depth, too !!!
 ;                       \ return to caller
 : alu                   \ test ALU
     $1234 # $5678 # +   \ add two literals

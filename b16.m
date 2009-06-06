@@ -6,21 +6,29 @@ also editor also minos also forth
 
 component class b16-state
 public:
-  infotextfield ptr p#
-  infotextfield ptr i#
-  infotextfield ptr s#
+  tableinfotextfield ptr p#
+  tableinfotextfield ptr i#
+  tableinfotextfield ptr s#
   toggleicon ptr stoptoggle
   textfield ptr steps#
-  infotextfield ptr t#
-  infotextfield ptr s0#
-  infotextfield ptr s1#
-  infotextfield ptr s2#
-  infotextfield ptr s3#
-  infotextfield ptr r#
-  infotextfield ptr r0#
-  infotextfield ptr r1#
-  infotextfield ptr r2#
-  infotextfield ptr r3#
+  tableinfotextfield ptr t#
+  tableinfotextfield ptr s0#
+  tableinfotextfield ptr s1#
+  tableinfotextfield ptr s2#
+  tableinfotextfield ptr s3#
+  tableinfotextfield ptr s4#
+  tableinfotextfield ptr s5#
+  tableinfotextfield ptr s6#
+  tableinfotextfield ptr s7#
+  tableinfotextfield ptr r#
+  tableinfotextfield ptr r0#
+  tableinfotextfield ptr r1#
+  tableinfotextfield ptr r2#
+  tableinfotextfield ptr r3#
+  tableinfotextfield ptr r4#
+  tableinfotextfield ptr r5#
+  tableinfotextfield ptr r6#
+  tableinfotextfield ptr r7#
  ( [varstart] ) cell var stopped
 method update ( [varend] ) 
 how:
@@ -62,10 +70,12 @@ include b16.fs
 b16-debug implements
  ( [methodstart] ) : show  self F bind b16d super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
-        ^^ CP[  ]CP ( MINOS ) b16-mem new 
-        ^^ CP[  ]CP ( MINOS ) b16-state new  ^^bind state-comp
+          ^^ CP[  ]CP ( MINOS ) b16-mem new 
+          ^^ CP[  ]CP ( MINOS ) b16-state new  ^^bind state-comp
+          $0 $1 *hfill $0 $1 *vfil rule new 
+        #3 habox new
         ^^ CP[  ]CP ( MINOS ) b16-ide new  ^^bind ide-comp
-      #3 vabox new
+      #2 vabox new
     ( [dumpend] ) ;
 class;
 
@@ -74,12 +84,15 @@ b16-mem implements
   : widget  ( [dumpstart] )
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Addr" infotextfield new  ^^bind addr#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Data" infotextfield new  ^^bind data#
-            ^^ S[ addr# get drop u@ 0 data# assign ]S ( MINOS ) X" @" button new 
-            ^^ S[ addr# get drop uc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
-            ^^ S[ data# get drop addr# get drop u! ]S ( MINOS ) X" !" button new 
-            ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
-          #4 hatbox new #1 hskips
-        #3 habox new vfixbox  #1 hskips
+              ^^ S[ addr# get drop u@ 0 data# assign ]S ( MINOS ) X" @" button new 
+              ^^ S[ addr# get drop uc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
+            #2 hatbox new #1 hskips
+              ^^ S[ data# get drop addr# get drop u! ]S ( MINOS ) X" !" button new 
+              ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
+            #2 hatbox new #1 hskips
+          #2 vatbox new #1 vskips
+          $10 $1 *hfil $10 $1 *vfill rule new 
+        #4 vabox new #1 vskips
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
           ^^ S[ wini/o at? 2drop
 addr# get drop n# get drop base @ >r hex
@@ -93,8 +106,9 @@ BEGIN  2dup scratch swap 2/ 8 min u@s
  ]S ( MINOS ) X" Dump" button new 
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" status" infotextfield new  ^^bind status#
           ^^ S[ status@ 0 status# assign ]S ( MINOS ) X" status@" button new 
-        #4 habox new vfixbox  #1 hskips
-      #2 vabox new vfixbox  panel
+          $10 $1 *hfil $10 $1 *vfill rule new 
+        #5 vabox new #1 vskips
+      #2 habox new panel #-1 borderbox
     ( [dumpend] ) ;
 class;
 
@@ -179,39 +193,63 @@ b16-state implements
   stack 8 + w@ 0 s2# assign
   stack 10 + w@ 0 r2# assign
   stack 12 + w@ 0 s3# assign
-  stack 14 + w@ 0 r3# assign r> stopped !
+  stack 14 + w@ 0 r3# assign
+  stack 16 + w@ 0 s4# assign
+  stack 18 + w@ 0 r4# assign
+  stack 20 + w@ 0 s5# assign
+  stack 22 + w@ 0 r5# assign
+  stack 24 + w@ 0 s6# assign
+  stack 26 + w@ 0 r6# assign
+  stack 28 + w@ 0 s7# assign
+  stack 30 + w@ 0 r7# assign
+  r> stopped !
   regs w@ regs 8 + w@ 8 rshift 3 and search-listing
   2dup d0= 0= IF  b16d ide-comp code-source at
   ELSE  2drop  THEN ;
 : show  '$' 0
   2dup p# keyed  2dup t# keyed  2dup r# keyed  2dup s# keyed
   2dup s0# keyed 2dup s1# keyed 2dup s2# keyed 2dup s3# keyed
+  2dup s4# keyed 2dup s5# keyed 2dup s6# keyed 2dup s7# keyed
   2dup r0# keyed 2dup r1# keyed 2dup r2# keyed 2dup r3# keyed
+  2dup r4# keyed 2dup r5# keyed 2dup r6# keyed 2dup r7# keyed
   i# keyed  status@ 1 and 0= dup stopped !
   IF  update  ELSE  bp-watch  THEN  super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
-            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  p# get drop DBG_P u! ]SN ( MINOS ) X" P" infotextfield new  ^^bind p#
-            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  i# get drop DBG_I u! ]SN ( MINOS ) X" I" infotextfield new  ^^bind i#
-            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  s# get drop DBG_STATE u! ]SN ( MINOS ) X" S" infotextfield new  ^^bind s#
-          #3 hatbox new #1 hskips
-            ^^  0 T[ stopped on b16-stop update ][ ( MINOS ) stopped off b16-run bp-watch ]T ( MINOS )  2icon" icons/stop"icons/play" toggleicon new  ^^bind stoptoggle
-            ^^ S[ steps# get ?DO  b16-step update I 1+ 0 steps# assign  LOOP ]S ( MINOS )  icon" icons/step" icon-but new 
+            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  p# get drop DBG_P u! ]SN ( MINOS ) X" P" tableinfotextfield new  ^^bind p#
+            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  i# get drop DBG_I u! ]SN ( MINOS ) X" I" tableinfotextfield new  ^^bind i#
+            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  s# get drop DBG_STATE u! ]SN ( MINOS ) X" S" tableinfotextfield new  ^^bind s#
+          #3 vatbox new vfixbox 
+              ^^  0 T[ stopped on b16-stop update ][ ( MINOS ) stopped off b16-run bp-watch ]T ( MINOS )  2icon" icons/stop"icons/play" toggleicon new  ^^bind stoptoggle
+              ^^ S[ steps# get ?DO  b16-step update I 1+ 0 steps# assign  LOOP ]S ( MINOS )  icon" icons/step" icon-but new 
+            #2 habox new vfixbox  #1 hskips
             #1. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) textfield new  ^^bind steps#
-          #3 habox new hfixbox  #1 hskips
-        #2 habox new #1 hskips
-          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  t# get drop DBG_T u! ]SN ( MINOS ) X" T" infotextfield new  ^^bind t#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind s0#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 2" infotextfield new  ^^bind s1#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" infotextfield new  ^^bind s2#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 4" infotextfield new  ^^bind s3#
-        #5 hatbox new #1 hskips
-          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  r# get drop DBG_R u! ]SN ( MINOS ) X" R" infotextfield new  ^^bind r#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 1" infotextfield new  ^^bind r0#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 2" infotextfield new  ^^bind r1#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" infotextfield new  ^^bind r2#
-          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 4" infotextfield new  ^^bind r3#
-        #5 hatbox new #1 hskips
-      #3 vabox new vfixbox  panel
+            ^^ S[ b16-reset update ]S ( MINOS ) X" Reset" button new 
+          #3 vabox new vfixbox 
+          $50 $1 *hfil $0 $1 *vfil rule new 
+        #3 vabox new #1 vskips
+          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  t# get drop DBG_T u! ]SN ( MINOS ) X" T" tableinfotextfield new  ^^bind t#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" tableinfotextfield new  ^^bind s0#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 2" tableinfotextfield new  ^^bind s1#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" tableinfotextfield new  ^^bind s2#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 4" tableinfotextfield new  ^^bind s3#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 5" tableinfotextfield new  ^^bind s4#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 6" tableinfotextfield new  ^^bind s5#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 7" tableinfotextfield new  ^^bind s6#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 8" tableinfotextfield new  ^^bind s7#
+          $50 $1 *hfil $0 $0 *vpix rule new 
+        #10 vatbox new
+          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  r# get drop DBG_R u! ]SN ( MINOS ) X" R" tableinfotextfield new  ^^bind r#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 1" tableinfotextfield new  ^^bind r0#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 2" tableinfotextfield new  ^^bind r1#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" tableinfotextfield new  ^^bind r2#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 4" tableinfotextfield new  ^^bind r3#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 5" tableinfotextfield new  ^^bind r4#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 6" tableinfotextfield new  ^^bind r5#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 7" tableinfotextfield new  ^^bind r6#
+          #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 8" tableinfotextfield new  ^^bind r7#
+          $50 $1 *hfil $0 $0 *vpix rule new 
+        #10 vatbox new
+      #3 habox new vfixbox  panel #-1 borderbox
     ( [dumpend] ) ;
 class;
 

@@ -532,7 +532,7 @@ also forth
   DBG_P regs 4 u@s
   DBG_STATE u@ regs 8 + w!
   0 DBG_I u! \ set instruction register to 0 to read stacks
-  stack stack-depth 2* bounds DO  DBG_S[] I 2 u@s  4 +LOOP
+  stack stack-depth 2* 2* bounds DO  DBG_S[] I 2 u@s  4 +LOOP
   regs 6 + w@ DBG_I u! ;
 
 : .regs ( -- ) base @ >r hex
