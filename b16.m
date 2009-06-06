@@ -91,7 +91,7 @@ b16-mem implements
               ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
             #2 hatbox new #1 hskips
           #2 vatbox new #1 vskips
-          $10 $1 *hfil $10 $1 *vfill rule new 
+          $60 $1 *hfil $0 $1 *vfill rule new 
         #4 vabox new #1 vskips
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
           ^^ S[ wini/o at? 2drop
