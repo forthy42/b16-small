@@ -6,6 +6,7 @@ $2000 org
 macro: r@ r> dup >r end-macro
 macro: 2* dup + end-macro
 macro: 2*c dup +c end-macro
+macro: error  BEGIN  AGAIN  end-macro
 : t4*
     >r >r 2* r> 2*c r> 2*c
     >r >r 2* r> 2*c r> 2*c ;
@@ -21,11 +22,11 @@ r> ;
 : boot
     BEGIN
         4 # 0 # sqrt
-        drop
-        16 # 0 # sqrt
-        drop
+        2 # xor IF error THEN
+        $10 # 0 # sqrt
+        4 # xor IF error THEN
         $5678 # $1234 # sqrt
-        drop
+        $4444 # xor IF error THEN
     AGAIN ;
 $3FFE org
      boot ;;
