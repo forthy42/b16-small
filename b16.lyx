@@ -3179,7 +3179,7 @@ parameter rstaddr=16'h3FFE, show=0,
 \begin_inset Newline newline
 \end_inset
 
-          l=16, sdep=2, rdep=2;
+          l=16, sdep=3, rdep=3;
 \begin_inset Newline newline
 \end_inset
 
