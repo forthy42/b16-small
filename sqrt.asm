@@ -13,10 +13,7 @@ macro: 2*c dup +c end-macro
     cIF  r> 1 # + >r  ELSE  r@ 2* 1 # + +  THEN
 r> ;
 : sqrt 0 # dup
-    sqr-
-    sqr-
-    sqr-
-    sqr-
+    sqr- sqr- sqr- sqr-
     sqr- sqr- sqr- sqr-
     sqr- sqr- sqr- sqr-
     sqr- sqr- sqr- sqr-
