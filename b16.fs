@@ -38,8 +38,8 @@ Variable cycles
 \ RAM access
 
 $10000 allocate throw Value RAM  RAM $10000 erase
-: ramc@ ( addr -- n )  RAM + c@ ;
-: ramc! ( n addr -- )  RAM + c! ;
+: ramc@ ( addr -- n )  $FFFF and RAM + c@ ;
+: ramc! ( n addr -- )  $FFFF and RAM + c! ;
 : ram@  ( addr -- n )  dup ramc@ 8 lshift swap 1+ ramc@ or ;
 : ram!  ( n addr -- )  over 8 rshift over ramc!  1+ ramc! ;
 
@@ -384,6 +384,8 @@ $800 Value rom-end
 : end-macro postpone ; ; immediate
 : : Create  inst, IP @ , DOES> @ inst, 1 jmp, ;
 : | Create  inst, IP @ , DOES> @ ;
+: Label Create  inst, IP @ , DOES> @ [ b16-asm ] # [ forth ] ;
+: hier IP @ ;
 : ' ' >body @ ;
 
 $00 inst nop
@@ -588,13 +590,15 @@ Forth
 b16-asm also Forth
 [THEN]
 
+import float also float
+
 : asm-load ( -- )
-    s" " listing $! b16-asm definitions include forth definitions ;
+    s" " listing $! float also f-init b16-asm definitions include previous forth definitions ;
 
 : asm-included ( addr u -- )
-    s" " listing $! b16-asm definitions included forth definitions ;
+    s" " listing $! float also f-init b16-asm definitions included previous forth definitions ;
 
-previous Forth
+previous previous Forth
 \ asm-load boot.asm
 
 [IFDEF] b16-debug
