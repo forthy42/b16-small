@@ -102,7 +102,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 `ifdef DEBUGGING,
            dr, dw, daddr, din, dout, bp`endif);
    parameter rstaddr=16'h3FFE, show=0,
-             l=16, sdep=3, rdep=3;
+             l=16, sdep=4, rdep=4;
    input clk, run, reset, scanning, atpg;
    output `L addr;
    output rd;
