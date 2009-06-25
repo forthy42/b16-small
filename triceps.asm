@@ -41,7 +41,7 @@ include b16-sqrt.fs
 macro: .v >h >r >h >r >h r> r> +l end-macro
 
 : after ( ms -- dtime )
-    $0400 # mul
+    $01c0 # mul
     TVAL1 # @  TVAL0 # @ d+ ; 
 
 : till ( dtime -- )
@@ -88,7 +88,7 @@ macro: right -1 # end-macro
 \ steptimeslope darf max $7fff bei div durch 1 sein, sonst neg !
 
      0 Value steptimeslope-h
- $3000 Value steptimeslope-l 
+ $5000 Value steptimeslope-l 
 
 : arelstep ( n -- )
    dup IF 0<

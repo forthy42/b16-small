@@ -523,7 +523,7 @@ Variable spi-addr
 
 \ read processor status
 
-8 Constant stack-depth
+16 Constant stack-depth
 Create regs  5 2* allot
 here stack-depth 4* allot
 Constant stack
