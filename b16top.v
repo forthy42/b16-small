@@ -199,7 +199,7 @@ assign	I2C_SDAT	=	1'bz;
    wire [2:0] dstate;
    wire [15:0] caddr, cin, cout, LED7;
    wire [15:0] addru, datau, data_dbg, bp;
-   wire        run = irqrun & ~csu & drun & (SW[3] ? &counter[22:0] : &READY);
+   wire        run = irqrun & ~csu & drun & (/* SW[3] ? &counter[22:0] : */ &READY);
 
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
@@ -219,7 +219,7 @@ assign	I2C_SDAT	=	1'bz;
    cpu b16(clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0, 1'b0,
 	   dr, dw, addru[3:1], datau, data_dbg, bp);
    
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) : LED7);
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, /*SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) :*/ LED7);
 
    reg [7:0] bootraml[0:4095] /* synthesis ramstyle="no_rw_check" */;
    reg [7:0] bootramh[0:4095] /* synthesis ramstyle="no_rw_check" */;
@@ -241,7 +241,7 @@ assign	I2C_SDAT	=	1'bz;
    wire [15:0] sfr_data;
    
    sfr sfr_block(clk, nreset, drun, sel[2], addr[7:0], r, w, dwrite, sfr_data,
-		 LED7, GPIO_0, GPIO_1, irqrun);
+		 LED7, GPIO_0, GPIO_1, irqrun, { KEY, SW });
    
    always @(r or w or sel or addr_i or SRAM_DQ)
      begin

@@ -10,18 +10,20 @@
 `define lb1 [23:16]
 
 module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
-	   LED7, gpio_0, gpio_1, irqrun);
+	   LED7, gpio_0, gpio_1, irqrun, keys);
    input clk, nreset, drun, sel, r;
    input [7:0] addr;
    input [15:0] dwrite;
    input [1:0] 	w;
    output [15:0] sfr_data, LED7;
    inout [35:0] gpio_0, gpio_1;
+   input [12:0] keys;
    output 	irqrun;
 
    reg [15:0] 	 sfr_data, LED7, tval0, tval1;
    reg [35:0] 	 gpio_0o, gpio_1o, gpio_0t, gpio_1t;
    reg [31:0] 	 timerval;
+   reg [12:0]    keys_reg;
    reg 	 irqmask, irqact;
 
    assign irqrun = |{irqmask & irqact};
@@ -96,7 +98,7 @@ module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
      end
 
    always @(addr or r or sel or LED7 or tval0 or tval1 or timerval
-            or gpio_0 or gpio_1 or gpio_0t or gpio_1t or irqmask or irqact)
+            or gpio_0 or gpio_1 or gpio_0t or gpio_1t or irqmask or irqact or keys_reg)
      if(r & sel)
        casez(addr)
 	 8'h00: sfr_data <= LED7;
@@ -117,6 +119,7 @@ module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
 	 8'h38: sfr_data <= gpio_1t[35:32];
 	 8'h3a: sfr_data <= gpio_1t[31:16];
 	 8'h3c: sfr_data <= gpio_1t[15:0];
+	 8'h40: sfr_data <= keys_reg;
 	 8'hzz: sfr_data <= 0;
        endcase else sfr_data <= 0;
    
