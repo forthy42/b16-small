@@ -241,7 +241,7 @@ assign	I2C_SDAT	=	1'bz;
    wire [15:0] sfr_data;
    
    sfr sfr_block(clk, nreset, drun, sel[2], addr[7:0], r, w, dwrite, sfr_data,
-		 LED7, GPIO_0, GPIO_1, irqrun, { KEY, SW });
+		 LED7, GPIO_0, GPIO_1, irqrun, { KEY[3:1], SW });
    
    always @(r or w or sel or addr_i or SRAM_DQ)
      begin

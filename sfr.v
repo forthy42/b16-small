@@ -54,7 +54,9 @@ module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
 	tval1 <= 0;
 	irqact <= 8'hff;
 	irqmask <= 8'hff;
-     end else begin
+	keys_reg <= 0;
+     end else begin // if (!nreset)
+	keys_reg <= keys;
 	if(sel) begin
 	   if(w[1]) begin
 	      casez({ addr[7:1], 1'b0 })
