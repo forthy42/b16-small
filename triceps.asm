@@ -109,13 +109,13 @@ macro: right -1 # end-macro
 
 Label ma-pos      0 ,  0 , 0 ,
 Label mb-pos &5400 ,  0 , 0 ,
-Label mc-pos &5400 F dup s>f pi f2* !6 f/ fcos f* f>s ,
-                       s>f pi f2* !6 f/ fsin f* f>s , 0 ,
+Label mc-pos &5400 F dup s>f pi f2* 6e f/ fcos f* f>s ,
+                       s>f pi f2* 6e f/ fsin f* f>s , 0 ,
 Label gr-pos &5400 F dup F 2/ ,
-              s>f pi f2* !6 f/ fsin f* !3 f/ f>s , &3600 ,
+              s>f pi f2* 6e f/ fsin f* 3e f/ f>s , &3600 ,
 \ kreuzungs Position
 Label gr-org &5400 F dup F 2/ ,
-              s>f pi f2* !6 f/ fsin f* !3 f/ f>s , &3600 ,
+              s>f pi f2* 6e f/ fsin f* 3e f/ f>s , &3600 ,
 
 : schritte ( mm -- schritte )
     &400 # mul &642 # div drop ;
@@ -244,23 +244,23 @@ Label temp2-pos     0 ,  0 , 0 ,
    gr-org pos@ v+ 
    absbewegen ;
 
-\ $10000 s>f pi f2* !6 f/ fsin f* f>s # mul nip 
+\ $10000 s>f pi f2* 6e f/ fsin f* f>s # mul nip 
 \ multipliziert mit dem sin von $10000 und nip erspart Division
 
 : reihe2 ( nr -- ) 
     &200 # mul drop &750 # + dup
-    $10000 s>f pi f2* !6 f/ fsin f* f>s # mul nip 
+    $10000 s>f pi f2* 6e f/ fsin f* f>s # mul nip 
     swap
-    $10000 s>f pi f2* !6 f/ fcos f* f>s # mul nip 
+    $10000 s>f pi f2* 6e f/ fcos f* f>s # mul nip 
     swap &-200 #
     &-1750 # &-1000 # 0 # v+
     gr-org pos@ v+ absbewegen ;
 
 : reihe3 ( nr -- ) 
     &200 # mul drop  &750 # + dup
-    $10000 s>f pi f2* !6 f/ fsin f* f>s # mul nip 
+    $10000 s>f pi f2* 6e f/ fsin f* f>s # mul nip 
     swap
-    $10000 s>f pi f2* !6 f/ fcos f* f>s # mul nip
+    $10000 s>f pi f2* 6e f/ fcos f* f>s # mul nip
     negate swap &-200 #
     &1750 # &-1000 # 0 # v+
     gr-org pos@ v+ absbewegen ;

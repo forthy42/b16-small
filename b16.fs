@@ -590,7 +590,8 @@ Forth
 b16-asm also Forth
 [THEN]
 
-import float also float
+[IFUNDEF] f+ import float also float
+[ELSE] : f-init ; [THEN]
 
 : asm-load ( -- )
     s" " listing $! float also f-init b16-asm definitions include previous forth definitions ;
