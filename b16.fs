@@ -579,11 +579,13 @@ previous b16-asm also Forth
 : sim  ( >defs -- )
     IP @ >r prog r@ P ! ['] run catch r> org ;
 
-[IFDEF] linux
-s" /dev/ttyUSB0" init
-[ELSE]
-s" COM1" init
-[THEN]
+: com-init ( -- )
+    [IFDEF] linux
+	s" /dev/ttyUSB0" init
+    [ELSE]
+	s" COM1" init
+    [THEN]
+;
 
 Forth
 [ELSE]
@@ -604,4 +606,6 @@ previous previous Forth
 
 [IFDEF] b16-debug
     b16-debug ptr b16d
+[THEN]
+
 [THEN]

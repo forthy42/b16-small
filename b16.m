@@ -70,7 +70,7 @@ class;
 
 include b16.fs
 b16-debug implements
- ( [methodstart] ) : show  self F bind b16d super show ; ( [methodend] ) 
+ ( [methodstart] ) : show  self F bind b16d com-init super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
           ^^ CP[  ]CP ( MINOS ) b16-mem new 
           ^^ CP[  ]CP ( MINOS ) b16-state new  ^^bind state-comp
