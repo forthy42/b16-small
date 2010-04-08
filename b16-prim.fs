@@ -2,7 +2,7 @@
 
 macro: error  BEGIN  AGAIN  end-macro
 macro: swap ( a b -- b a ) over >r nip r> end-macro
-macro: ! ( a b -- )  !. drop  end-macro
+macro: ! ( a b -- )  !* drop  end-macro
 
 macro: cell   2 #    end-macro
 macro: cell+  2 #  + end-macro
@@ -98,6 +98,6 @@ macro: under swap over end-macro
     0 # dup +c *+ drop r>       \ insert carry
 ;                       \ return to caller
 
-: rshift ( n1 rs -- n2 )
+: lshift ( n1 rs -- n2 )
     BEGIN dup WHILE >r 2* r> 1- REPEAT drop ;
 
