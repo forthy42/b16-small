@@ -47,12 +47,13 @@ $10000 allocate throw Value RAM  RAM $10000 erase
 
 : T ( -- n )  sp @ 1+ cells sp + @ ;
 : R ( -- n )  rp @ 1+ cells rp + @ ;
+: !R ( n -- )  rp @ 1+ cells rp + ! ;
 : ?sp ( -- )  sp @ &10 u> abort" Stack wrap" ;
 : ?rp ( -- )  rp @ 8 u> abort" Rstack wrap" ;
 : pop ( -- n )  T  -1 sp +! ?sp ;
 : push ( n -- ) 1 sp +! ?sp sp @ 1+ cells sp + ! ;
 : rpop ( -- n )  R  -1 rp +! ?rp ;
-: rpush ( n -- ) 1 rp +! ?rp rp @ 1+ cells rp + ! ;
+: rpush ( n -- ) 1 rp +! ?rp !R ;
 
 \ Jumps
 
@@ -64,10 +65,10 @@ Vocabulary b16-sim  also b16-sim definitions also Forth
         swap invert P @ 2/ and or P ! 4 slot ! ;
 : call  P @ rpush jmp ;
 : ret   rpop P ! 4 slot ! ;
-: jz    T 0= IF  jmp  THEN  4 slot ! ;
-: jnz   T 0<> IF  jmp  THEN  4 slot ! ;
-: jc    c @ IF  jmp  THEN  4 slot ! ;
-: jnc   c @ 0= IF  jmp  THEN  4 slot ! ;
+: jz    T 0= IF  jmp  THEN  4 slot ! pop drop ;
+: jnz   T 0<> IF  jmp  THEN  4 slot ! pop drop ;
+: jc    c @ IF  jmp  THEN  4 slot ! pop drop ;
+: jnc   c @ 0= IF  jmp  THEN  4 slot ! pop drop ;
 
 \ ALU
 
@@ -79,10 +80,10 @@ Vocabulary b16-sim  also b16-sim definitions also Forth
 : add  pop pop +   +rest ;
 : addc pop pop + c @ + +rest ;
 : *+   pop c @ IF  T +  THEN  dup 2/ push 
-  1 and $10 lshift A @ or  dup 1 and c ! 2/ A ! ;
+  1 and $10 lshift R or  dup 1 and c ! 2/ !R ;
 : /-   pop dup T + 1+  dup $10 rshift c @ or dup >r
-  IF  nip  ELSE  drop  THEN  $10 lshift A @ or
-  dup $1F rshift c !  2* r> or  dup $FFFF A ! $10 rshift push ;
+  IF  nip  ELSE  drop  THEN  $10 lshift R or
+  dup $1F rshift c !  2* r> or  dup $FFFF !R $10 rshift push ;
 
 \ Memory
 
@@ -156,9 +157,9 @@ Defer <inst>  ' noop IS <inst>
 : .v base @ >r hex 4 0.r space r> base ! ;
 Create i0
 ," nop call"
-," nop calljmp ret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  A!  A@  R@  lit Ac@ Ac! Rc@ litcnip dropoverdup >r  >a  r>  a   "
-," nop calljmp ret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  A!+ A@+ R@+ lit Ac@+Ac!+Rc@+litcnip dropoverdup >r  >a  r>  a   "
-," nop execgotoret gz  gnz gc  gnc xor com and or  +   +c  *+  /-  A!+ A@+ R@+ lit Ac@+Ac!+Rc@+litcnip dropoverdup >r  >a  r>  a   "
+," nop calljmp ret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  !+  @+  @   lit c!+ c@+ c@  litcnip dropoverdup >r  --  r>  --  "
+," nop calljmp ret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  !+  @+  @   lit c!+ c@+ c@  litcnip dropoverdup >r  --  r>  --  "
+," nop execgotoret gz  gnz gc  gnc xor com and or  +   +c  *+  /-  !.  @.  @   lit c!. c@. c@  litcnip dropoverdup >r  --  r>  --  "
 
 : .inst cr P @ .v Inst @ 3 slot @ - 5 * rshift $1F and
     i0 slot @ 0 ?DO count + LOOP 1+ swap 4 * + 4 type space
