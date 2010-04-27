@@ -105,16 +105,16 @@ macro: error  BEGIN  AGAIN  end-macro
         $942b # xor IF  error  THEN
         $0948 # xor IF  error  THEN ;
 : jumps                 \ test a few jumps
-    0 #c 1 #c    -IF  drop 3 # + THEN  drop \ jump if non-zero
-    0 #c 0 #c     IF  drop 4 # + THEN  drop \ jump if zero
-    0 # com     -cIF  drop 5 # + THEN  drop \ jump if carry
-    0 #c 0 #c +  cIF  drop 6 # + THEN  drop \ jump if no carry
+    0 #c 1 #c    -IF  3 # + THEN  drop \ jump if non-zero
+    0 #c 0 #c     IF  4 # + THEN  drop \ jump if zero
+    0 # com     -cIF  5 # + THEN  drop \ jump if carry
+    0 #c 0 #c +  cIF  6 # + THEN  drop \ jump if no carry
 ;                       \ return to caller
 : -jumps                \ test a few jumps the other way round
-    0 #c 1 #c     IF  drop 3 # + THEN
-    0 #c 0 #c    -IF  drop 4 # + THEN
-    0 # com      cIF  drop 5 # + THEN
-    0 #c 0 #c + -cIF  drop 6 # + THEN
+    0 #c 1 #c     IF  3 # + THEN
+    0 #c 0 #c    -IF  4 # + THEN
+    0 # com      cIF  5 # + THEN
+    0 #c 0 #c + -cIF  6 # + THEN
 ;                       \ return to caller
 : stackop
     1 #c 2 #c dup >r over >r over over + >r

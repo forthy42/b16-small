@@ -26,30 +26,35 @@ warnings off
 
 \ Variables
 
+#34 Constant max-sp
+#16 Constant max-rp
+
 Variable Inst
 Variable P
-Variable A
 Variable c
-Variable sp  here &10 cells dup allot erase  2 sp !
-Variable rp  here   8 cells dup allot erase
+Variable sp  here #34 cells dup allot erase  2 sp !
+Variable rp  here #16 cells dup allot erase
 Variable slot  4 slot !
 Variable cycles
+
+: sim-reset  $3FFE P !  2 sp ! 0 rp ! 4 slot ! ;
 
 \ RAM access
 
 $10000 allocate throw Value RAM  RAM $10000 erase
 : ramc@ ( addr -- n )  $FFFF and RAM + c@ ;
 : ramc! ( n addr -- )  $FFFF and RAM + c! ;
-: ram@  ( addr -- n )  dup ramc@ 8 lshift swap 1+ ramc@ or ;
-: ram!  ( n addr -- )  over 8 rshift over ramc!  1+ ramc! ;
+: ram@  ( addr -- n )  dup ramc@ 8 lshift swap 1 xor ramc@ or ;
+: ram!  ( n addr -- )  over 8 rshift over ramc!  1 xor ramc! ;
 
 \ Stack access
 
 : T ( -- n )  sp @ 1+ cells sp + @ ;
+: N ( -- n )  sp @    cells sp + @ ;
 : R ( -- n )  rp @ 1+ cells rp + @ ;
 : !R ( n -- )  rp @ 1+ cells rp + ! ;
-: ?sp ( -- )  sp @ &10 u> abort" Stack wrap" ;
-: ?rp ( -- )  rp @ 8 u> abort" Rstack wrap" ;
+: ?sp ( -- )  sp @ max-sp u> abort" Stack wrap" ;
+: ?rp ( -- )  rp @ max-rp u> abort" Rstack wrap" ;
 : pop ( -- n )  T  -1 sp +! ?sp ;
 : push ( n -- ) 1 sp +! ?sp sp @ 1+ cells sp + ! ;
 : rpop ( -- n )  R  -1 rp +! ?rp ;
@@ -60,22 +65,20 @@ $10000 allocate throw Value RAM  RAM $10000 erase
 Vocabulary b16-sim  also b16-sim definitions also Forth
 
 : nop   ;
-: jmp   slot @ 3 = IF  pop P ! EXIT  THEN
-        1 3 slot @ - 5 * lshift 1- dup Inst @ and
-        swap invert P @ 2/ and or P ! 4 slot ! ;
+: (jmp)   slot @ 4 = IF  pop P ! EXIT  THEN
+    1 4 slot @ - 5 * lshift 1- dup Inst @ and
+    swap invert P @ 2/ and or 2* P ! ;
+: jmp   (jmp)  4 slot ! ;
 : call  P @ rpush jmp ;
 : ret   rpop P ! 4 slot ! ;
-: jz    T 0= IF  jmp  THEN  4 slot ! pop drop ;
-: jnz   T 0<> IF  jmp  THEN  4 slot ! pop drop ;
-: jc    c @ IF  jmp  THEN  4 slot ! pop drop ;
-: jnc   c @ 0= IF  jmp  THEN  4 slot ! pop drop ;
+: ?drop slot @ 4 < IF  pop drop  THEN 4 slot ! ;
+: jz    T 0=   IF  (jmp)  THEN  ?drop ;
+: jnz   T 0<>  IF  (jmp)  THEN  ?drop ;
+: jc    c @    IF  (jmp)  THEN  ?drop ;
+: jnc   c @ 0= IF  (jmp)  THEN  ?drop ;
 
 \ ALU
 
-: xor  pop pop xor push ;
-: com  pop $FFFF xor push ;
-: and  pop pop and push ;
-: or   pop pop or  push ;
 : +rest dup $FFFF and push $10 rshift c ! ;
 : add  pop pop +   +rest ;
 : addc pop pop + c @ + +rest ;
@@ -83,22 +86,13 @@ Vocabulary b16-sim  also b16-sim definitions also Forth
   1 and $10 lshift R or  dup 1 and c ! 2/ !R ;
 : /-   pop dup T + 1+  dup $10 rshift c @ or dup >r
   IF  nip  ELSE  drop  THEN  $10 lshift R or
-  dup $1F rshift c !  2* r> or  dup $FFFF !R $10 rshift push ;
+  dup $1F rshift c !  2* r> or  dup $FFFF and !R $10 rshift push ;
+: and  pop pop and push ;
+: or   pop pop or  push ;
+: com  pop $FFFF xor push 1 c ! ;
+: xor  pop pop xor push ;
 
 \ Memory
-
-: A@  A @ ram@ push ;
-: A!  pop A @ ram! ;
-: R@  R ram@ push ;
-: Ac@ A @ ramc@ push ;
-: Ac! pop A @ ramc! ;
-: Rc@ R ramc@ push ;
-: A@+ A@ 2 A +! ;
-: A!+ A! 2 A +! ;
-: R@+ R@ rpop 2 + rpush ;
-: Ac@+ Ac@ 1 A +! ;
-: Ac!+ Ac! 1 A +! ;
-: Rc@+ Rc@ rpop 1 + rpush ;
 
 : @    pop ram@ push ;
 : @+   pop dup ram@ push 2 + push ;
@@ -126,9 +120,9 @@ Vocabulary b16-sim  also b16-sim definitions also Forth
 : over pop T swap push push ;
 : dup  T push ;
 : >r   pop rpush ;
-: >a   pop A ! ;
+\ : >a   pop A ! ;
 : r>   rpop push ;
-: a    A @ push ;
+\ : a    A @ push ;
 
 \ toplevel
 
@@ -142,29 +136,36 @@ Forth definitions
 : <ALUs>  [ 8 ] jmps  xor com and or add addc *+ /-
 : <mem+>  1 cycles +! [ 8 ] jmps  !+ @+ @ lit  c!+ c@+ c@ litc
 : <mem>   1 cycles +! [ 8 ] jmps  !. @. @ lit  c!. c@. c@ litc
-: <stack> [ 8 ] jmps  nip drop over dup >r >a r> a
+: <stack> [ 8 ] jmps  nip drop over dup >r noop r> noop
 : <op23> dup 3 rshift [ 4 ] jmps <jmps> <ALUs> <mem+> <stack>
 : <op1> dup 3 rshift [ 4 ] jmps <jmps> <ALUs> <mem> <stack>
 : <op>  dup slot @ 0> or 0<> negate cycles +!
   1 slot +!  slot @ 2 = IF  <op1>  ELSE  <op23>  THEN ;
 Defer <inst>  ' noop IS <inst>
-: run  BEGIN  slot @ 4 = IF 
+: step  slot @ 4 = IF 
        P @ ram@ Inst ! 2 P +! slot off  THEN  <inst>
-       Inst @ 3 slot @ - 5 * rshift <op>  AGAIN ;
+       Inst @ 3 slot @ - 5 * rshift <op> ;
+: steps  0 ?DO  step  LOOP ;
+: run  BEGIN  step  AGAIN ;
 
 \ trace
 
 : .v base @ >r hex 4 0.r space r> base ! ;
+: .<> base @ >r hex 0 <# '>' hold #S '<' hold #> type r> base ! ;
 Create i0
 ," nop call"
+," nop execgotoret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  !.  @.  @   lit c!. c@. c@  litcnip dropoverdup >r  --  r>  --  "
 ," nop calljmp ret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  !+  @+  @   lit c!+ c@+ c@  litcnip dropoverdup >r  --  r>  --  "
-," nop calljmp ret jz  jnz jc  jnc xor com and or  +   +c  *+  /-  !+  @+  @   lit c!+ c@+ c@  litcnip dropoverdup >r  --  r>  --  "
-," nop execgotoret gz  gnz gc  gnc xor com and or  +   +c  *+  /-  !.  @.  @   lit c!. c@. c@  litcnip dropoverdup >r  --  r>  --  "
+," nop calljmp ret gz  gnz gc  gnc xor com and or  +   +c  *+  /-  !+  @+  @   lit c!+ c@+ c@  litcnip dropoverdup >r  --  r>  --  "
 
-: .inst cr P @ .v Inst @ 3 slot @ - 5 * rshift $1F and
+: .inst cr P @ .v slot @ 1 .r ':' emit Inst @ 3 slot @ - 5 * rshift $1F and
     i0 slot @ 0 ?DO count + LOOP 1+ swap 4 * + 4 type space
-    pop pop dup push over push swap .v .v ;
-' .inst IS <inst>
+    sp @ .<> T .v N .v rp @ .<> R .v ;
+
+: trace-on   ['] .inst IS <inst> ;
+: trace-off  ['] noop  IS <inst> ;
+
+trace-on
 
 previous previous
 

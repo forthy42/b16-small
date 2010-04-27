@@ -1,3 +1,11 @@
 #!/bin/bash
 
-gforth b16.fs -e "asm-load $1 bye"
+commands="asm-load"
+
+if [ "$1" == "-l" ]
+then
+    commands="listing? on $commands"
+    shift
+fi
+
+gforth b16.fs -e "$commands $1 bye"
