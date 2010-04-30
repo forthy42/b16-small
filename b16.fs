@@ -235,18 +235,18 @@ Create pos-field 0 , 0 , 0 , 0 ,
     LOOP
     slot# off bundle off extra-inc off
     IP @ 1 and abort" odd IP" .slot#2 ;
-: slot ( inst -- )
+: >slot ( inst -- )
     slot# @ 4 = IF slot, THEN 
     dup 1 > slot# @ 0= and IF  .slot#2  1 slot# +!  THEN
     3 slot# @ - 5 * lshift bundle +! 1 slot# +!
     .slot# ;
 : slot1 ( inst -- )
-    BEGIN  slot# @ 1 <> WHILE  0 slot  REPEAT  slot ;
+    BEGIN  slot# @ 1 <> WHILE  0 >slot  REPEAT  >slot ;
 : slot23 ( inst -- )
-    BEGIN  slot# @ 2 and 2 <> WHILE  0 slot  REPEAT  slot ;
+    BEGIN  slot# @ 2 and 2 <> WHILE  0 >slot  REPEAT  >slot ;
 : slot3 ( inst -- )
-    BEGIN  slot# @ 3 <> WHILE  0 slot  REPEAT  slot ;
-: inst ( n -- )  Create ,  DOES> @ slot ;
+    BEGIN  slot# @ 3 <> WHILE  0 >slot  REPEAT  >slot ;
+: inst ( n -- )  Create ,  DOES> @ >slot ;
 : inst1 ( n -- )  Create ,  DOES> @ slot1 ;
 : inst23 ( n -- )  Create ,  DOES> @ slot23 ;
 : inst3 ( n -- )  Create ,  DOES> @ slot3 ;
@@ -259,11 +259,11 @@ Create pos-field 0 , 0 , 0 , 0 ,
 : fit? ( addr -- flag )  2/ addrmask
     IP @ 2/ 1+ over invert and >r over and r> or = ;
 : inst, ( -- )  slot# @ 0= ?EXIT
-    BEGIN  slot# @ 4 < WHILE  0 slot  REPEAT  slot, ;
+    BEGIN  slot# @ 4 < WHILE  0 >slot  REPEAT  slot, ;
 : jmp, ( addr inst -- ) over fit? 0= IF inst, THEN
     swap 2/ addrmask and
     over 1 <> IF  $3FF and  THEN  bundle +!
-    slot 4 slot# ! ( inst, ) ;
+    >slot 4 slot# ! ( inst, ) ;
 : jmp ( inst -- )  Create , DOES> @ jmp, ;
 : jmps ( start n -- ) bounds ?DO  I jmp  LOOP ;
 
@@ -275,7 +275,7 @@ also B16-asm definitions
 : c, ( n -- )   IP @ ramc!  1 IP +! ;
 : ,  ( c -- )   IP @ ram!   2 IP +! ;
 : align ( -- )  inst, IP @ 1 and IP +! ;
-: org ( n -- )  inst, IP ! .slot#2 ;
+: org ( n -- )  inst, IP ! .slot#2 slot# off ;
 : $, ( addr u -- )
     bounds ?DO
         I c@ c,  LOOP ;
@@ -579,7 +579,7 @@ previous b16-asm also Forth
 : eval ( >defs -- )
     IP @ >r comp r@ exec r> org &20 wait ?in ;
 : sim  ( >defs -- )
-    IP @ >r prog r@ P ! ['] run catch r> org ;
+    IP @ >r prog r@ P ! 0 rp ! 4 slot ! ['] run catch drop r> org ;
 
 : com-init ( -- )
     [IFDEF] linux
