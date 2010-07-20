@@ -1471,19 +1471,19 @@ always @(state or I or data or atpg)
 \begin_inset Newline newline
 \end_inset
 
-     2'b00: inst <= { 4'b0000, data[15] & !atpg };
+     2'b00: inst = { 4'b0000, data[15] & !atpg };
 \begin_inset Newline newline
 \end_inset
 
-     2'b01: inst <=   I[14:10];
+     2'b01: inst =   I[14:10];
 \begin_inset Newline newline
 \end_inset
 
-     2'b10: inst <=   I[9:5];
+     2'b10: inst =   I[9:5];
 \begin_inset Newline newline
 \end_inset
 
-     2'b11: inst <=   I[4:0];
+     2'b11: inst =   I[4:0];
 \begin_inset Newline newline
 \end_inset
 
@@ -1503,19 +1503,19 @@ always @(state or I or P or T or data)
 \begin_inset Newline newline
 \end_inset
 
-     2'b00: jmp <= { data[14:0], 1'b0 };
+     2'b00: jmp = { data[14:0], 1'b0 };
 \begin_inset Newline newline
 \end_inset
 
-     2'b01: jmp <= { P[15:11], I[9:0], 1'b0 };
+     2'b01: jmp = { P[15:11], I[9:0], 1'b0 };
 \begin_inset Newline newline
 \end_inset
 
-     2'b10: jmp <= { P[15:6], I[4:0], 1'b0 };
+     2'b10: jmp = { P[15:6], I[4:0], 1'b0 };
 \begin_inset Newline newline
 \end_inset
 
-     2'b11: jmp <= { T[15:1], 1'b0 };
+     2'b11: jmp = { T[15:1], 1'b0 };
 \begin_inset Newline newline
 \end_inset
 
@@ -4158,7 +4158,7 @@ always @(daddr or dr or run or P or T or R or I or
 \begin_inset Newline newline
 \end_inset
 
-if(!dr || run) dout <= 'hz;
+if(!dr || run) dout = 'hz;
 \begin_inset Newline newline
 \end_inset
 
@@ -4166,7 +4166,7 @@ if(!dr || run) dout <= 'hz;
 \begin_inset Newline newline
 \end_inset
 
-if(!dr || run) dout <= 'h0;
+if(!dr || run) dout = 'h0;
 \begin_inset Newline newline
 \end_inset
 
@@ -4178,43 +4178,43 @@ else casez(daddr)
 \begin_inset Newline newline
 \end_inset
 
-   3'h0: dout <= N;
+   3'h0: dout = N;
 \begin_inset Newline newline
 \end_inset
 
-   3'h1: dout <= toR;
+   3'h1: dout = toR;
 \begin_inset Newline newline
 \end_inset
 
-   3'h2: dout <= bp;
+   3'h2: dout = bp;
 \begin_inset Newline newline
 \end_inset
 
-   3'h3: dout <= { run, 4'h0, c, state,
+   3'h3: dout = { run, 4'h0, c, state,
 \begin_inset Newline newline
 \end_inset
 
-                   {4-sdep{1'b0}}, sp,
+                  {4-sdep{1'b0}}, sp,
 \begin_inset Newline newline
 \end_inset
 
-                   {4-rdep{1'b0}}, rp };
+                  {4-rdep{1'b0}}, rp };
 \begin_inset Newline newline
 \end_inset
 
-   3'h4: dout <= P;
+   3'h4: dout = P;
 \begin_inset Newline newline
 \end_inset
 
-   3'h5: dout <= T;
+   3'h5: dout = T;
 \begin_inset Newline newline
 \end_inset
 
-   3'h6: dout <= R;
+   3'h6: dout = R;
 \begin_inset Newline newline
 \end_inset
 
-   3'h7: dout <= I;
+   3'h7: dout = I;
 \begin_inset Newline newline
 \end_inset
 
@@ -4635,23 +4635,23 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[0] <= ind;
+        stackmem[0] = ind;
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[1] <= ind;
+        stackmem[1] = ind;
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[2] <= ind;
+        stackmem[2] = ind;
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[3] <= ind;
+        stackmem[3] = ind;
 \begin_inset Newline newline
 \end_inset
 
-     end else if(write) stackmem[spset] <= ind;
+     end else if(write) stackmem[spset] = ind;
 \begin_inset Newline newline
 \end_inset
 

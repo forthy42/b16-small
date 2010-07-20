@@ -75,11 +75,11 @@ module stack(clk, sp, spdec, push, scan, in, out);
 `ifndef FPGA
   always @(write or spset or ind or scan)
      if(scan) begin
-        stackmem[0] <= ind;
-        stackmem[1] <= ind;
-        stackmem[2] <= ind;
-        stackmem[3] <= ind;
-     end else if(write) stackmem[spset] <= ind;
+        stackmem[0] = ind;
+        stackmem[1] = ind;
+        stackmem[2] = ind;
+        stackmem[3] = ind;
+     end else if(write) stackmem[spset] = ind;
 `else
   always @(posedge clk)
      if(push)
@@ -128,18 +128,18 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 
    always @(state or I or data or atpg)
       case(state[1:0])
-        2'b00: inst <= { 4'b0000, data[15] & !atpg };
-        2'b01: inst <=   I[14:10];
-        2'b10: inst <=   I[9:5];
-        2'b11: inst <=   I[4:0];
+        2'b00: inst = { 4'b0000, data[15] & !atpg };
+        2'b01: inst =   I[14:10];
+        2'b10: inst =   I[9:5];
+        2'b11: inst =   I[4:0];
       endcase // casez(state)
 
    always @(state or I or P or T or data)
       case(state[1:0])
-        2'b00: jmp <= { data[14:0], 1'b0 };
-        2'b01: jmp <= { P[15:11], I[9:0], 1'b0 };
-        2'b10: jmp <= { P[15:6], I[4:0], 1'b0 };
-        2'b11: jmp <= { T[15:1], 1'b0 };
+        2'b00: jmp = { data[14:0], 1'b0 };
+        2'b01: jmp = { P[15:11], I[9:0], 1'b0 };
+        2'b10: jmp = { P[15:6], I[4:0], 1'b0 };
+        2'b11: jmp = { T[15:1], 1'b0 };
       endcase // casez(state)
    wire `L res, toN, toR, N;
    wire carry, zero;
@@ -211,21 +211,21 @@ module cpu(clk, run, reset, addr, rd, wr, data,
    always @(daddr or dr or run or P or T or R or I or
             state or sp or rp or c or N or toR or bp)
    `ifndef FPGA
-   if(!dr || run) dout <= 'hz;
+   if(!dr || run) dout = 'hz;
    `else
-   if(!dr || run) dout <= 'h0;
+   if(!dr || run) dout = 'h0;
    `endif
    else casez(daddr)
-      3'h0: dout <= N;
-      3'h1: dout <= toR;
-      3'h2: dout <= bp;
-      3'h3: dout <= { run, 4'h0, c, state,
-                      {4-sdep{1'b0}}, sp,
-                      {4-rdep{1'b0}}, rp };
-      3'h4: dout <= P;
-      3'h5: dout <= T;
-      3'h6: dout <= R;
-      3'h7: dout <= I;
+      3'h0: dout = N;
+      3'h1: dout = toR;
+      3'h2: dout = bp;
+      3'h3: dout = { run, 4'h0, c, state,
+                     {4-sdep{1'b0}}, sp,
+                     {4-rdep{1'b0}}, rp };
+      3'h4: dout = P;
+      3'h5: dout = T;
+      3'h6: dout = R;
+      3'h7: dout = I;
    endcase
    `endif
 
