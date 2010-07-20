@@ -3248,7 +3248,7 @@ alu #(l) alu16(res, carry, zero,
 \end_layout
 
 \begin_layout Standard
-Since the stacks work in parallel, we have to calculated, when a value is
+Since the stacks work in parallel, we have to calculate when a value is
  pushed onto the stack (thus 
 \series bold
 only
@@ -3290,15 +3290,15 @@ always @(state or inst or rd or run <<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 
-     rpush <= 1'b0;
+     rpush = 1'b0;
 \begin_inset Newline newline
 \end_inset
 
-     dpush <= (|state[1:0] & rd) |
+     dpush = (|state[1:0] & rd) |
 \begin_inset Newline newline
 \end_inset
 
-              (inst[4] && inst[3] && inst[1]);
+             (inst[4] && inst[3] && inst[1]);
 \begin_inset Newline newline
 \end_inset
 
@@ -3306,11 +3306,11 @@ always @(state or inst or rd or run <<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 
-        5'b00001: rpush <= |state[1:0] | run;
+        5'b00001: rpush = |state[1:0] | run;
 \begin_inset Newline newline
 \end_inset
 
-        5'b11100: rpush <= 1'b1;
+        5'b11100: rpush = 1'b1;
 \begin_inset Newline newline
 \end_inset
 
@@ -4294,11 +4294,11 @@ if(!run && dw) casez(daddr)
 \begin_inset Newline newline
 \end_inset
 
-   3'h0: dpush <= 1;
+   3'h0: dpush = 1;
 \begin_inset Newline newline
 \end_inset
 
-   3'h1: rpush <= 1;
+   3'h1: rpush = 1;
 \begin_inset Newline newline
 \end_inset
 
@@ -4635,23 +4635,23 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[0] = ind;
+        stackmem[0] <= ind;
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[1] = ind;
+        stackmem[1] <= ind;
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[2] = ind;
+        stackmem[2] <= ind;
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[3] = ind;
+        stackmem[3] <= ind;
 \begin_inset Newline newline
 \end_inset
 
-     end else if(write) stackmem[spset] = ind;
+     end else if(write) stackmem[spset] <= ind;
 \begin_inset Newline newline
 \end_inset
 

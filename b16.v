@@ -75,11 +75,11 @@ module stack(clk, sp, spdec, push, scan, in, out);
 `ifndef FPGA
   always @(write or spset or ind or scan)
      if(scan) begin
-        stackmem[0] = ind;
-        stackmem[1] = ind;
-        stackmem[2] = ind;
-        stackmem[3] = ind;
-     end else if(write) stackmem[spset] = ind;
+        stackmem[0] <= ind;
+        stackmem[1] <= ind;
+        stackmem[2] <= ind;
+        stackmem[3] <= ind;
+     end else if(write) stackmem[spset] <= ind;
 `else
   always @(posedge clk)
      if(push)
@@ -175,17 +175,17 @@ module cpu(clk, run, reset, addr, rd, wr, data,
                                        or run or dw or daddr
                                        `endif)
      begin
-        rpush <= 1'b0;
-        dpush <= (|state[1:0] & rd) |
-                 (inst[4] && inst[3] && inst[1]);
+        rpush = 1'b0;
+        dpush = (|state[1:0] & rd) |
+                (inst[4] && inst[3] && inst[1]);
         casez(inst)
-           5'b00001: rpush <= |state[1:0] | run;
-           5'b11100: rpush <= 1'b1;
+           5'b00001: rpush = |state[1:0] | run;
+           5'b11100: rpush = 1'b1;
         endcase // case(inst)
         `ifdef DEBUGGING
         if(!run && dw) casez(daddr)
-           3'h0: dpush <= 1;
-           3'h1: rpush <= 1;
+           3'h0: dpush = 1;
+           3'h1: rpush = 1;
         endcase
         `endif
      end
