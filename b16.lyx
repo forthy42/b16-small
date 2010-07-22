@@ -2930,6 +2930,10 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
+// `define BUSTRI
+\begin_inset Newline newline
+\end_inset
+
 `timescale 1ns / 1ns
 \begin_inset Newline newline
 \end_inset
@@ -4154,7 +4158,7 @@ always @(daddr or dr or run or P or T or R or I or
 \begin_inset Newline newline
 \end_inset
 
-`ifndef FPGA
+`ifdef BUSTRI
 \begin_inset Newline newline
 \end_inset
 

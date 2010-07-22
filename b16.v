@@ -17,6 +17,7 @@
 `define DROP { sp, T } <= { spinc, N } 
 `define DEBUGGING
 `define FPGA
+// `define BUSTRI
 `timescale 1ns / 1ns
 
 module alu(res, carry, zero, T, N, c, inst);
@@ -210,7 +211,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 
    always @(daddr or dr or run or P or T or R or I or
             state or sp or rp or c or N or toR or bp)
-   `ifndef FPGA
+   `ifdef BUSTRI
    if(!dr || run) dout = 'hz;
    `else
    if(!dr || run) dout = 'h0;
