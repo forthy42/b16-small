@@ -409,69 +409,7 @@ previous previous definitions
 
 s" bigforth" environment? [IF]  2drop
   
-include serial.fs
-
-dos also
-
-0 value b16
-: init ( addr u -- )  r/w bin open-file throw to b16
-    B230400 b16 filehandle @ set-baud ;
-
-Variable timeout
-
-: waitx  10 ms timeout @ 0 after - 0< ;
-
-[IFDEF] linux
-: b16-clear ( -- )  pad b16 check-read b16 read-file throw drop ;
-
-: check-in ( n -- addr u ) &200 after timeout !
-    BEGIN  dup b16 check-read u>  WHILE  waitx  UNTIL
-	s" iii" b16 write-file throw
-	&100 ms b16-clear
-	pad 0 EXIT  THEN
-    pad swap b16 read-file throw pad swap ;
-[ELSE]
-: b16-clear ( -- )  pad 100 b16 read-file throw drop ;
-
-: check-in ( n -- addr u )  &200 after timeout !  pad swap
-    BEGIN  2dup b16 read-file throw /string  dup 0>  WHILE  waitx  UNTIL
-        s" iii" b16 write-file throw
-        &100 ms b16-clear
-        pad 0 EXIT  THEN
-    + pad tuck - ; 
-[THEN]
-
-: hold16 ( n -- )  dup hold 8 rshift hold ;
-
-\ load store
-
-Variable addr' -1 addr' !
-
-: addr ( addr -- )  addr' @ over addr' ! over <> IF 
-	<# hold16 'a hold 0. #> b16 write-file throw
-    ELSE  drop  THEN ;
-
-: u@ ( addr -- u )  addr s" rl" b16 write-file throw  2 check-in
-    0 -rot bounds ?DO  8 lshift I c@ or  LOOP  2 addr' +! ;
-
-: u@s ( addr addr1 u -- ) rot addr
-    BEGIN  2dup 8 min
-	dup 0 ?DO s" rl" b16 write-file throw LOOP
-	2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
-	rot swap dup addr' +! move
-    $10 /string  dup 0= UNTIL  2drop ;
-
-: uc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
-    0 -rot bounds ?DO  8 lshift I c@ or  LOOP  1 addr' +! ;
-
-: u! ( u addr -- )  addr <# hold16 'W hold 0. #>
-    b16 write-file throw 2 addr' +! ;
-
-: uc! ( u addr -- )  addr <# hold 'w hold 0. #>
-    b16 write-file throw 1 addr' +! ;
-
-: status@ ( -- n )  b16-clear
-    s" i" b16 write-file throw  1 check-in drop c@ ;
+include b16-serial.fs
 
 \ debugging reg map
 
@@ -484,15 +422,15 @@ $FFEA Constant DBG_T
 $FFEC Constant DBG_R
 $FFEE Constant DBG_I
 
-: b16-stop ( -- ) DBG_STATE u@ drop ;
-: b16-run  ( -- ) DBG_STATE u@ $1000 or DBG_STATE u! ;
-: b16-step  ( -- ) DBG_STATE u@ $1000 invert and DBG_STATE u! ;
+: b16-stop ( -- ) DBG_STATE dbg@ drop ;
+: b16-run  ( -- ) DBG_STATE dbg@ $1000 or DBG_STATE dbg! ;
+: b16-step  ( -- ) DBG_STATE dbg@ $1000 invert and DBG_STATE dbg! ;
 : b16-steps ( n -- ) 0 ?DO  b16-step  LOOP ;
-: b16-reset ( -- )  b16-stop  $3FFE DBG_P u! 0 DBG_I u! 0 DBG_STATE u! ;
+: b16-reset ( -- )  b16-stop  $3FFE DBG_P dbg! 0 DBG_I dbg! 0 DBG_STATE dbg! ;
 
 Variable breakpoint
 
-: bp! ( addr -- )  dup breakpoint ! DBG_BP u! ;
+: bp! ( addr -- )  dup breakpoint ! DBG_BP dbg! ;
 : set-bp ( addr -- )  bp! ;
 : clear-bp ( addr -- )  drop $FFFF set-bp ;
 : find-bp? ( addr -- inst flag )
@@ -513,14 +451,14 @@ Variable spi-addr
 : include-hex ( addr u -- )
     b16-reset
     r/o open-file throw >r
-    BEGIN  pad c/l r@ read-line throw  WHILE  pad swap >hex u!
+    BEGIN  pad c/l r@ read-line throw  WHILE  pad swap >hex dbg!
     REPEAT  drop r> close-file throw ;
 
 : postfix? ( addr1 u1 addr2 u2 -- flag )
     tuck 2>r over swap - 0 max /string 2r> str= ;
 
 : upload ( -- )  b16-reset rom-offset rom-size bounds ?DO
-	I ram@ I u!
+	I ram@ I dbg!
     2 +LOOP b16-run ;
 
 \ read processor status
@@ -533,11 +471,11 @@ Constant stack
 also forth
 
 : load-regs ( -- )
-  DBG_P regs 4 u@s
-  DBG_STATE u@ regs 8 + w!
-  0 DBG_I u! \ set instruction register to 0 to read stacks
-  stack stack-depth 4* bounds DO  DBG_S[] I 2 u@s  4 +LOOP
-  regs 6 + w@ DBG_I u! ;
+  DBG_P regs 4 dbg@s
+  DBG_STATE dbg@ regs 8 + w!
+  0 DBG_I dbg! \ set instruction register to 0 to read stacks
+  stack stack-depth 4* bounds DO  DBG_S[] I 2 dbg@s  4 +LOOP
+  regs 6 + w@ DBG_I dbg! ;
 
 : .regs ( -- ) base @ >r hex
     ." P: " regs w@ 4 0.r ."  I: " regs 6 + w@ 4 0.r ."  S: " regs 8 + w@ 4 0.r cr
@@ -546,48 +484,17 @@ also forth
     ." R: " regs 4 + w@ 4 0.r
     stack 2+ stack-depth 4* bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
 
-[IFDEF] linux
-: ?in ( -- )  pad b16 check-read b16 read-file throw pad swap type ;
-: ?flush ( -- )  pad $100 + b16 check-read b16 read-file throw drop ;
-[ELSE]
-: ?in ( -- )  pad 100 b16 read-file throw drop ;
-: ?flush ( -- )  pad $100 + 100 b16 read-file throw drop ;
-[THEN]
-
-previous
-
-: program ( addr u addr -- ) ?flush
-    <# over hold $100 /mod swap hold hold '0 hold 0. #>
-    b16 write-file throw b16 write-file throw ?flush ;
-
-: check ( addr u -- ) ?flush swap
-    <# over hold $100 /mod swap hold hold '1 hold 0. #>
-    b16 write-file throw
-    pad $F + -$10 and swap 2dup bounds ?DO
-	I I' over - b16 read-file throw
-    +LOOP  dump  ?flush ;
-
-: exec ( addr -- ) ?flush
-    <# $100 /mod swap hold hold '2 hold 0. #>
-    b16 write-file throw ?in ;
+: exec ( addr -- )  drop ( tbd ) ;
 
 previous b16-asm also Forth
 
 : prog ( >defs -- )  also b16-asm interpret previous inst, ;
 : comp ( >defs -- )
-    IP @ >r prog r@ RAM + IP @ r@ - r> program ;
+    IP @ >r prog r@ RAM + IP @ r@ - r> dbg!s ;
 : eval ( >defs -- )
     IP @ >r comp r@ exec r> org &20 wait ?in ;
 : sim  ( >defs -- )
     IP @ >r prog r@ P ! 0 rp ! 4 slot ! ['] run catch drop r> org ;
-
-: com-init ( -- )
-    [IFDEF] linux
-	s" /dev/ttyUSB0" init
-    [ELSE]
-	s" COM1" init
-    [THEN]
-;
 
 Forth
 [ELSE]

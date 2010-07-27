@@ -70,7 +70,7 @@ class;
 
 include b16.fs
 b16-debug implements
- ( [methodstart] ) : show  self F bind b16d com-init super show ; ( [methodend] ) 
+ ( [methodstart] ) : show  self F bind b16d super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
           ^^ CP[  ]CP ( MINOS ) b16-mem new 
           ^^ CP[  ]CP ( MINOS ) b16-state new  ^^bind state-comp
@@ -86,11 +86,11 @@ b16-mem implements
   : widget  ( [dumpstart] )
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Addr" infotextfield new  ^^bind addr#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" Data" infotextfield new  ^^bind data#
-              ^^ S[ addr# get drop u@ 0 data# assign ]S ( MINOS ) X" @" button new 
-              ^^ S[ addr# get drop uc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
+              ^^ S[ addr# get drop dbg@ 0 data# assign ]S ( MINOS ) X" @" button new 
+              ^^ S[ addr# get drop dbgc@ 0 data# assign ]S ( MINOS ) X" c@" button new 
             #2 hatbox new #1 hskips
-              ^^ S[ data# get drop addr# get drop u! ]S ( MINOS ) X" !" button new 
-              ^^ S[ data# get drop addr# get drop uc! ]S ( MINOS ) X" c!" button new 
+              ^^ S[ data# get drop addr# get drop dbg! ]S ( MINOS ) X" !" button new 
+              ^^ S[ data# get drop addr# get drop dbgc! ]S ( MINOS ) X" c!" button new 
             #2 hatbox new #1 hskips
           #2 vatbox new #1 vskips
           $60 $1 *hfil $0 $1 *vfill rule new 
@@ -98,7 +98,7 @@ b16-mem implements
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" infotextfield new  ^^bind n#
           ^^ S[ wini/o at? 2drop
 addr# get drop n# get drop base @ >r hex
-BEGIN  2dup scratch swap 2/ 8 min u@s
+BEGIN  2dup scratch swap 2/ 8 min dbg@s
     cr over 0 <# # # # # #> type ." : "
     scratch over $10 umin bounds ?DO
         I c@ 0 <# # # #> type space
@@ -230,9 +230,9 @@ b16-state implements
   i# keyed  status@ 1 and 0= dup stopped !
   IF  update  ELSE  bp-watch  THEN  super show ; ( [methodend] ) 
   : widget  ( [dumpstart] )
-            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  p# get drop DBG_P u! ]SN ( MINOS ) X" P" tableinfotextfield new  ^^bind p#
-            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  i# get drop DBG_I u! ]SN ( MINOS ) X" I" tableinfotextfield new  ^^bind i#
-            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  s# get drop DBG_STATE u! ]SN ( MINOS ) X" S" tableinfotextfield new  ^^bind s#
+            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  p# get drop DBG_P dbg! ]SN ( MINOS ) X" P" tableinfotextfield new  ^^bind p#
+            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  i# get drop DBG_I dbg! ]SN ( MINOS ) X" I" tableinfotextfield new  ^^bind i#
+            #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  s# get drop DBG_STATE dbg! ]SN ( MINOS ) X" S" tableinfotextfield new  ^^bind s#
           #3 vatbox new vfixbox 
               ^^  0 T[ stopped on b16-stop update ][ ( MINOS ) stopped off b16-run bp-watch ]T ( MINOS )  2icon" icons/stop"icons/play" toggleicon new  ^^bind stoptoggle
               ^^ S[ steps# get ?DO  b16-step update I 1+ 0 steps# assign  LOOP ]S ( MINOS )  icon" icons/step" icon-but new 
@@ -242,7 +242,7 @@ b16-state implements
           #3 vabox new vfixbox 
           $50 $1 *hfil $0 $1 *vfil rule new 
         #3 vabox new #1 vskips
-          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  t# get drop DBG_T u! ]SN ( MINOS ) X" T" tableinfotextfield new  ^^bind t#
+          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  t# get drop DBG_T dbg! ]SN ( MINOS ) X" T" tableinfotextfield new  ^^bind t#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" N" tableinfotextfield new  ^^bind s0#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 2" tableinfotextfield new  ^^bind s1#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" tableinfotextfield new  ^^bind s2#
@@ -253,7 +253,7 @@ b16-state implements
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 8" tableinfotextfield new  ^^bind s7#
           $50 $1 *hfil $0 $0 *vpix rule new 
         #10 vatbox new
-          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  r# get drop DBG_R u! ]SN ( MINOS ) X" R" tableinfotextfield new  ^^bind r#
+          #0. ]N ( MINOS ) ^^ SN[ stopped @ 0= ?EXIT  r# get drop DBG_R dbg! ]SN ( MINOS ) X" R" tableinfotextfield new  ^^bind r#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 1" tableinfotextfield new  ^^bind r0#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 2" tableinfotextfield new  ^^bind r1#
           #0. ]N ( MINOS ) ^^ SN[  ]SN ( MINOS ) X" 3" tableinfotextfield new  ^^bind r2#
