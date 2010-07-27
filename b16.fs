@@ -410,17 +410,7 @@ previous previous definitions
 s" bigforth" environment? [IF]  2drop
   
 include b16-serial.fs
-
-\ debugging reg map
-
-$FFE0 Constant DBG_S[]
-$FFE2 Constant DBG_R[]
-$FFE4 Constant DBG_BP
-$FFE6 Constant DBG_STATE
-$FFE8 Constant DBG_P
-$FFEA Constant DBG_T
-$FFEC Constant DBG_R
-$FFEE Constant DBG_I
+include regmap.fs
 
 : b16-stop ( -- ) DBG_STATE dbg@ drop ;
 : b16-run  ( -- ) DBG_STATE dbg@ $1000 or DBG_STATE dbg! ;
