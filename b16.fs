@@ -11,13 +11,6 @@
 \     A!   A@   R@   lit  Ac!  Ac@  Rc@  litc  for slot 1
 \ 18: nip  drop over dup  >r   >a   r>   a
 
-\ $Log: b16.fs,v $
-\ Revision 1.3  2003/01/06 20:35:21  bernd
-\ Changes to run with Icarus Verilog
-\ USB interrupts
-\ Added interrupts to the b16 core
-\
-
 warnings off
 
 [IFUNDEF] $! include string.fs [THEN]
@@ -56,7 +49,7 @@ $10000 allocate throw Value RAM  RAM $10000 erase
 : ?sp ( -- )  sp @ max-sp u> abort" Stack wrap" ;
 : ?rp ( -- )  rp @ max-rp u> abort" Rstack wrap" ;
 : pop ( -- n )  T  -1 sp +! ?sp ;
-: push ( n -- ) 1 sp +! ?sp sp @ 1+ cells sp + ! ;
+: dpush ( n -- ) 1 sp +! ?sp sp @ 1+ cells sp + ! ;
 : rpop ( -- n )  R  -1 rp +! ?rp ;
 : rpush ( n -- ) 1 rp +! ?rp !R ;
 
@@ -79,49 +72,49 @@ Vocabulary b16-sim  also b16-sim definitions also Forth
 
 \ ALU
 
-: +rest dup $FFFF and push $10 rshift c ! ;
+: +rest dup $FFFF and dpush $10 rshift c ! ;
 : add  pop pop +   +rest ;
 : addc pop pop + c @ + +rest ;
-: *+   pop c @ IF  T +  THEN  dup 2/ push 
+: *+   pop c @ IF  T +  THEN  dup 2/ dpush 
   1 and $10 lshift R or  dup 1 and c ! 2/ !R ;
 : /-   pop dup T + 1+  dup $10 rshift c @ or dup >r
   IF  nip  ELSE  drop  THEN  $10 lshift R or
-  dup $1F rshift c !  2* r> or  dup $FFFF and !R $10 rshift push ;
-: and  pop pop and push ;
-: or   pop pop or  push ;
-: com  pop $FFFF xor push 1 c ! ;
-: xor  pop pop xor push ;
+  dup $1F rshift c !  2* r> or  dup $FFFF and !R $10 rshift dpush ;
+: and  pop pop and dpush ;
+: or   pop pop or  dpush ;
+: com  pop $FFFF xor dpush 1 c ! ;
+: xor  pop pop xor dpush ;
 
 \ Memory
 
-: @    pop ram@ push ;
-: @+   pop dup ram@ push 2 + push ;
-: @.   pop dup ram@ push push ;
+: @    pop ram@ dpush ;
+: @+   pop dup ram@ dpush 2 + dpush ;
+: @.   pop dup ram@ dpush dpush ;
 
 : !    pop pop swap ram! ;
-: !+   pop pop over ram! 2 + push ;
-: !.   pop pop over ram! push ;
+: !+   pop pop over ram! 2 + dpush ;
+: !.   pop pop over ram! dpush ;
 
-: c@   pop ramc@ push ;
-: c@+  pop dup ramc@ push 1 + push ;
-: c@.  pop dup ramc@ push push ;
+: c@   pop ramc@ dpush ;
+: c@+  pop dup ramc@ dpush 1 + dpush ;
+: c@.  pop dup ramc@ dpush dpush ;
 
 : c!   pop pop swap ramc! ;
-: c!+  pop pop over ramc! 1 + push ;
-: c!.  pop pop over ramc! push ;
+: c!+  pop pop over ramc! 1 + dpush ;
+: c!.  pop pop over ramc! dpush ;
 
-: lit P @ ram@ push  2 P +! ;
-: litc P @ ramc@ push 1 P +! ;
+: lit P @ ram@ dpush  2 P +! ;
+: litc P @ ramc@ dpush 1 P +! ;
 
 \ stack
 
-: nip  pop pop drop push ;
+: nip  pop pop drop dpush ;
 : drop pop drop ;
-: over pop T swap push push ;
-: dup  T push ;
+: over pop T swap dpush dpush ;
+: dup  T dpush ;
 : >r   pop rpush ;
 \ : >a   pop A ! ;
-: r>   rpop push ;
+: r>   rpop dpush ;
 \ : a    A @ push ;
 
 \ toplevel
