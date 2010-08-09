@@ -2,10 +2,11 @@
 
 SOURCES = b16.lyx Makefile \
 	b16.nw b16.v b16.fs b16.fig
+LYXREV = # set e.g. to 14 for LyX 1.4
 
 all:	b16.v b16-fig.eps b16-fig.pdf b16.pdf
 
-%.nw:	%.lyx
+%.nw:	%.lyx$(LYXREV)
 	-rm $@
 	lyx -e literate $<
 
