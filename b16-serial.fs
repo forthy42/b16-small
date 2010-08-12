@@ -88,7 +88,10 @@ Variable addr' -1 addr' !
 	rot swap dup addr' +! move
     $10 /string  dup 0= UNTIL  2drop ;
 
-: dbgc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
+: dbgc@ ( addr -- u )
+    do-serial 0= IF  dup 1 and >r -2 and dbg>
+	r> 1 xor 3 lshift rshift $FF and  EXIT  THEN  ?open
+    addr s" r" b16 write-file throw  1 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP  1 addr' +! ;
 
 : dbg! ( u addr -- )
@@ -103,10 +106,17 @@ Variable addr' -1 addr' !
     ?open addr
     tuck bounds ?DO  I w@ addr' @ dbg!  2 +LOOP ;
 
-: dbgc! ( u addr -- )  addr <# hold 'w hold 0. #>
+: >dbgc ( u addr -- )  dup 1 and >r -2 and dup dbg> rot
+    r> IF  $FF and swap $FF00 and or swap >dbg
+    ELSE   $FF and 8 lshift swap $FF and or swap >dbg
+    THEN ;
+
+: dbgc! ( u addr -- )
+    2dup >dbgc  do-serial 0= IF  2drop  EXIT  THEN
+    addr <# hold 'w hold 0. #>
     b16 write-file throw 1 addr' +! ;
 
-: status@ ( -- n )  ?open  do-serial 0= ?EXIT  b16-clear
+: status@ ( -- n )  ?open  do-serial 0= IF  0  EXIT  THEN  b16-clear
     s" i" b16 write-file throw  1 check-in drop c@ ;
 
 [IFDEF] linux
