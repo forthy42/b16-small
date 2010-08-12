@@ -3,24 +3,49 @@ include serial.fs
 dos also
 
 0 value b16
+true Value do-serial
+true Value record-dbg
+
+$1000 cells Constant dbg#
+
+Create dbg-buf dbg# allot
+
+: dbg-empty  dbg-buf dbg# -1 fill ;
+
+dbg-empty
+
+: >dbg ( data addr -- )
+    record-dbg 0= IF  2drop  EXIT  THEN
+    dbg-buf dbg# bounds ?DO
+	dup I @ = I @ -1 = or  IF  I 2!  unloop EXIT  THEN
+    2 cells +LOOP  2drop ." No space in DBG" cr ;
+: dbg> ( addr -- data )
+    dbg-buf dbg# bounds ?DO
+	dup I @ = IF  drop I cell+ @ unloop  EXIT  THEN
+    2 cells +LOOP  drop  0 ;
+
 : init ( addr u -- )  r/w bin open-file throw to b16
     B230400 b16 filehandle @ set-baud ;
 
-: ?open ( -- )
+: ?open ( -- )  do-serial 0= ?EXIT
     b16 ?exit
     [IFDEF] linux
-	s" /dev/ttyUSB0" init
+	s" /dev/ttyUSB0"
     [ELSE]
-	s" COM1" init
-    [THEN]
-;
+	s" COM1"
+    [THEN] ['] init catch
+    IF
+	backtrace $18 cells + off
+	2drop false to do-serial ." Line not connected" cr
+    THEN ;
 
 Variable timeout
 
 : waitx  10 ms timeout @ 0 after - 0< ;
 
 [IFDEF] linux
-: b16-clear ( -- )  pad b16 check-read b16 read-file throw drop ;
+: b16-clear ( -- )  do-serial 0= ?EXIT
+    pad b16 check-read b16 read-file throw drop ;
 
 : check-in ( n -- addr u ) &200 after timeout !
     BEGIN  dup b16 check-read u>  WHILE  waitx  UNTIL
@@ -49,10 +74,14 @@ Variable addr' -1 addr' !
 	<# hold16 'a hold 0. #> b16 write-file throw
     ELSE  drop  THEN ;
 
-: dbg@ ( addr -- u )  addr s" rl" b16 write-file throw  2 check-in
+: dbg@ ( addr -- u )
+    do-serial 0= IF  dbg>  EXIT  THEN  ?open
+    addr s" rl" b16 write-file throw  2 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP  2 addr' +! ;
 
-: dbg@s ( source-addr addr u -- ) rot addr
+: dbg@s ( source-addr addr u -- )
+    do-serial 0= IF  2* bounds ?DO  dup dbg@ I w! 2+ 2 +LOOP  drop
+	EXIT  THEN  ?open  rot addr
     BEGIN  2dup 8 min
 	dup 0 ?DO s" rl" b16 write-file throw LOOP
 	2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
@@ -62,16 +91,22 @@ Variable addr' -1 addr' !
 : dbgc@ ( addr -- u )  addr s" r" b16 write-file throw  1 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP  1 addr' +! ;
 
-: dbg! ( u addr -- )  addr <# hold16 'W hold 0. #>
+: dbg! ( u addr -- )
+    2dup >dbg  do-serial 0= IF  2drop  EXIT  THEN
+    addr <# hold16 'W hold 0. #>
     b16 write-file throw 2 addr' +! ;
 
-: dbg!s ( addr u dest-addr -- )  addr
+: dbg!s ( addr u dest-addr -- )
+    do-serial 0= IF
+	2* bounds ?DO  I w@ over dbg! 2+  2 +LOOP  drop
+	EXIT  THEN
+    ?open addr
     tuck bounds ?DO  I w@ addr' @ dbg!  2 +LOOP ;
 
 : dbgc! ( u addr -- )  addr <# hold 'w hold 0. #>
     b16 write-file throw 1 addr' +! ;
 
-: status@ ( -- n )  ?open  b16-clear
+: status@ ( -- n )  ?open  do-serial 0= ?EXIT  b16-clear
     s" i" b16 write-file throw  1 check-in drop c@ ;
 
 [IFDEF] linux
