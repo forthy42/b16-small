@@ -1,4 +1,4 @@
-#LyX 1.6.4 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -126,7 +126,7 @@ Minimalistic CPUs can be used in many designs.
  when there are more than a few states.
  A program with subroutines can perform a lot more complex tasks, and is
  easier to develop at the same time.
- Also, ROM- and RAM blocks occupy much less place on silicon than 
+ Also, ROM and RAM blocks occupy much less place on silicon than 
 \begin_inset Quotes eld
 \end_inset
 
@@ -161,8 +161,6 @@ key "c18"
 .
  The exact instruction mix is different; it also differs from the standard
  b16 core.
- I left out multiplication and division step, but implemented Forth-typical
- logic operations.
  Also, this architecture is byte-addressed.
 \end_layout
 
@@ -1451,7 +1449,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-reg [4:0] inst;
+wire [4:0] inst, rwinst;
 \begin_inset Newline newline
 \end_inset
 
@@ -1463,31 +1461,11 @@ reg `L jmp;
 \begin_inset Newline newline
 \end_inset
 
-always @(state or I or data or atpg)
+assign inst = { 4'b0000, data[15], I[14:0] } >> (5*(3-state[1:0]));
 \begin_inset Newline newline
 \end_inset
 
-   case(state[1:0])
-\begin_inset Newline newline
-\end_inset
-
-     2'b00: inst = { 4'b0000, data[15] & !atpg };
-\begin_inset Newline newline
-\end_inset
-
-     2'b01: inst =   I[14:10];
-\begin_inset Newline newline
-\end_inset
-
-     2'b10: inst =   I[9:5];
-\begin_inset Newline newline
-\end_inset
-
-     2'b11: inst =   I[4:0];
-\begin_inset Newline newline
-\end_inset
-
-   endcase // casez(state)
+assign rwinst = { 5'b00000, I[14:0] } >> (5*(3-state[1:0]));
 \begin_inset Newline newline
 \end_inset
 
@@ -2427,11 +2405,11 @@ wire [1:0] wr;
 \begin_inset Newline newline
 \end_inset
 
-assign incby = (inst[4:2] != 3'b101);
+assign incby = (rwinst[4:2] != 3'b101);
 \begin_inset Newline newline
 \end_inset
 
-assign access = (inst[4:3]==2'b10);
+assign access = (rwinst[4:3]==2'b10);
 \begin_inset Newline newline
 \end_inset
 
@@ -2439,7 +2417,7 @@ assign addrsel = rd ?
 \begin_inset Newline newline
 \end_inset
 
-      (access & (inst[1:0] != 2'b11)) : |wr;
+      (access & (rwinst[1:0] != 2'b11)) : |wr;
 \begin_inset Newline newline
 \end_inset
 
@@ -2447,23 +2425,23 @@ assign rd = (state==2'b00) ||
 \begin_inset Newline newline
 \end_inset
 
-            (access && (inst[1:0]!=2'b00));
+            (access && (rwinst[1:0]!=2'b00));
 \begin_inset Newline newline
 \end_inset
 
-assign wr = (access && (inst[1:0]==2'b00)) ?
+assign wr = (access && (rwinst[1:0]==2'b00)) ?
 \begin_inset Newline newline
 \end_inset
 
-            { ~inst[2] | ~T[0], 
+            { ~rwinst[2] | ~T[0], 
 \begin_inset Newline newline
 \end_inset
 
-              ~inst[2] | T[0] } : 2'b00;
+              ~rwinst[2] | T[0] } : 2'b00;
 \begin_inset Newline newline
 \end_inset
 
-mux #(l) addrmux(addr, addrsel, 1'b0, T, P);
+mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P);
 \begin_inset Newline newline
 \end_inset
 
@@ -2471,11 +2449,11 @@ assign incaddr = addr + incby + 1;
 \begin_inset Newline newline
 \end_inset
 
-assign tos2n = (!rd | (inst[1:0] == 2'b11));
+assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
 \begin_inset Newline newline
 \end_inset
 
-mux #(l) toNmux(toN, tos2n, atpg, T, dataw);
+mux #(l) toNmux(.out(toN), .sel(tos2n), .atpg(atpg), .in1(T), .in0(dataw));
 \begin_inset Newline newline
 \end_inset
 
@@ -3240,11 +3218,11 @@ wire carry, zero;
 \begin_inset Newline newline
 \end_inset
 
-alu #(l) alu16(res, carry, zero, 
+alu #(l) alu16(.res(res), .carry(carry), .zero(zero), 
 \begin_inset Newline newline
 \end_inset
 
-               T, N, c, inst[2:0]);
+               .T(T), .N(N), .c(c), .inst(inst[2:0]));
 \begin_inset Newline newline
 \end_inset
 
@@ -3370,19 +3348,19 @@ wire [rdep-1:0] rpdec, rpinc;
 \begin_inset Newline newline
 \end_inset
 
-stack #(sdep,l) dstack(clk, sp, spdec, 
+stack #(sdep,l) dstack(.clk(clk), .sp(sp), .spdec(spdec),
 \begin_inset Newline newline
 \end_inset
 
-                       dpush, scanning, toN, N);
+                       .push(dpush), .in(toN), .out(N), .scan(scanning));
 \begin_inset Newline newline
 \end_inset
 
-stack #(rdep,l) rstack(clk, rp, rpdec, 
+stack #(rdep,l) rstack(.clk(clk), .sp(rp), .spdec(rpdec),
 \begin_inset Newline newline
 \end_inset
 
-                       rpush, scanning, R, toR);
+                       .push(rpush), .in(R), .out(toR), .scan(scanning));
 \begin_inset Newline newline
 \end_inset
 
@@ -3451,6 +3429,10 @@ end else if(run) begin
 \begin_inset Newline newline
 \end_inset
 
+`ifdef REPORT_VERBOSE
+\begin_inset Newline newline
+\end_inset
+
    if(show) begin
 \begin_inset Newline newline
 \end_inset
@@ -3460,6 +3442,10 @@ end else if(run) begin
 \end_inset
 
    end
+\begin_inset Newline newline
+\end_inset
+
+`endif
 \begin_inset Newline newline
 \end_inset
 
@@ -3946,7 +3932,11 @@ input [1:0] w;
 \begin_inset Newline newline
 \end_inset
 
-input `L addr, data, cpu_addr;
+input [l-1:1] addr;
+\begin_inset Newline newline
+\end_inset
+
+input `L data, cpu_addr;
 \begin_inset Newline newline
 \end_inset
 
@@ -4066,7 +4056,7 @@ endmodule
 \begin_inset Newline newline
 \end_inset
 
-if(dw) casez(daddr)
+if(dw) case(daddr)
 \begin_inset Newline newline
 \end_inset
 
@@ -4110,7 +4100,7 @@ endcase
 \begin_inset Newline newline
 \end_inset
 
-if(dr) casez(daddr)
+if(dr) case(daddr)
 \begin_inset Newline newline
 \end_inset
 
@@ -4119,6 +4109,10 @@ if(dr) casez(daddr)
 \end_inset
 
    3'h1: rp <= rpinc;
+\begin_inset Newline newline
+\end_inset
+
+   default ;
 \begin_inset Newline newline
 \end_inset
 
@@ -4158,27 +4152,11 @@ always @(daddr or dr or run or P or T or R or I or
 \begin_inset Newline newline
 \end_inset
 
-`ifdef BUSTRI
-\begin_inset Newline newline
-\end_inset
-
-if(!dr || run) dout = 'hz;
-\begin_inset Newline newline
-\end_inset
-
-`else
-\begin_inset Newline newline
-\end_inset
-
 if(!dr || run) dout = 'h0;
 \begin_inset Newline newline
 \end_inset
 
-`endif
-\begin_inset Newline newline
-\end_inset
-
-else casez(daddr)
+else case(daddr)
 \begin_inset Newline newline
 \end_inset
 
@@ -4324,9 +4302,8 @@ ALU
 \begin_layout Standard
 The ALU just computes the sum with possible carry-ins, the logical operations,
  and a zero flag.
- It would be possible to share common resources (the XORs of the full adder
- could also compute the XOR operation, and the carry propagation logic could
- compute OR and AND), but this optimization is left to the synthesis tool.
+ It reuses the same logic (essentially what comprises a full adder) to do
+ both sums and logic.
 \begin_inset ERT
 status collapsed
 
@@ -4344,6 +4321,10 @@ filbreak
 
 \begin_layout Scrap
 <<ALU>>=
+\begin_inset Newline newline
+\end_inset
+
+// leda off
 \begin_inset Newline newline
 \end_inset
 
@@ -4371,23 +4352,27 @@ module alu(res, carry, zero, T, N, c, inst);
 \begin_inset Newline newline
 \end_inset
 
-   assign #1 r1 = T ^ N ^ carries;
+   assign r1 = T ^ N ^ carries;
 \begin_inset Newline newline
 \end_inset
 
-   assign #1 r2 = (T & N) | 
+   assign r2 = (T & N) | 
 \begin_inset Newline newline
 \end_inset
 
-                  (T & carries`L) | 
+               (T & carries`L) | 
 \begin_inset Newline newline
 \end_inset
 
-                  (N & carries`L);
+               (N & carries`L);
 \begin_inset Newline newline
 \end_inset
 
-   assign #1 carries = 
+// This generates a carry chain, not a loop!
+\begin_inset Newline newline
+\end_inset
+
+   assign carries = 
 \begin_inset Newline newline
 \end_inset
 
@@ -4399,19 +4384,23 @@ module alu(res, carry, zero, T, N, c, inst);
 \begin_inset Newline newline
 \end_inset
 
-   assign #1 res = (selr & ~prop) ? r2 : r1;
+   assign res = (selr & ~prop) ? r2 : r1;
 \begin_inset Newline newline
 \end_inset
 
-   assign #1 carry = carries[l];
+   assign carry = carries[l];
 \begin_inset Newline newline
 \end_inset
 
-   assign #1 zero = ~|T;
+   assign zero = ~|T;
 \begin_inset Newline newline
 \end_inset
 
 endmodule // alu
+\begin_inset Newline newline
+\end_inset
+
+// leda on
 \begin_inset Newline newline
 \end_inset
 
@@ -4477,7 +4466,7 @@ wire prop, andor, selr;
 \begin_inset Newline newline
 \end_inset
 
-assign #1 { prop, selr, andor } = inst;
+assign { prop, selr, andor } = inst;
 \begin_inset Newline newline
 \end_inset
 
@@ -4489,16 +4478,9 @@ Stacks
 \end_layout
 
 \begin_layout Standard
-The stacks are modeled as block RAM in the FPGA.
- Therefore, they should have only one port, since these block RAMs are available
- even in small FPGAs.
- In an ASIC, this sort of stack is implemented with latches.
- Here it's possible to separate read and write port (also for FPGAs that
- support dual-ported RAM), and save the multiplexer for 
-\family typewriter
-spset
-\family default
-.
+The stacks are modelled as block RAM in the FPGA.
+ In an ASIC, this is implemented with latches.
+ The block RAM (or register file) needs one read and one write port.
 \begin_inset ERT
 status collapsed
 
@@ -4531,7 +4513,7 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   input [dep-1:0] sp, spdec; 
+   input [dep-1:0] sp, spdec;
 \begin_inset Newline newline
 \end_inset
 
@@ -4539,55 +4521,7 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   output `L out; 
-\begin_inset Newline newline
-\end_inset
-
-`ifdef SYNCSTACK
-\begin_inset Newline newline
-\end_inset
-
-// ugly hack to have the same code running
-\begin_inset Newline newline
-\end_inset
-
-// on a Cyclone and an Apex
-\begin_inset Newline newline
-\end_inset
-
-   reg `L sm0, sm1, sm2, sm3; 
-\begin_inset Newline newline
-\end_inset
-
-   always @(posedge clk)
-\begin_inset Newline newline
-\end_inset
-
-     if(push) 
-\begin_inset Newline newline
-\end_inset
-
-       case(spdec) 
-\begin_inset Newline newline
-\end_inset
-
-         2'b00: sm0 <= in; 
-\begin_inset Newline newline
-\end_inset
-
-         2'b01: sm1 <= in; 
-\begin_inset Newline newline
-\end_inset
-
-         2'b10: sm2 <= in; 
-\begin_inset Newline newline
-\end_inset
-
-         2'b11: sm3 <= in; 
-\begin_inset Newline newline
-\end_inset
-
-       endcase 
+   output `L out;
 \begin_inset Newline newline
 \end_inset
 
@@ -4595,27 +4529,7 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   assign out = sp[1] ? (sp[0] ? sm3 : sm2) 
-\begin_inset Newline newline
-\end_inset
-
-                      : (sp[0] ? sm1 : sm0);
-\begin_inset Newline newline
-\end_inset
-
-`else 
-\begin_inset Newline newline
-\end_inset
-
-   wire [dep-1:0] #1 spset = spdec;
-\begin_inset Newline newline
-\end_inset
-
-   wire #1 write = push & ~clk;
-\begin_inset Newline newline
-\end_inset
-
-   wire `L #1 ind = in;
+   wire write = push & ~clk & ~scan;
 \begin_inset Newline newline
 \end_inset
 
@@ -4631,31 +4545,11 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-  always @(write or spset or ind or scan)
+   always @(write or spdec or in)
 \begin_inset Newline newline
 \end_inset
 
-     if(scan) begin
-\begin_inset Newline newline
-\end_inset
-
-        stackmem[0] <= ind;
-\begin_inset Newline newline
-\end_inset
-
-        stackmem[1] <= ind;
-\begin_inset Newline newline
-\end_inset
-
-        stackmem[2] <= ind;
-\begin_inset Newline newline
-\end_inset
-
-        stackmem[3] <= ind;
-\begin_inset Newline newline
-\end_inset
-
-     end else if(write) stackmem[spset] <= ind;
+      if(write) stackmem[spdec] <= in;
 \begin_inset Newline newline
 \end_inset
 
@@ -4663,31 +4557,31 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-  always @(posedge clk)
+   always @(posedge clk)
 \begin_inset Newline newline
 \end_inset
 
-     if(push)
+      if(push)
 \begin_inset Newline newline
 \end_inset
 
-        stackmem[spset] <= #1 ind; 
-\begin_inset Newline newline
-\end_inset
-
-`endif
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-  assign #1 out = stackmem[sp]; 
+         stackmem[spdec] <= in;
 \begin_inset Newline newline
 \end_inset
 
 `endif
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  assign out = stackmem[sp];
+\begin_inset Newline newline
+\end_inset
+
+
 \begin_inset Newline newline
 \end_inset
 

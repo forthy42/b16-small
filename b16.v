@@ -20,6 +20,7 @@
 // `define BUSTRI
 `timescale 1ns / 1ns
 
+// leda off
 module alu(res, carry, zero, T, N, c, inst);
    parameter l=16;
    input `L T, N;
@@ -30,65 +31,45 @@ module alu(res, carry, zero, T, N, c, inst);
 
    wire prop, andor, selr;
 
-   assign #1 { prop, selr, andor } = inst;
+   assign { prop, selr, andor } = inst;
 
    wire        `L r1, r2;
    wire [l:0]  carries;
 
-   assign #1 r1 = T ^ N ^ carries;
-   assign #1 r2 = (T & N) | 
-                  (T & carries`L) | 
-                  (N & carries`L);
-   assign #1 carries = 
+   assign r1 = T ^ N ^ carries;
+   assign r2 = (T & N) | 
+               (T & carries`L) | 
+               (N & carries`L);
+// This generates a carry chain, not a loop!
+   assign carries = 
         prop ? { r2[l-1:0], (c | selr) & andor } 
              : { c, {(l){andor}}};
-   assign #1 res = (selr & ~prop) ? r2 : r1;
-   assign #1 carry = carries[l];
-   assign #1 zero = ~|T;
+   assign res = (selr & ~prop) ? r2 : r1;
+   assign carry = carries[l];
+   assign zero = ~|T;
 endmodule // alu
+// leda on
 module stack(clk, sp, spdec, push, scan, in, out);
    parameter dep=2, l=16;
    input clk, push, scan;
-   input [dep-1:0] sp, spdec; 
+   input [dep-1:0] sp, spdec;
    input `L in;
-   output `L out; 
-`ifdef SYNCSTACK
-// ugly hack to have the same code running
-// on a Cyclone and an Apex
-   reg `L sm0, sm1, sm2, sm3; 
-   always @(posedge clk)
-     if(push) 
-       case(spdec) 
-         2'b00: sm0 <= in; 
-         2'b01: sm1 <= in; 
-         2'b10: sm2 <= in; 
-         2'b11: sm3 <= in; 
-       endcase 
+   output `L out;
 
-   assign out = sp[1] ? (sp[0] ? sm3 : sm2) 
-                      : (sp[0] ? sm1 : sm0);
-`else 
-   wire [dep-1:0] #1 spset = spdec;
-   wire #1 write = push & ~clk;
-   wire `L #1 ind = in;
+   wire write = push & ~clk & ~scan;
    reg `L stackmem[0:(1<<dep)-1];
 
 `ifndef FPGA
-  always @(write or spset or ind or scan)
-     if(scan) begin
-        stackmem[0] <= ind;
-        stackmem[1] <= ind;
-        stackmem[2] <= ind;
-        stackmem[3] <= ind;
-     end else if(write) stackmem[spset] <= ind;
+   always @(write or spdec or in)
+      if(write) stackmem[spdec] <= in;
 `else
-  always @(posedge clk)
-     if(push)
-        stackmem[spset] <= #1 ind; 
+   always @(posedge clk)
+      if(push)
+         stackmem[spdec] <= in;
 `endif
 
-  assign #1 out = stackmem[sp]; 
-`endif
+  assign out = stackmem[sp];
+
 endmodule // stack
 module mux(out, sel, atpg, in1, in0); 
    parameter l=16; 
@@ -124,16 +105,11 @@ module cpu(clk, run, reset, addr, rd, wr, data,
    reg [1:0] state;
    reg c;
    // instruction and branch target selection   
-   reg [4:0] inst;
+   wire [4:0] inst, rwinst;
    reg `L jmp;
 
-   always @(state or I or data or atpg)
-      case(state[1:0])
-        2'b00: inst = { 4'b0000, data[15] & !atpg };
-        2'b01: inst =   I[14:10];
-        2'b10: inst =   I[9:5];
-        2'b11: inst =   I[4:0];
-      endcase // casez(state)
+   assign inst = { 4'b0000, data[15], I[14:0] } >> (5*(3-state[1:0]));
+   assign rwinst = { 5'b00000, I[14:0] } >> (5*(3-state[1:0]));
 
    always @(state or I or P or T or data)
       case(state[1:0])
@@ -145,26 +121,26 @@ module cpu(clk, run, reset, addr, rd, wr, data,
    wire `L res, toN, toR, N;
    wire carry, zero;
 
-   alu #(l) alu16(res, carry, zero, 
-                  T, N, c, inst[2:0]);
+   alu #(l) alu16(.res(res), .carry(carry), .zero(zero), 
+                  .T(T), .N(N), .c(c), .inst(inst[2:0]));
    wire `L incaddr, dataw, datas;
    wire tos2r, tos2n;
    wire incby, bswap, addrsel, access, rd;
    wire [1:0] wr;
 
-   assign incby = (inst[4:2] != 3'b101);
-   assign access = (inst[4:3]==2'b10);
+   assign incby = (rwinst[4:2] != 3'b101);
+   assign access = (rwinst[4:3]==2'b10);
    assign addrsel = rd ? 
-         (access & (inst[1:0] != 2'b11)) : |wr;
+         (access & (rwinst[1:0] != 2'b11)) : |wr;
    assign rd = (state==2'b00) || 
-               (access && (inst[1:0]!=2'b00));
-   assign wr = (access && (inst[1:0]==2'b00)) ?
-               { ~inst[2] | ~T[0], 
-                 ~inst[2] | T[0] } : 2'b00;
-   mux #(l) addrmux(addr, addrsel, 1'b0, T, P);
+               (access && (rwinst[1:0]!=2'b00));
+   assign wr = (access && (rwinst[1:0]==2'b00)) ?
+               { ~rwinst[2] | ~T[0], 
+                 ~rwinst[2] | T[0] } : 2'b00;
+   mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P);
    assign incaddr = addr + incby + 1;
-   assign tos2n = (!rd | (inst[1:0] == 2'b11));
-   mux #(l) toNmux(toN, tos2n, atpg, T, dataw);
+   assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
+   mux #(l) toNmux(.out(toN), .sel(tos2n), .atpg(atpg), .in1(T), .in0(dataw));
    assign bswap = incby ^ addr[0];
    assign datas = bswap ? data : { data[7:0], data[l-1:8] };
    assign dataw = incby ? datas : { 8'h00, datas[7:0] }; 
@@ -193,10 +169,10 @@ module cpu(clk, run, reset, addr, rd, wr, data,
    wire [sdep-1:0] spdec, spinc;
    wire [rdep-1:0] rpdec, rpinc;
 
-   stack #(sdep,l) dstack(clk, sp, spdec, 
-                          dpush, scanning, toN, N);
-   stack #(rdep,l) rstack(clk, rp, rpdec, 
-                          rpush, scanning, R, toR);
+   stack #(sdep,l) dstack(.clk(clk), .sp(sp), .spdec(spdec),
+                          .push(dpush), .in(toN), .out(N), .scan(scanning));
+   stack #(rdep,l) rstack(.clk(clk), .sp(rp), .spdec(rpdec),
+                          .push(rpush), .in(R), .out(toR), .scan(scanning));
 
    assign spdec = sp-{{(sdep-1){1'b0}}, 1'b1};
    assign spinc = sp+{{(sdep-1){1'b0}}, 1'b1};
@@ -211,12 +187,8 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 
    always @(daddr or dr or run or P or T or R or I or
             state or sp or rp or c or N or toR or bp)
-   `ifdef BUSTRI
-   if(!dr || run) dout = 'hz;
-   `else
    if(!dr || run) dout = 'h0;
-   `endif
-   else casez(daddr)
+   else case(daddr)
       3'h0: dout = N;
       3'h1: dout = toR;
       3'h2: dout = bp;
@@ -241,12 +213,14 @@ module cpu(clk, run, reset, addr, rd, wr, data,
          sp <= 0;
          rp <= 0;
       end else if(run) begin
+      `ifdef REPORT_VERBOSE
          if(show) begin
             $write("%b[%b] T=%b%x:%x[%x], ",
                    inst, state, c, T, N, sp);
             $write("P=%x, I=%x, R=%x[%x], res=%b%x\n",
                    P, I, R, rp, carry, res);
          end
+      `endif
          if(~|state[1:0] || 
             ((inst[4:3] == 2'b10) && (inst[1:0] == 2'b11))) 
             P <= incaddr;
@@ -311,7 +285,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
          endcase // case(inst)
       end else begin // debug
          `ifdef DEBUGGING
-         if(dw) casez(daddr)
+         if(dw) case(daddr)
             3'h0: { sp, T } <= { spdec, din };
             3'h1: { rp, R } <= { rpdec, din };
             3'h3: { c, state, sp, rp } <= 
@@ -322,9 +296,10 @@ module cpu(clk, run, reset, addr, rd, wr, data,
             3'h6: R <= din;
             3'h7: I <= din;
          endcase
-         if(dr) casez(daddr)
+         if(dr) case(daddr)
             3'h0: sp <= spinc;
             3'h1: rp <= rpinc;
+            default ;
          endcase
          `endif
       end // else: !if(reset)
@@ -338,7 +313,8 @@ module debugger(clk, nreset, run,
 parameter l=16, dbgaddr = 12'hFFE;
 input clk, nreset, run, r, cpu_r;
 input [1:0] w;
-input `L addr, data, cpu_addr;
+input [l-1:1] addr;
+input `L data, cpu_addr;
 output drun, dr, dw;
 output `L bp;
 
