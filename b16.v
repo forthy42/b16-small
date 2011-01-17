@@ -79,13 +79,13 @@ module mux(out, sel, atpg, in1, in0);
 
    assign out = (sel | atpg) ? in1 : in0; 
 endmodule // mux
-module cpu(clk, run, reset, addr, rd, wr, data, 
+module cpu(clk, run, nreset, addr, rd, wr, data, 
            dataout, scanning, atpg 
 `ifdef DEBUGGING,
            dr, dw, daddr, din, dout, bp`endif);
    parameter rstaddr=16'h3FFE, show=0,
              l=16, sdep=4, rdep=4;
-   input clk, run, reset, scanning, atpg;
+   input clk, run, nreset, scanning, atpg;
    output `L addr;
    output rd;
    output [1:0] wr;
@@ -137,7 +137,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
    assign wr = (access && (rwinst[1:0]==2'b00)) ?
                { ~rwinst[2] | ~T[0], 
                  ~rwinst[2] | T[0] } : 2'b00;
-   mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P);
+   mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P));
    assign incaddr = addr + incby + 1;
    assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
    mux #(l) toNmux(.out(toN), .sel(tos2n), .atpg(atpg), .in1(T), .in0(dataw));
@@ -160,9 +160,10 @@ module cpu(clk, run, reset, addr, rd, wr, data,
            5'b11100: rpush = 1'b1;
         endcase // case(inst)
         `ifdef DEBUGGING
-        if(!run && dw) casez(daddr)
+        if(!run && dw) case(daddr)
            3'h0: dpush = 1;
            3'h1: rpush = 1;
+           default ;
         endcase
         `endif
      end
@@ -202,8 +203,8 @@ module cpu(clk, run, reset, addr, rd, wr, data,
    endcase
    `endif
 
-   always @(posedge clk or negedge reset)
-      if(!reset) begin
+   always @(posedge clk or negedge nreset)
+      if(!nreset) begin
          state <= 2'b11;
          P <= rstaddr;
          T <= 16'h0000;
@@ -295,6 +296,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
             3'h5: T <= din;
             3'h6: R <= din;
             3'h7: I <= din;
+            default ;
          endcase
          if(dr) case(daddr)
             3'h0: sp <= spinc;
@@ -302,7 +304,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
             default ;
          endcase
          `endif
-      end // else: !if(reset)
+      end // else: !if(nreset)
 
 endmodule // cpu
 `ifdef DEBUGGING

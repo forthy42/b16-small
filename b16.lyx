@@ -2441,7 +2441,7 @@ assign wr = (access && (rwinst[1:0]==2'b00)) ?
 \begin_inset Newline newline
 \end_inset
 
-mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P);
+mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P));
 \begin_inset Newline newline
 \end_inset
 
@@ -3058,7 +3058,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-module cpu(clk, run, reset, addr, rd, wr, data, 
+module cpu(clk, run, nreset, addr, rd, wr, data, 
 \begin_inset Newline newline
 \end_inset
 
@@ -3114,7 +3114,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 \begin_inset Newline newline
 \end_inset
 
-   always @(posedge clk or negedge reset)
+   always @(posedge clk or negedge nreset)
 \begin_inset Newline newline
 \end_inset
 
@@ -3134,7 +3134,7 @@ endmodule // cpu
 \end_layout
 
 \begin_layout Standard
-First, Verilog needs port declarations, so that it can now what's input
+First, Verilog needs port declarations, so that it can know what's input
  and output.
  The parameter are used to configure other word sizes and stack depths.
 \begin_inset ERT
@@ -3165,7 +3165,7 @@ parameter rstaddr=16'h3FFE, show=0,
 \begin_inset Newline newline
 \end_inset
 
-input clk, run, reset, scanning, atpg;
+input clk, run, nreset, scanning, atpg;
 \begin_inset Newline newline
 \end_inset
 
@@ -3417,7 +3417,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-if(!reset) begin
+if(!nreset) begin
 \begin_inset Newline newline
 \end_inset
 
@@ -3469,7 +3469,7 @@ end else begin // debug
 \begin_inset Newline newline
 \end_inset
 
-end // else: !if(reset)
+end // else: !if(nreset)
 \begin_inset Newline newline
 \end_inset
 
@@ -4096,6 +4096,10 @@ if(dw) case(daddr)
 \begin_inset Newline newline
 \end_inset
 
+   default ;
+\begin_inset Newline newline
+\end_inset
+
 endcase
 \begin_inset Newline newline
 \end_inset
@@ -4272,7 +4276,7 @@ or run or dw or daddr
 \begin_inset Newline newline
 \end_inset
 
-if(!run && dw) casez(daddr)
+if(!run && dw) case(daddr)
 \begin_inset Newline newline
 \end_inset
 
@@ -4281,6 +4285,10 @@ if(!run && dw) casez(daddr)
 \end_inset
 
    3'h1: rpush = 1;
+\begin_inset Newline newline
+\end_inset
+
+   default ;
 \begin_inset Newline newline
 \end_inset
 
