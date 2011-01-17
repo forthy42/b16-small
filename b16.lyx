@@ -5,6 +5,7 @@
 \textclass literate-article
 \begin_preamble
 \usepackage[dvips,colorlinks=true,linkcolor=blue]{hyperref}
+\DeclareGraphicsExtensions{.pdf}
 \end_preamble
 \use_default_options false
 \language american
@@ -231,7 +232,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename b16-fig.pdf
+	filename b16-small.pdf
 	width 100col%
 
 \end_inset
@@ -1461,11 +1462,19 @@ reg `L jmp;
 \begin_inset Newline newline
 \end_inset
 
-assign inst = { 4'b0000, data[15], I[14:0] } >> (5*(3-state[1:0]));
+assign inst = { 4'b0000, data[15], I[14:0] }
 \begin_inset Newline newline
 \end_inset
 
-assign rwinst = { 5'b00000, I[14:0] } >> (5*(3-state[1:0]));
+              >> (5*(3-state[1:0]));
+\begin_inset Newline newline
+\end_inset
+
+assign rwinst = { 5'b00000, I[14:0] }
+\begin_inset Newline newline
+\end_inset
+
+              >> (5*(3-state[1:0]));
 \begin_inset Newline newline
 \end_inset
 
@@ -4312,6 +4321,64 @@ The ALU just computes the sum with possible carry-ins, the logical operations,
  and a zero flag.
  It reuses the same logic (essentially what comprises a full adder) to do
  both sums and logic.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:ALU-bit-slice"
+
+\end_inset
+
+ illustrates the logic that processes one bit of the ALU operation: Two
+ multiplexers and one full adder (or the equivalent logic) per bit is sufficient
+ to implement an ALU.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename alu.pdf
+	scale 40
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:ALU-bit-slice"
+
+\end_inset
+
+ALU bit slice
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \begin_inset ERT
 status collapsed
 

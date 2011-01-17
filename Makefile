@@ -11,8 +11,8 @@ all:	b16.v b16-fig.eps b16-fig.pdf b16.pdf
 	lyx -e literate $<
 
 %.tex:	%.nw
-	noweave -delay -latex $< | sed -e 's/1<<dep/1<{}<dep/g' >$@
-	latex $@
+	noweave -delay -latex $< | sed -e 's/1<<dep/1<{}<dep/g' -e 's/>>/>{}>/g' >$@
+	pdflatex $@
 
 %-fig.eps:	%.fig
 	fig2dev -L eps $< $@
@@ -32,8 +32,8 @@ all:	b16.v b16-fig.eps b16-fig.pdf b16.pdf
 %.ps.gz:	%.ps
 	gzip <$< >$@
 
-%.pdf:	%.ps
-	ps2pdf $< $@
+%.pdf:	%.tex
+	pdflatex $<
 
 la:	la.c
 	gcc -O2 la.c -o la

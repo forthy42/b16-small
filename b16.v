@@ -108,8 +108,10 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    wire [4:0] inst, rwinst;
    reg `L jmp;
 
-   assign inst = { 4'b0000, data[15], I[14:0] } >> (5*(3-state[1:0]));
-   assign rwinst = { 5'b00000, I[14:0] } >> (5*(3-state[1:0]));
+   assign inst = { 4'b0000, data[15], I[14:0] }
+                 >> (5*(3-state[1:0]));
+   assign rwinst = { 5'b00000, I[14:0] }
+                 >> (5*(3-state[1:0]));
 
    always @(state or I or P or T or data)
       case(state[1:0])
