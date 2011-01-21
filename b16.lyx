@@ -269,8 +269,8 @@ Register
 \end_layout
 
 \begin_layout Standard
-In addition to the user-visible latches there are control latches for external
- RAM (
+In addition to the standard Forth machine registers there are control registers
+ for external RAM (
 \family typewriter
 rd
 \family default
@@ -291,6 +291,19 @@ rp
 c
 \family default
 .
+ For consistency with Chuck Moores' nomenclature, violating most coding
+ style guidelines, the Forth machine registers are single-letter variables
+ in upper case.
+ Since the source code is a LyX document, you can use the 
+\begin_inset Quotes eld
+\end_inset
+
+search whole word
+\begin_inset Quotes erd
+\end_inset
+
+ mode to find them easily, and they also show up on top of the signal list
+ during simulation.
 \end_layout
 
 \begin_layout Standard
@@ -526,10 +539,6 @@ reg `L T, I, P, R;
 \begin_inset Newline newline
 \end_inset
 
-
-\begin_inset Newline newline
-\end_inset
-
 reg [1:0] state;
 \begin_inset Newline newline
 \end_inset
@@ -541,163 +550,11 @@ reg c;
 @
 \end_layout
 
-\begin_layout Section
-Instruction Set
-\end_layout
-
-\begin_layout Standard
-There are 32 different instructions.
- Since several instructions fit into a 16 bit word, we call the bits to
- store the packed instructions in an instruction word 
-\begin_inset Quotes eld
-\end_inset
-
-slot
-\begin_inset Quotes erd
-\end_inset
-
-, and the instruction word itself 
-\begin_inset Quotes eld
-\end_inset
-
-bundle
-\begin_inset Quotes erd
-\end_inset
-
-.
- The arrangement here is 1,5,5,5, i.e.
- the first slot is only one bit large (the more significant bits are filled
- with 0), and the others all 5 bits.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-filbreak
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The operations in one instruction word are executed one after the other.
- Each instruction takes one cycle, memory operation (including instruction
- fetch) need another cycle.
- Which instruction is to be executed is stored in the variable 
-\family typewriter
-state
-\family default
-.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-filbreak
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The instruction set is divided into four groups: jumps, ALU, memory, and
- stack.
- Table 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "instructions"
-
-\end_inset
-
- shows an overview over the instruction set.
- Note: Some special characters indicate functions as follows: 
-\begin_inset Quotes eld
-\end_inset
-
-!
-\begin_inset Quotes erd
-\end_inset
-
-: 
-\begin_inset Quotes eld
-\end_inset
-
-store
-\begin_inset Quotes erd
-\end_inset
-
-, 
-\begin_inset Quotes eld
-\end_inset
-
-@
-\begin_inset Quotes erd
-\end_inset
-
-: 
-\begin_inset Quotes eld
-\end_inset
-
-load
-\begin_inset Quotes erd
-\end_inset
-
-, 
-\begin_inset Quotes eld
-\end_inset
-
->
-\begin_inset Quotes erd
-\end_inset
-
-: 
-\begin_inset Quotes eld
-\end_inset
-
-to
-\begin_inset Quotes erd
-\end_inset
-
- if before, 
-\begin_inset Quotes eld
-\end_inset
-
-from
-\begin_inset Quotes erd
-\end_inset
-
- if afterwards.
-\end_layout
-
-\begin_layout Standard
-Operations will be described using a 
-\begin_inset Quotes eld
-\end_inset
-
-stack effect
-\begin_inset Quotes erd
-\end_inset
-
-.
- This is a template for the stack elements before and after the operation,
- separated by a long dash.
- The names are listed in the order bottom to top, unchanged stack elements
- below are not listed.
-\end_layout
-
 \begin_layout Standard
 \begin_inset Float table
 wide true
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \align center
@@ -1401,19 +1258,120 @@ name "instructions"
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-filbreak
 \end_layout
+
+\begin_layout Section
+Instruction Set
+\end_layout
+
+\begin_layout Standard
+There are 32 different instructions.
+ Since several instructions fit into a 16 bit word, we call the bits to
+ store the packed instructions in an instruction word 
+\begin_inset Quotes eld
+\end_inset
+
+slot
+\begin_inset Quotes erd
+\end_inset
+
+, and the instruction word itself 
+\begin_inset Quotes eld
+\end_inset
+
+bundle
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The arrangement here is 1,5,5,5, i.e.
+ the first slot is only one bit large (the more significant bits are filled
+ with 0), and the others all 5 bits.
+\end_layout
+
+\begin_layout Standard
+The operations in one instruction word are executed one after the other.
+ Each instruction takes one cycle, memory operation (including instruction
+ fetch) need another cycle.
+ Which instruction is to be executed is stored in the variable 
+\family typewriter
+state
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+The instruction set is divided into four groups: jumps, ALU, memory, and
+ stack.
+ Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "instructions"
 
 \end_inset
 
+ shows an overview over the instruction set.
+ Note: Some special characters indicate functions as follows:
+\end_layout
 
+\begin_layout Description
+! 
+\begin_inset Quotes eld
+\end_inset
+
+store
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+@ 
+\begin_inset Quotes eld
+\end_inset
+
+load
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\end_layout
+
+\begin_layout Description
+> 
+\begin_inset Quotes eld
+\end_inset
+
+to
+\begin_inset Quotes erd
+\end_inset
+
+ if before, 
+\begin_inset Quotes eld
+\end_inset
+
+from
+\begin_inset Quotes erd
+\end_inset
+
+ if afterwards.
+\end_layout
+
+\begin_layout Standard
+Operations will be described using a 
+\begin_inset Quotes eld
+\end_inset
+
+stack effect
+\begin_inset Quotes erd
+\end_inset
+
+.
+ This is a template for the stack elements before and after the operation,
+ separated by a long dash.
+ The names are listed in the order bottom to top, unchanged stack elements
+ below are not listed.
 \end_layout
 
 \begin_layout Standard
@@ -1474,7 +1432,7 @@ assign rwinst = { 5'b00000, I[14:0] }
 \begin_inset Newline newline
 \end_inset
 
-              >> (5*(3-state[1:0]));
+                >> (5*(3-state[1:0]));
 \begin_inset Newline newline
 \end_inset
 
@@ -1603,7 +1561,17 @@ filbreak
 
 \begin_layout Standard
 To make it easier to understand, I also define the effect of an instruction
- in a pseudo language:
+ in a pseudo language.
+ Every instruction has a stack effect (before---after) with top of stack
+ on the right, 
+\begin_inset Quotes eld
+\end_inset
+
+r:
+\begin_inset Quotes erd
+\end_inset
+
+ prefix indicating return stack, and register assignments:
 \begin_inset ERT
 status collapsed
 
@@ -1620,7 +1588,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-nop (---)
+nop ( --- )
 \begin_inset ERT
 status collapsed
 
@@ -1637,7 +1605,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-call (---r:P ) 
+call ( ---r:P ) 
 \begin_inset Formula $\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1662,7 +1630,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jmp (---) 
+jmp ( --- ) 
 \begin_inset Formula $\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1683,7 +1651,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-ret ( r:a---) 
+ret ( r:a--- ) 
 \begin_inset Formula $\mathrm{P}\leftarrow a\wedge\$\mathrm{FFFE}$
 \end_inset
 
@@ -1708,7 +1676,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jz ( n---) 
+jz ( n--- ) 
 \begin_inset Formula $\mathbf{if}(n=0)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1729,7 +1697,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jnz ( n---) 
+jnz ( n--- ) 
 \begin_inset Formula $\mathbf{if}(n\ne0)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1750,7 +1718,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jc ( x---) 
+jc ( x--- ) 
 \begin_inset Formula $\mathbf{if}(c)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1771,7 +1739,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jnc ( x---) 
+jnc ( x--- ) 
 \begin_inset Formula $\mathbf{if}(c=0)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1804,7 +1772,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-   R <= { state == 2'b00 ? incaddr[15:1] : P[15:1], c };
+   R <= { !state ? incaddr[15:1] : P[15:1], c };
 \begin_inset Newline newline
 \end_inset
 
@@ -2029,7 +1997,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-+c ( a b---r) 
++c ( a b---r ) 
 \begin_inset Formula $\mathrm{c},r\leftarrow a+b+\mathrm{c}$
 \end_inset
 
@@ -2269,7 +2237,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-lit (---n ) 
+lit ( ---n ) 
 \begin_inset Formula $n\leftarrow mem[\mathrm{P}]$
 \end_inset
 
@@ -2365,7 +2333,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-litc (---c ) 
+litc ( ---c ) 
 \begin_inset Formula $c\leftarrow mem.b[\mathrm{P}]$
 \end_inset
 
@@ -2450,7 +2418,7 @@ assign wr = (access && (rwinst[1:0]==2'b00)) ?
 \begin_inset Newline newline
 \end_inset
 
-mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P));
+assign addr = addrsel ? T : P;
 \begin_inset Newline newline
 \end_inset
 
@@ -2462,27 +2430,35 @@ assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
 \begin_inset Newline newline
 \end_inset
 
-mux #(l) toNmux(.out(toN), .sel(tos2n), .atpg(atpg), .in1(T), .in0(dataw));
+assign toN = tos2n ? T : dataw;
 \begin_inset Newline newline
 \end_inset
 
-assign bswap = incby ^ addr[0];
+assign bswap = ~incby ^ addr[0];
 \begin_inset Newline newline
 \end_inset
 
-assign datas = bswap ? data : { data[7:0], data[l-1:8] };
+assign datas = bswap ? { data[7:0], data[l-1:8] }
 \begin_inset Newline newline
 \end_inset
 
-assign dataw = incby ? datas : { 8'h00, datas[7:0] }; 
+                     : data;
 \begin_inset Newline newline
 \end_inset
 
-assign dataout = { bswap ? N[15:8] : N[7:0], 
+assign dataw = incby ? datas
 \begin_inset Newline newline
 \end_inset
 
-                   bswap ? N[7:0]  : N[15:8] }; 
+                     : { 8'h00, datas[7:0] }; 
+\begin_inset Newline newline
+\end_inset
+
+assign dataout = bswap ? { N[7:0], N[l-1:8] }
+\begin_inset Newline newline
+\end_inset
+
+                       : N; 
 \begin_inset Newline newline
 \end_inset
 
@@ -2597,7 +2573,7 @@ After the access is completed, the result for a load has to be pushed on
 \begin_inset Newline newline
 \end_inset
 
-if(rd && { inst[4:3], inst[1:0] } != 4'b1010) 
+if(rd && { inst[4:3], inst[1:0] } != 4'b1010)
 \begin_inset Newline newline
 \end_inset
 
@@ -2613,7 +2589,7 @@ if(|wr) sp <= spinc;
 \end_layout
 
 \begin_layout Standard
-Furthermore, the incremented address may go back to the pointer.
+Furthermore, the incremented address may go back to the program pointer.
 \end_layout
 
 \begin_layout Scrap
@@ -2621,11 +2597,11 @@ Furthermore, the incremented address may go back to the pointer.
 \begin_inset Newline newline
 \end_inset
 
-if(~|state[1:0] || 
+if(!state || 
 \begin_inset Newline newline
 \end_inset
 
-   ((inst[4:3] == 2'b10) && (inst[1:0] == 2'b11))) 
+   ({ inst[4:3], inst[1:0] } == 4'b1011))
 \begin_inset Newline newline
 \end_inset
 
@@ -2724,7 +2700,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-drop ( a---)
+drop ( a--- )
 \begin_inset ERT
 status collapsed
 
@@ -2937,10 +2913,6 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
-<<mux>>
-\begin_inset Newline newline
-\end_inset
-
 <<cpu>>
 \begin_inset Newline newline
 \end_inset
@@ -2994,46 +2966,6 @@ First the implementation file with comment and modules.
 \end_inset
 
  * 18: nip  drop over dup  >r        r>
-\begin_inset Newline newline
-\end_inset
-
-@
-\end_layout
-
-\begin_layout Scrap
-<<mux>>=
-\begin_inset Newline newline
-\end_inset
-
-module mux(out, sel, atpg, in1, in0); 
-\begin_inset Newline newline
-\end_inset
-
-   parameter l=16; 
-\begin_inset Newline newline
-\end_inset
-
-   input `L in1, in0; 
-\begin_inset Newline newline
-\end_inset
-
-   input sel, atpg; 
-\begin_inset Newline newline
-\end_inset
-
-   output `L out;
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-   assign out = (sel | atpg) ? in1 : in0; 
-\begin_inset Newline newline
-\end_inset
-
-endmodule // mux
 \begin_inset Newline newline
 \end_inset
 
@@ -3227,11 +3159,19 @@ wire carry, zero;
 \begin_inset Newline newline
 \end_inset
 
-alu #(l) alu16(.res(res), .carry(carry), .zero(zero), 
+alu #(l) alu16(.res(res), .carry(carry),
 \begin_inset Newline newline
 \end_inset
 
-               .T(T), .N(N), .c(c), .inst(inst[2:0]));
+               .zero(zero), 
+\begin_inset Newline newline
+\end_inset
+
+               .T(T), .N(N), .c(c),
+\begin_inset Newline newline
+\end_inset
+
+               .inst(inst[2:0]));
 \begin_inset Newline newline
 \end_inset
 
@@ -3357,19 +3297,59 @@ wire [rdep-1:0] rpdec, rpinc;
 \begin_inset Newline newline
 \end_inset
 
-stack #(sdep,l) dstack(.clk(clk), .sp(sp), .spdec(spdec),
+stack #(sdep,l) dstack(.clk(clk),
 \begin_inset Newline newline
 \end_inset
 
-                       .push(dpush), .in(toN), .out(N), .scan(scanning));
+                       .sp(sp),
 \begin_inset Newline newline
 \end_inset
 
-stack #(rdep,l) rstack(.clk(clk), .sp(rp), .spdec(rpdec),
+                       .spdec(spdec),
 \begin_inset Newline newline
 \end_inset
 
-                       .push(rpush), .in(R), .out(toR), .scan(scanning));
+                       .push(dpush),
+\begin_inset Newline newline
+\end_inset
+
+                       .in(toN),
+\begin_inset Newline newline
+\end_inset
+
+                       .out(N),
+\begin_inset Newline newline
+\end_inset
+
+                       .scan(scanning));
+\begin_inset Newline newline
+\end_inset
+
+stack #(rdep,l) rstack(.clk(clk),
+\begin_inset Newline newline
+\end_inset
+
+                       .sp(rp),
+\begin_inset Newline newline
+\end_inset
+
+                       .spdec(rpdec),
+\begin_inset Newline newline
+\end_inset
+
+                       .push(rpush),
+\begin_inset Newline newline
+\end_inset
+
+                       .in(R),
+\begin_inset Newline newline
+\end_inset
+
+                       .out(toR),
+\begin_inset Newline newline
+\end_inset
+
+                       .scan(scanning));
 \begin_inset Newline newline
 \end_inset
 
@@ -4009,7 +3989,11 @@ end else begin
 \begin_inset Newline newline
 \end_inset
 
-   if(cpu_addr == bp && cpu_r) { drun, drun1 } <= 0;
+   if(cpu_addr == bp && cpu_r)
+\begin_inset Newline newline
+\end_inset
+
+      { drun, drun1 } <= 0;
 \begin_inset Newline newline
 \end_inset
 
@@ -4331,6 +4315,39 @@ reference "fig:ALU-bit-slice"
  illustrates the logic that processes one bit of the ALU operation: Two
  multiplexers and one full adder (or the equivalent logic) per bit is sufficient
  to implement an ALU.
+ The carry works as an AND gate if the carry in is 0 (both 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ input must be 1 to create a carry out), an OR gate if the carry in is 1
+ (both 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ input must be 0 to not create a carry out), and the sum is an XOR of 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ without carry in, and an XNOR with carry in.
+ The XNOR operation of the ALU is not used.
+ When the carry is propagated, a normal sum is generated; in this case,
+ the result 
+\begin_inset Formula $r$
+\end_inset
+
+ selected is always the sum.
 \end_layout
 
 \begin_layout Standard
@@ -4338,10 +4355,6 @@ reference "fig:ALU-bit-slice"
 wide false
 sideways false
 status open
-
-\begin_layout Plain Layout
-
-\end_layout
 
 \begin_layout Plain Layout
 \align center
@@ -4369,10 +4382,6 @@ ALU bit slice
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Plain Layout
 
 \end_layout
 

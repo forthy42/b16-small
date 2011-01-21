@@ -71,14 +71,6 @@ module stack(clk, sp, spdec, push, scan, in, out);
   assign out = stackmem[sp];
 
 endmodule // stack
-module mux(out, sel, atpg, in1, in0); 
-   parameter l=16; 
-   input `L in1, in0; 
-   input sel, atpg; 
-   output `L out;
-
-   assign out = (sel | atpg) ? in1 : in0; 
-endmodule // mux
 module cpu(clk, run, nreset, addr, rd, wr, data, 
            dataout, scanning, atpg 
 `ifdef DEBUGGING,
@@ -101,7 +93,6 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    reg [rdep-1:0] rp;
 
    reg `L T, I, P, R;
-
    reg [1:0] state;
    reg c;
    // instruction and branch target selection   
@@ -111,7 +102,7 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    assign inst = { 4'b0000, data[15], I[14:0] }
                  >> (5*(3-state[1:0]));
    assign rwinst = { 5'b00000, I[14:0] }
-                 >> (5*(3-state[1:0]));
+                   >> (5*(3-state[1:0]));
 
    always @(state or I or P or T or data)
       case(state[1:0])
@@ -123,8 +114,10 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    wire `L res, toN, toR, N;
    wire carry, zero;
 
-   alu #(l) alu16(.res(res), .carry(carry), .zero(zero), 
-                  .T(T), .N(N), .c(c), .inst(inst[2:0]));
+   alu #(l) alu16(.res(res), .carry(carry),
+                  .zero(zero), 
+                  .T(T), .N(N), .c(c),
+                  .inst(inst[2:0]));
    wire `L incaddr, dataw, datas;
    wire tos2r, tos2n;
    wire incby, bswap, addrsel, access, rd;
@@ -139,15 +132,17 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    assign wr = (access && (rwinst[1:0]==2'b00)) ?
                { ~rwinst[2] | ~T[0], 
                  ~rwinst[2] | T[0] } : 2'b00;
-   mux #(l) addrmux(.out(addr), .sel(addrsel), .atpg(1'b0), .in1(T), .in0(P));
+   assign addr = addrsel ? T : P;
    assign incaddr = addr + incby + 1;
    assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
-   mux #(l) toNmux(.out(toN), .sel(tos2n), .atpg(atpg), .in1(T), .in0(dataw));
-   assign bswap = incby ^ addr[0];
-   assign datas = bswap ? data : { data[7:0], data[l-1:8] };
-   assign dataw = incby ? datas : { 8'h00, datas[7:0] }; 
-   assign dataout = { bswap ? N[15:8] : N[7:0], 
-                      bswap ? N[7:0]  : N[15:8] }; 
+   assign toN = tos2n ? T : dataw;
+   assign bswap = ~incby ^ addr[0];
+   assign datas = bswap ? { data[7:0], data[l-1:8] }
+                        : data;
+   assign dataw = incby ? datas
+                        : { 8'h00, datas[7:0] }; 
+   assign dataout = bswap ? { N[7:0], N[l-1:8] }
+                          : N; 
    reg dpush, rpush;
 
    always @(state or inst or rd or run `ifdef DEBUGGING
@@ -172,10 +167,20 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    wire [sdep-1:0] spdec, spinc;
    wire [rdep-1:0] rpdec, rpinc;
 
-   stack #(sdep,l) dstack(.clk(clk), .sp(sp), .spdec(spdec),
-                          .push(dpush), .in(toN), .out(N), .scan(scanning));
-   stack #(rdep,l) rstack(.clk(clk), .sp(rp), .spdec(rpdec),
-                          .push(rpush), .in(R), .out(toR), .scan(scanning));
+   stack #(sdep,l) dstack(.clk(clk),
+                          .sp(sp),
+                          .spdec(spdec),
+                          .push(dpush),
+                          .in(toN),
+                          .out(N),
+                          .scan(scanning));
+   stack #(rdep,l) rstack(.clk(clk),
+                          .sp(rp),
+                          .spdec(rpdec),
+                          .push(rpush),
+                          .in(R),
+                          .out(toR),
+                          .scan(scanning));
 
    assign spdec = sp-{{(sdep-1){1'b0}}, 1'b1};
    assign spinc = sp+{{(sdep-1){1'b0}}, 1'b1};
@@ -224,11 +229,11 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
                    P, I, R, rp, carry, res);
          end
       `endif
-         if(~|state[1:0] || 
-            ((inst[4:3] == 2'b10) && (inst[1:0] == 2'b11))) 
+         if(!state || 
+            ({ inst[4:3], inst[1:0] } == 4'b1011))
             P <= incaddr;
          if(|state[1:0]) begin 
-            if(rd && { inst[4:3], inst[1:0] } != 4'b1010) 
+            if(rd && { inst[4:3], inst[1:0] } != 4'b1010)
                sp <= spdec;
             if(|wr) sp <= spinc;
          end else begin 
@@ -239,7 +244,7 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
          casez(inst)
             5'b00001: begin
                rp <= rpdec;
-               R <= { state == 2'b00 ? incaddr[15:1] : P[15:1], c };
+               R <= { !state ? incaddr[15:1] : P[15:1], c };
                P <= jmp;
                c <= 1'b0;
                if(state == 2'b11) `DROP;
@@ -334,7 +339,8 @@ if(!nreset) begin
    drun1 <= 1;
    bp <= 16'hffff;
 end else begin
-   if(cpu_addr == bp && cpu_r) { drun, drun1 } <= 0;
+   if(cpu_addr == bp && cpu_r)
+      { drun, drun1 } <= 0;
    else if(run) drun <= drun1;
    if((dr | dw) && (addr[3:1] == 3'h3)) begin
       drun <= !dr & dw;
