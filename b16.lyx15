@@ -1,10 +1,11 @@
-#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
 \textclass literate-article
 \begin_preamble
 \usepackage[dvips,colorlinks=true,linkcolor=blue]{hyperref}
+\DeclareGraphicsExtensions{.pdf}
 \end_preamble
 \language american
 \inputencoding auto
@@ -123,7 +124,7 @@ Minimalistic CPUs can be used in many designs.
  when there are more than a few states.
  A program with subroutines can perform a lot more complex tasks, and is
  easier to develop at the same time.
- Also, ROM- and RAM blocks occupy much less place on silicon than 
+ Also, ROM and RAM blocks occupy much less place on silicon than 
 \begin_inset Quotes eld
 \end_inset
 
@@ -157,8 +158,6 @@ key "c18"
 .
  The exact instruction mix is different; it also differs from the standard
  b16 core.
- I left out multiplication and division step, but implemented Forth-typical
- logic operations.
  Also, this architecture is byte-addressed.
 \end_layout
 
@@ -228,7 +227,7 @@ status open
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-    filename b16.eps
+    filename b16-small.pdf
     width 100col%
 
 \end_inset
@@ -264,8 +263,8 @@ Register
 \end_layout
 
 \begin_layout Standard
-In addition to the user-visible latches there are control latches for external
- RAM (
+In addition to the standard Forth machine registers there are control registers
+ for external RAM (
 \family typewriter
 rd
 \family default
@@ -286,6 +285,19 @@ rp
 c
 \family default
 .
+ For consistency with Chuck Moores' nomenclature, violating most coding
+ style guidelines, the Forth machine registers are single-letter variables
+ in upper case.
+ Since the source code is a LyX document, you can use the 
+\begin_inset Quotes eld
+\end_inset
+
+search whole word
+\begin_inset Quotes erd
+\end_inset
+
+ mode to find them easily, and they also show up on top of the signal list
+ during simulation.
 \end_layout
 
 \begin_layout Standard
@@ -516,9 +528,6 @@ reg [rdep-1:0] rp;
 reg `L T, I, P, R;
 \newline
 
-
-\newline
-
 reg [1:0] state;
 \newline
 
@@ -528,162 +537,11 @@ reg c;
 @
 \end_layout
 
-\begin_layout Section
-Instruction Set
-\end_layout
-
-\begin_layout Standard
-There are 32 different instructions.
- Since several instructions fit into a 16 bit word, we call the bits to
- store the packed instructions in an instruction word 
-\begin_inset Quotes eld
-\end_inset
-
-slot
-\begin_inset Quotes erd
-\end_inset
-
-, and the instruction word itself 
-\begin_inset Quotes eld
-\end_inset
-
-bundle
-\begin_inset Quotes erd
-\end_inset
-
-.
- The arrangement here is 1,5,5,5, i.e.
- the first slot is only one bit large (the more significant bits are filled
- with 0), and the others all 5 bits.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-filbreak
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The operations in one instruction word are executed one after the other.
- Each instruction takes one cycle, memory operation (including instruction
- fetch) need another cycle.
- Which instruction is to be executed is stored in the variable 
-\family typewriter
-state
-\family default
-.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-filbreak
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The instruction set is divided into four groups: jumps, ALU, memory, and
- stack.
- Table 
-\begin_inset LatexCommand ref
-reference "instructions"
-
-\end_inset
-
- shows an overview over the instruction set.
- Note: Some special characters indicate functions as follows: 
-\begin_inset Quotes eld
-\end_inset
-
-!
-\begin_inset Quotes erd
-\end_inset
-
-: 
-\begin_inset Quotes eld
-\end_inset
-
-store
-\begin_inset Quotes erd
-\end_inset
-
-, 
-\begin_inset Quotes eld
-\end_inset
-
-@
-\begin_inset Quotes erd
-\end_inset
-
-: 
-\begin_inset Quotes eld
-\end_inset
-
-load
-\begin_inset Quotes erd
-\end_inset
-
-, 
-\begin_inset Quotes eld
-\end_inset
-
->
-\begin_inset Quotes erd
-\end_inset
-
-: 
-\begin_inset Quotes eld
-\end_inset
-
-to
-\begin_inset Quotes erd
-\end_inset
-
- if before, 
-\begin_inset Quotes eld
-\end_inset
-
-from
-\begin_inset Quotes erd
-\end_inset
-
- if afterwards.
-\end_layout
-
-\begin_layout Standard
-Operations will be described using a 
-\begin_inset Quotes eld
-\end_inset
-
-stack effect
-\begin_inset Quotes erd
-\end_inset
-
-.
- This is a template for the stack elements before and after the operation,
- separated by a long dash.
- The names are listed in the order bottom to top, unchanged stack elements
- below are not listed.
-\end_layout
-
 \begin_layout Standard
 \begin_inset Float table
 wide true
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -1386,19 +1244,119 @@ name "instructions"
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\end_layout
+
+\begin_layout Section
+Instruction Set
+\end_layout
 
 \begin_layout Standard
+There are 32 different instructions.
+ Since several instructions fit into a 16 bit word, we call the bits to
+ store the packed instructions in an instruction word 
+\begin_inset Quotes eld
+\end_inset
 
+slot
+\begin_inset Quotes erd
+\end_inset
 
-\backslash
-filbreak
+, and the instruction word itself 
+\begin_inset Quotes eld
+\end_inset
+
+bundle
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The arrangement here is 1,5,5,5, i.e.
+ the first slot is only one bit large (the more significant bits are filled
+ with 0), and the others all 5 bits.
 \end_layout
+
+\begin_layout Standard
+The operations in one instruction word are executed one after the other.
+ Each instruction takes one cycle, memory operation (including instruction
+ fetch) need another cycle.
+ Which instruction is to be executed is stored in the variable 
+\family typewriter
+state
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+The instruction set is divided into four groups: jumps, ALU, memory, and
+ stack.
+ Table 
+\begin_inset LatexCommand ref
+reference "instructions"
 
 \end_inset
 
+ shows an overview over the instruction set.
+ Note: Some special characters indicate functions as follows:
+\end_layout
 
+\begin_layout Description
+! 
+\begin_inset Quotes eld
+\end_inset
+
+store
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+@ 
+\begin_inset Quotes eld
+\end_inset
+
+load
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\end_layout
+
+\begin_layout Description
+> 
+\begin_inset Quotes eld
+\end_inset
+
+to
+\begin_inset Quotes erd
+\end_inset
+
+ if before, 
+\begin_inset Quotes eld
+\end_inset
+
+from
+\begin_inset Quotes erd
+\end_inset
+
+ if afterwards.
+\end_layout
+
+\begin_layout Standard
+Operations will be described using a 
+\begin_inset Quotes eld
+\end_inset
+
+stack effect
+\begin_inset Quotes erd
+\end_inset
+
+.
+ This is a template for the stack elements before and after the operation,
+ separated by a long dash.
+ The names are listed in the order bottom to top, unchanged stack elements
+ below are not listed.
 \end_layout
 
 \begin_layout Standard
@@ -1433,7 +1391,7 @@ filbreak
 // instruction and branch target selection   
 \newline
 
-reg [4:0] inst;
+wire [4:0] inst, rwinst;
 \newline
 
 reg `L jmp;
@@ -1442,25 +1400,16 @@ reg `L jmp;
 
 \newline
 
-always @(state or I or data or atpg)
+assign inst = { 4'b0000, data[15], I[14:0] }
 \newline
 
-   case(state[1:0])
+              >> (5*(3-state[1:0]));
 \newline
 
-     2'b00: inst <= { 4'b0000, data[15] & !atpg };
+assign rwinst = { 5'b00000, I[14:0] }
 \newline
 
-     2'b01: inst <=   I[14:10];
-\newline
-
-     2'b10: inst <=   I[9:5];
-\newline
-
-     2'b11: inst <=   I[4:0];
-\newline
-
-   endcase // casez(state)
+                >> (5*(3-state[1:0]));
 \newline
 
 
@@ -1472,16 +1421,16 @@ always @(state or I or P or T or data)
    case(state[1:0])
 \newline
 
-     2'b00: jmp <= { data[14:0], 1'b0 };
+     2'b00: jmp = { data[14:0], 1'b0 };
 \newline
 
-     2'b01: jmp <= { P[15:11], I[9:0], 1'b0 };
+     2'b01: jmp = { P[15:11], I[9:0], 1'b0 };
 \newline
 
-     2'b10: jmp <= { P[15:6], I[4:0], 1'b0 };
+     2'b10: jmp = { P[15:6], I[4:0], 1'b0 };
 \newline
 
-     2'b11: jmp <= { T[15:1], 1'b0 };
+     2'b11: jmp = { T[15:1], 1'b0 };
 \newline
 
    endcase // casez(state)
@@ -1573,7 +1522,17 @@ filbreak
 
 \begin_layout Standard
 To make it easier to understand, I also define the effect of an instruction
- in a pseudo language:
+ in a pseudo language.
+ Every instruction has a stack effect (before---after) with top of stack
+ on the right, 
+\begin_inset Quotes eld
+\end_inset
+
+r:
+\begin_inset Quotes erd
+\end_inset
+
+ prefix indicating return stack, and register assignments:
 \begin_inset ERT
 status collapsed
 
@@ -1590,7 +1549,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-nop (---)
+nop ( --- )
 \begin_inset ERT
 status collapsed
 
@@ -1607,7 +1566,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-call (---r:P ) 
+call ( ---r:P ) 
 \begin_inset Formula $\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1632,7 +1591,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jmp (---) 
+jmp ( --- ) 
 \begin_inset Formula $\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1653,7 +1612,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-ret ( r:a---) 
+ret ( r:a--- ) 
 \begin_inset Formula $\mathrm{P}\leftarrow a\wedge\$\mathrm{FFFE}$
 \end_inset
 
@@ -1678,7 +1637,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jz ( n---) 
+jz ( n--- ) 
 \begin_inset Formula $\mathbf{if}(n=0)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1699,7 +1658,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jnz ( n---) 
+jnz ( n--- ) 
 \begin_inset Formula $\mathbf{if}(n\ne0)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1720,7 +1679,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jc ( x---) 
+jc ( x--- ) 
 \begin_inset Formula $\mathbf{if}(c)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1741,7 +1700,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-jnc ( x---) 
+jnc ( x--- ) 
 \begin_inset Formula $\mathbf{if}(c=0)\,\mathrm{P}\leftarrow jmp$
 \end_inset
 
@@ -1771,7 +1730,7 @@ filbreak
    rp <= rpdec;
 \newline
 
-   R <= { state == 2'b00 ? incaddr[15:1] : P[15:1], c };
+   R <= { !state ? incaddr[15:1] : P[15:1], c };
 \newline
 
    P <= jmp;
@@ -1980,7 +1939,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-+c ( a b---r) 
++c ( a b---r ) 
 \begin_inset Formula $\mathrm{c},r\leftarrow a+b+\mathrm{c}$
 \end_inset
 
@@ -2009,7 +1968,7 @@ filbreak
 \end_inset
 
 ; 
-\begin_inset Formula $r,\mathrm{A},\mathrm{c}\leftarrow c_{n},r,\mathrm{A}$
+\begin_inset Formula $r,\mathrm{R},\mathrm{c}\leftarrow c_{n},r,\mathrm{R}$
 \end_inset
 
 
@@ -2038,7 +1997,7 @@ filbreak
 \end_inset
 
 ; 
-\begin_inset Formula $\mathrm{c},r,\mathrm{A}\leftarrow r,\mathrm{A},\mathrm{c}\vee c_{n}$
+\begin_inset Formula $\mathrm{c},r,\mathrm{R}\leftarrow r,\mathrm{R},\mathrm{c}\vee c_{n}$
 \end_inset
 
  
@@ -2205,7 +2164,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-lit (---n ) 
+lit ( ---n ) 
 \begin_inset Formula $n\leftarrow mem[\mathrm{P}]$
 \end_inset
 
@@ -2301,7 +2260,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-litc (---c ) 
+litc ( ---c ) 
 \begin_inset Formula $c\leftarrow mem.b[\mathrm{P}]$
 \end_inset
 
@@ -2344,58 +2303,64 @@ wire [1:0] wr;
 
 \newline
 
-assign incby = (inst[4:2] != 3'b101);
+assign incby = (rwinst[4:2] != 3'b101);
 \newline
 
-assign access = (inst[4:3]==2'b10);
+assign access = (rwinst[4:3]==2'b10);
 \newline
 
 assign addrsel = rd ? 
 \newline
 
-      (access & (inst[1:0] != 2'b11)) : |wr;
+      (access & (rwinst[1:0] != 2'b11)) : |wr;
 \newline
 
 assign rd = (state==2'b00) || 
 \newline
 
-            (access && (inst[1:0]!=2'b00));
+            (access && (rwinst[1:0]!=2'b00));
 \newline
 
-assign wr = (access && (inst[1:0]==2'b00)) ?
+assign wr = (access && (rwinst[1:0]==2'b00)) ?
 \newline
 
-            { ~inst[2] | ~T[0], 
+            { ~rwinst[2] | ~T[0], 
 \newline
 
-              ~inst[2] | T[0] } : 2'b00;
+              ~rwinst[2] | T[0] } : 2'b00;
 \newline
 
-mux #(l) addrmux(addr, addrsel, 1'b0, T, P);
+assign addr = addrsel ? T : P;
 \newline
 
 assign incaddr = addr + incby + 1;
 \newline
 
-assign tos2n = (!rd | (inst[1:0] == 2'b11));
+assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
 \newline
 
-mux #(l) toNmux(toN, tos2n, atpg, T, dataw);
+assign toN = tos2n ? T : dataw;
 \newline
 
-assign bswap = incby ^ addr[0];
+assign bswap = ~incby ^ addr[0];
 \newline
 
-assign datas = bswap ? data : { data[7:0], data[l-1:8] };
+assign datas = bswap ? { data[7:0], data[l-1:8] }
 \newline
 
-assign dataw = incby ? datas : { 8'h00, datas[7:0] }; 
+                     : data;
 \newline
 
-assign dataout = { bswap ? N[15:8] : N[7:0], 
+assign dataw = incby ? datas
 \newline
 
-                   bswap ? N[7:0]  : N[15:8] }; 
+                     : { 8'h00, datas[7:0] }; 
+\newline
+
+assign dataout = bswap ? { N[7:0], N[l-1:8] }
+\newline
+
+                       : N; 
 \newline
 
 @
@@ -2490,7 +2455,7 @@ After the access is completed, the result for a load has to be pushed on
 <<store afterwork>>=
 \newline
 
-if(rd && { inst[4:3], inst[1:0] } != 4'b1010) 
+if(rd && { inst[4:3], inst[1:0] } != 4'b1010)
 \newline
 
    sp <= spdec;
@@ -2503,17 +2468,17 @@ if(|wr) sp <= spinc;
 \end_layout
 
 \begin_layout Standard
-Furthermore, the incremented address may go back to the pointer.
+Furthermore, the incremented address may go back to the program pointer.
 \end_layout
 
 \begin_layout Scrap
 <<pointer increment>>=
 \newline
 
-if(~|state[1:0] || 
+if(!state || 
 \newline
 
-   ((inst[4:3] == 2'b10) && (inst[1:0] == 2'b11))) 
+   ({ inst[4:3], inst[1:0] } == 4'b1011))
 \newline
 
    P <= incaddr;
@@ -2607,7 +2572,7 @@ filbreak
 \end_layout
 
 \begin_layout Description
-drop ( a---)
+drop ( a--- )
 \begin_inset ERT
 status collapsed
 
@@ -2773,7 +2738,10 @@ First the implementation file with comment and modules.
 `define DEBUGGING
 \newline
 
-// `define FPGA
+`define FPGA
+\newline
+
+// `define BUSTRI
 \newline
 
 `timescale 1ns / 1ns
@@ -2786,9 +2754,6 @@ First the implementation file with comment and modules.
 \newline
 
 <<Stack>>
-\newline
-
-<<mux>>
 \newline
 
 <<cpu>>
@@ -2838,37 +2803,6 @@ First the implementation file with comment and modules.
 @
 \end_layout
 
-\begin_layout Scrap
-<<mux>>=
-\newline
-
-module mux(out, sel, atpg, in1, in0); 
-\newline
-
-   parameter l=16; 
-\newline
-
-   input `L in1, in0; 
-\newline
-
-   input sel, atpg; 
-\newline
-
-   output `L out;
-\newline
-
-
-\newline
-
-   assign out = (sel | atpg) ? in1 : in0; 
-\newline
-
-endmodule // mux
-\newline
-
-@
-\end_layout
-
 \begin_layout Subsection
 Top Level
 \end_layout
@@ -2895,10 +2829,10 @@ filbreak
 <<cpu>>=
 \newline
 
-module cpu(clk, run, reset, addr, rd, wr, data, 
+module cpu(clk, run, nreset, addr, rd, wr, data, 
 \newline
 
-           dataout, READY, scanning, atpg 
+           dataout, scanning, atpg 
 \newline
 
 `ifdef DEBUGGING,
@@ -2937,7 +2871,7 @@ module cpu(clk, run, reset, addr, rd, wr, data,
 
 \newline
 
-   always @(posedge clk or negedge reset)
+   always @(posedge clk or negedge nreset)
 \newline
 
       <<register updates>>
@@ -2953,7 +2887,7 @@ endmodule // cpu
 \end_layout
 
 \begin_layout Standard
-First, Verilog needs port declarations, so that it can now what's input
+First, Verilog needs port declarations, so that it can know what's input
  and output.
  The parameter are used to configure other word sizes and stack depths.
 \begin_inset ERT
@@ -2975,13 +2909,13 @@ filbreak
 <<port declarations>>=
 \newline
 
-parameter rstaddr=16'h07FE, show=0,
+parameter rstaddr=16'h3FFE, show=0,
 \newline
 
-          l=16, sdep=2, rdep=2;
+          l=16, sdep=4, rdep=4;
 \newline
 
-input clk, run, reset, READY, scanning, atpg;
+input clk, run, nreset, scanning, atpg;
 \newline
 
 output `L addr;
@@ -3023,17 +2957,23 @@ wire carry, zero;
 
 \newline
 
-alu #(l) alu16(res, carry, zero, 
+alu #(l) alu16(.res(res), .carry(carry),
 \newline
 
-               T, N, c, inst[2:0]);
+               .zero(zero), 
+\newline
+
+               .T(T), .N(N), .c(c),
+\newline
+
+               .inst(inst[2:0]));
 \newline
 
 @
 \end_layout
 
 \begin_layout Standard
-Since the stacks work in parallel, we have to calculated, when a value is
+Since the stacks work in parallel, we have to calculate when a value is
  pushed onto the stack (thus 
 \series bold
 only
@@ -3064,28 +3004,28 @@ reg dpush, rpush;
 
 \newline
 
-always @(state or inst or rd or READY<<dbg senselist>>)
+always @(state or inst or rd or run <<dbg senselist>>)
 \newline
 
   begin
 \newline
 
-     rpush <= 1'b0;
+     rpush = 1'b0;
 \newline
 
-     dpush <= (|state[1:0] & rd) |
+     dpush = (|state[1:0] & rd) |
 \newline
 
-              (inst[4] && inst[3] && inst[1]);
+             (inst[4] && inst[3] && inst[1]);
 \newline
 
      casez(inst)
 \newline
 
-        5'b00001: rpush <= |state[1:0] | READY;
+        5'b00001: rpush = |state[1:0] | run;
 \newline
 
-        5'b11100: rpush <= 1'b1;
+        5'b11100: rpush = 1'b1;
 \newline
 
      endcase // case(inst)
@@ -3133,16 +3073,46 @@ wire [rdep-1:0] rpdec, rpinc;
 
 \newline
 
-stack #(sdep,l) dstack(clk, sp, spdec, 
+stack #(sdep,l) dstack(.clk(clk),
 \newline
 
-                       dpush, scanning, toN, N);
+                       .sp(sp),
 \newline
 
-stack #(rdep,l) rstack(clk, rp, rpdec, 
+                       .spdec(spdec),
 \newline
 
-                       rpush, scanning, R, toR);
+                       .push(dpush),
+\newline
+
+                       .in(toN),
+\newline
+
+                       .out(N),
+\newline
+
+                       .scan(scanning));
+\newline
+
+stack #(rdep,l) rstack(.clk(clk),
+\newline
+
+                       .sp(rp),
+\newline
+
+                       .spdec(rpdec),
+\newline
+
+                       .push(rpush),
+\newline
+
+                       .in(R),
+\newline
+
+                       .out(toR),
+\newline
+
+                       .scan(scanning));
 \newline
 
 
@@ -3192,13 +3162,16 @@ filbreak
 <<register updates>>=
 \newline
 
-if(!reset) begin
+if(!nreset) begin
 \newline
 
    <<resets>>
 \newline
 
 end else if(run) begin
+\newline
+
+`ifdef REPORT_VERBOSE
 \newline
 
    if(show) begin
@@ -3208,6 +3181,9 @@ end else if(run) begin
 \newline
 
    end
+\newline
+
+`endif
 \newline
 
    <<load-store>>
@@ -3225,7 +3201,7 @@ end else begin // debug
    <<debugging>>
 \newline
 
-end // else: !if(reset)
+end // else: !if(nreset)
 \newline
 
 @
@@ -3643,7 +3619,7 @@ filbreak
 `ifdef DEBUGGING
 \newline
 
-module debugger(clk, nreset,
+module debugger(clk, nreset, run,
 \newline
 
                 addr, data, r, w,
@@ -3658,13 +3634,16 @@ module debugger(clk, nreset,
 parameter l=16, dbgaddr = 12'hFFE;
 \newline
 
-input clk, nreset, r, cpu_r;
+input clk, nreset, run, r, cpu_r;
 \newline
 
 input [1:0] w;
 \newline
 
-input `L addr, data, cpu_addr;
+input [l-1:1] addr;
+\newline
+
+input `L data, cpu_addr;
 \newline
 
 output drun, dr, dw;
@@ -3712,10 +3691,13 @@ if(!nreset) begin
 end else begin
 \newline
 
-   if(cpu_addr == bp && cpu_r) { drun, drun1 } <= 0;
+   if(cpu_addr == bp && cpu_r)
 \newline
 
-   else drun <= drun1;
+      { drun, drun1 } <= 0;
+\newline
+
+   else if(run) drun <= drun1;
 \newline
 
    if((dr | dw) && (addr[3:1] == 3'h3)) begin
@@ -3755,7 +3737,7 @@ endmodule
 `ifdef DEBUGGING
 \newline
 
-if(dw) casez(daddr)
+if(dw) case(daddr)
 \newline
 
    3'h0: { sp, T } <= { spdec, din };
@@ -3785,16 +3767,22 @@ if(dw) casez(daddr)
    3'h7: I <= din;
 \newline
 
+   default ;
+\newline
+
 endcase
 \newline
 
-if(dr) casez(daddr)
+if(dr) case(daddr)
 \newline
 
    3'h0: sp <= spinc;
 \newline
 
    3'h1: rp <= rpinc;
+\newline
+
+   default ;
 \newline
 
 endcase
@@ -3825,52 +3813,40 @@ always @(daddr or dr or run or P or T or R or I or
          state or sp or rp or c or N or toR or bp)
 \newline
 
-`ifndef FPGA
+if(!dr || run) dout = 'h0;
 \newline
 
-if(!dr || run) dout <= 'hz;
+else case(daddr)
 \newline
 
-`else
+   3'h0: dout = N;
 \newline
 
-if(!dr || run) dout <= 'h0;
+   3'h1: dout = toR;
 \newline
 
-`endif
+   3'h2: dout = bp;
 \newline
 
-else casez(daddr)
+   3'h3: dout = { run, 4'h0, c, state,
 \newline
 
-   3'h0: dout <= N;
+                  {4-sdep{1'b0}}, sp,
 \newline
 
-   3'h1: dout <= toR;
+                  {4-rdep{1'b0}}, rp };
 \newline
 
-   3'h2: dout <= bp;
+   3'h4: dout = P;
 \newline
 
-   3'h3: dout <= { run, 4'h0, c, state,
+   3'h5: dout = T;
 \newline
 
-                   {4-sdep{1'b0}}, sp,
+   3'h6: dout = R;
 \newline
 
-                   {4-rdep{1'b0}}, rp };
-\newline
-
-   3'h4: dout <= P;
-\newline
-
-   3'h5: dout <= T;
-\newline
-
-   3'h6: dout <= R;
-\newline
-
-   3'h7: dout <= I;
+   3'h7: dout = I;
 \newline
 
 endcase
@@ -3930,13 +3906,16 @@ or run or dw or daddr
 `ifdef DEBUGGING
 \newline
 
-if(!run && dw) casez(daddr)
+if(!run && dw) case(daddr)
 \newline
 
-   3'h0: dpush <= 1;
+   3'h0: dpush = 1;
 \newline
 
-   3'h1: rpush <= 1;
+   3'h1: rpush = 1;
+\newline
+
+   default ;
 \newline
 
 endcase
@@ -3955,9 +3934,89 @@ ALU
 \begin_layout Standard
 The ALU just computes the sum with possible carry-ins, the logical operations,
  and a zero flag.
- It would be possible to share common resources (the XORs of the full adder
- could also compute the XOR operation, and the carry propagation logic could
- compute OR and AND), but this optimization is left to the synthesis tool.
+ It reuses the same logic (essentially what comprises a full adder) to do
+ both sums and logic.
+ Figure 
+\begin_inset LatexCommand ref
+reference "fig:ALU-bit-slice"
+
+\end_inset
+
+ illustrates the logic that processes one bit of the ALU operation: Two
+ multiplexers and one full adder (or the equivalent logic) per bit is sufficient
+ to implement an ALU.
+ The carry works as an AND gate if the carry in is 0 (both 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ input must be 1 to create a carry out), an OR gate if the carry in is 1
+ (both 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ input must be 0 to not create a carry out), and the sum is an XOR of 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ without carry in, and an XNOR with carry in.
+ The XNOR operation of the ALU is not used.
+ When the carry is propagated, a normal sum is generated; in this case,
+ the result 
+\begin_inset Formula $r$
+\end_inset
+
+ selected is always the sum.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+    filename alu.pdf
+    scale 40
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:ALU-bit-slice"
+
+\end_inset
+
+ALU bit slice
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \begin_inset ERT
 status collapsed
 
@@ -3975,6 +4034,9 @@ filbreak
 
 \begin_layout Scrap
 <<ALU>>=
+\newline
+
+// leda off
 \newline
 
 module alu(res, carry, zero, T, N, c, inst);
@@ -3995,19 +4057,22 @@ module alu(res, carry, zero, T, N, c, inst);
 
 \newline
 
-   assign #1 r1 = T ^ N ^ carries;
+   assign r1 = T ^ N ^ carries;
 \newline
 
-   assign #1 r2 = (T & N) | 
+   assign r2 = (T & N) | 
 \newline
 
-                  (T & carries`L) | 
+               (T & carries`L) | 
 \newline
 
-                  (N & carries`L);
+               (N & carries`L);
 \newline
 
-   assign #1 carries = 
+// This generates a carry chain, not a loop!
+\newline
+
+   assign carries = 
 \newline
 
         prop ? { r2[l-1:0], (c | selr) & andor } 
@@ -4016,16 +4081,19 @@ module alu(res, carry, zero, T, N, c, inst);
              : { c, {(l){andor}}};
 \newline
 
-   assign #1 res = (selr & ~prop) ? r2 : r1;
+   assign res = (selr & ~prop) ? r2 : r1;
 \newline
 
-   assign #1 carry = carries[l];
+   assign carry = carries[l];
 \newline
 
-   assign #1 zero = ~|T;
+   assign zero = ~|T;
 \newline
 
 endmodule // alu
+\newline
+
+// leda on
 \newline
 
 @
@@ -4080,7 +4148,7 @@ wire prop, andor, selr;
 
 \newline
 
-assign #1 { prop, selr, andor } = inst;
+assign { prop, selr, andor } = inst;
 \newline
 
 @
@@ -4091,16 +4159,9 @@ Stacks
 \end_layout
 
 \begin_layout Standard
-The stacks are modeled as block RAM in the FPGA.
- Therefore, they should have only one port, since these block RAMs are available
- even in small FPGAs.
- In an ASIC, this sort of stack is implemented with latches.
- Here it's possible to separate read and write port (also for FPGAs that
- support dual-ported RAM), and save the multiplexer for 
-\family typewriter
-spset
-\family default
-.
+The stacks are modelled as block RAM in the FPGA.
+ In an ASIC, this is implemented with latches.
+ The block RAM (or register file) needs one read and one write port.
 \begin_inset ERT
 status collapsed
 
@@ -4129,70 +4190,19 @@ module stack(clk, sp, spdec, push, scan, in, out);
    input clk, push, scan;
 \newline
 
-   input [dep-1:0] sp, spdec; 
+   input [dep-1:0] sp, spdec;
 \newline
 
    input `L in;
 \newline
 
-   output `L out; 
-\newline
-
-`ifdef SYNCSTACK
-\newline
-
-// ugly hack to have the same code running
-\newline
-
-// on a Cyclone and an Apex
-\newline
-
-   reg `L sm0, sm1, sm2, sm3; 
-\newline
-
-   always @(posedge clk)
-\newline
-
-     if(push) 
-\newline
-
-       case(spdec) 
-\newline
-
-         2'b00: sm0 <= in; 
-\newline
-
-         2'b01: sm1 <= in; 
-\newline
-
-         2'b10: sm2 <= in; 
-\newline
-
-         2'b11: sm3 <= in; 
-\newline
-
-       endcase 
+   output `L out;
 \newline
 
 
 \newline
 
-   assign out = sp[1] ? (sp[0] ? sm3 : sm2) 
-\newline
-
-                      : (sp[0] ? sm1 : sm0);
-\newline
-
-`else 
-\newline
-
-   wire [dep-1:0] #1 spset = spdec;
-\newline
-
-   wire #1 write = push & ~clk;
-\newline
-
-   wire `L #1 ind = in;
+   wire write = push & ~clk & ~scan;
 \newline
 
    reg `L stackmem[0:(1@<<dep)-1];
@@ -4204,49 +4214,34 @@ module stack(clk, sp, spdec, push, scan, in, out);
 `ifndef FPGA
 \newline
 
-  always @(write or spset or ind or scan)
+   always @(write or spdec or in)
 \newline
 
-     if(scan) begin
-\newline
-
-        stackmem[0] <= ind;
-\newline
-
-        stackmem[1] <= ind;
-\newline
-
-        stackmem[2] <= ind;
-\newline
-
-        stackmem[3] <= ind;
-\newline
-
-     end else if(write) stackmem[spset] <= ind;
+      if(write) stackmem[spdec] <= in;
 \newline
 
 `else
 \newline
 
-  always @(posedge clk)
+   always @(posedge clk)
 \newline
 
-     if(push)
+      if(push)
 \newline
 
-        stackmem[spset] <= #1 ind; 
-\newline
-
-`endif
-\newline
-
-
-\newline
-
-  assign #1 out = stackmem[sp]; 
+         stackmem[spdec] <= in;
 \newline
 
 `endif
+\newline
+
+
+\newline
+
+  assign out = stackmem[sp];
+\newline
+
+
 \newline
 
 endmodule // stack
