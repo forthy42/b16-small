@@ -2833,6 +2833,10 @@ end // case: 5'b11110
 \begin_inset Newline newline
 \end_inset
 
+default ;
+\begin_inset Newline newline
+\end_inset
+
 @
 \end_layout
 
@@ -2845,7 +2849,7 @@ First the implementation file with comment and modules.
 \end_layout
 
 \begin_layout Scrap
-<<b16.v>>=
+<<header>>=
 \begin_inset Newline newline
 \end_inset
 
@@ -2858,6 +2862,18 @@ First the implementation file with comment and modules.
 \end_inset
 
  * inspired by c18 core from Chuck Moore
+\begin_inset Newline newline
+\end_inset
+
+ * (c) 2002-2011 by Bernd Paysan
+\begin_inset Newline newline
+\end_inset
+
+ * 
+\begin_inset Newline newline
+\end_inset
+
+ * <<gpl-header>>
 \begin_inset Newline newline
 \end_inset
 
@@ -2897,7 +2913,15 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
-`timescale 1ns / 1ns
+@
+\end_layout
+
+\begin_layout Scrap
+<<b16.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<header>>
 \begin_inset Newline newline
 \end_inset
 
@@ -2918,6 +2942,139 @@ First the implementation file with comment and modules.
 \end_inset
 
 <<debugger>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<alu.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<header>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<<ALU>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<stack.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<header>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<<Stack>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<cpu.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<header>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<<cpu>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<debugging.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<header>>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<<debugger>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<gpl-header>>=
+\begin_inset Newline newline
+\end_inset
+
+This program is free software; you can redistribute it and/or modify
+\begin_inset Newline newline
+\end_inset
+
+it under the terms of the GNU General Public License as published by
+\begin_inset Newline newline
+\end_inset
+
+the Free Software Foundation; version 2 of the License or any later.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+This program is distributed in the hope that it will be useful,
+\begin_inset Newline newline
+\end_inset
+
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+\begin_inset Newline newline
+\end_inset
+
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the
+\begin_inset Newline newline
+\end_inset
+
+GNU General Public License for more details.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+This is not the source code of the program, the source code is a LyX
+\begin_inset Newline newline
+\end_inset
+
+literate programming style article.
 \begin_inset Newline newline
 \end_inset
 
@@ -4408,7 +4565,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-// leda off
+// leda NTL_STR33 off
 \begin_inset Newline newline
 \end_inset
 
@@ -4452,7 +4609,7 @@ module alu(res, carry, zero, T, N, c, inst);
 \begin_inset Newline newline
 \end_inset
 
-// This generates a carry chain, not a loop!
+// This generates a carry *chain*, not a loop!
 \begin_inset Newline newline
 \end_inset
 
@@ -4484,7 +4641,7 @@ endmodule // alu
 \begin_inset Newline newline
 \end_inset
 
-// leda on
+// leda NTL_STR33 on
 \begin_inset Newline newline
 \end_inset
 

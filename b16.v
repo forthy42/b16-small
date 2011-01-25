@@ -1,6 +1,19 @@
 /*
  * b16 core: 16 bits, 
  * inspired by c18 core from Chuck Moore
+ * (c) 2002-2011 by Bernd Paysan
+ * 
+ * This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; version 2 of the License or any later.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   This is not the source code of the program, the source code is a LyX
+   literate programming style article.
  *
  * Instruction set:
  * 1, 5, 5, 5 bits
@@ -18,9 +31,8 @@
 `define DEBUGGING
 `define FPGA
 // `define BUSTRI
-`timescale 1ns / 1ns
 
-// leda off
+// leda NTL_STR33 off
 module alu(res, carry, zero, T, N, c, inst);
    parameter l=16;
    input `L T, N;
@@ -40,7 +52,7 @@ module alu(res, carry, zero, T, N, c, inst);
    assign r2 = (T & N) | 
                (T & carries`L) | 
                (N & carries`L);
-// This generates a carry chain, not a loop!
+// This generates a carry *chain*, not a loop!
    assign carries = 
         prop ? { r2[l-1:0], (c | selr) & andor } 
              : { c, {(l){andor}}};
@@ -48,7 +60,7 @@ module alu(res, carry, zero, T, N, c, inst);
    assign carry = carries[l];
    assign zero = ~|T;
 endmodule // alu
-// leda on
+// leda NTL_STR33 on
 module stack(clk, sp, spdec, push, scan, in, out);
    parameter dep=2, l=16;
    input clk, push, scan;
@@ -290,6 +302,7 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
                { sp, T, R } <= { spdec, R, toR };
                rp <= rpinc;
             end // case: 5'b11110
+            default ;
          endcase // case(inst)
       end else begin // debug
          `ifdef DEBUGGING

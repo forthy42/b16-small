@@ -20,8 +20,8 @@ all:	b16.v b16-fig.eps b16-fig.pdf b16.pdf
 %-fig.pdf:	%.fig
 	fig2dev -L pdf $< $@
 
-%.v:	%.nw
-	notangle -Rb16.v $< >$@
+%.v:	b16.nw
+	notangle -R$@ $< >$@
 
 %.dvi:	%.tex
 	latex $<
