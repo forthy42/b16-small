@@ -2693,6 +2693,9 @@ end // case: 5'b11100
 end // case: 5'b11110
 \newline
 
+default ;
+\newline
+
 @
 \end_layout
 
@@ -2705,7 +2708,7 @@ First the implementation file with comment and modules.
 \end_layout
 
 \begin_layout Scrap
-<<b16.v>>=
+<<header>>=
 \newline
 
 /*
@@ -2715,6 +2718,15 @@ First the implementation file with comment and modules.
 \newline
 
  * inspired by c18 core from Chuck Moore
+\newline
+
+ * (c) 2002-2011 by Bernd Paysan
+\newline
+
+ * 
+\newline
+
+ * <<gpl-header>>
 \newline
 
  *
@@ -2744,7 +2756,14 @@ First the implementation file with comment and modules.
 // `define BUSTRI
 \newline
 
-`timescale 1ns / 1ns
+@
+\end_layout
+
+\begin_layout Scrap
+<<b16.v>>=
+\newline
+
+<<header>>
 \newline
 
 
@@ -2760,6 +2779,111 @@ First the implementation file with comment and modules.
 \newline
 
 <<debugger>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<alu.v>>=
+\newline
+
+<<header>>
+\newline
+
+
+\newline
+
+<<ALU>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<stack.v>>=
+\newline
+
+<<header>>
+\newline
+
+
+\newline
+
+<<Stack>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<cpu.v>>=
+\newline
+
+<<header>>
+\newline
+
+
+\newline
+
+<<cpu>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<debugging.v>>=
+\newline
+
+<<header>>
+\newline
+
+
+\newline
+
+<<debugger>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
+<<gpl-header>>=
+\newline
+
+This program is free software; you can redistribute it and/or modify
+\newline
+
+it under the terms of the GNU General Public License as published by
+\newline
+
+the Free Software Foundation; version 2 of the License or any later.
+\newline
+
+
+\newline
+
+This program is distributed in the hope that it will be useful,
+\newline
+
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+\newline
+
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the
+\newline
+
+GNU General Public License for more details.
+\newline
+
+
+\newline
+
+This is not the source code of the program, the source code is a LyX
+\newline
+
+literate programming style article.
 \newline
 
 @
@@ -4036,7 +4160,7 @@ filbreak
 <<ALU>>=
 \newline
 
-// leda off
+// leda NTL_STR33 off
 \newline
 
 module alu(res, carry, zero, T, N, c, inst);
@@ -4069,7 +4193,7 @@ module alu(res, carry, zero, T, N, c, inst);
                (N & carries`L);
 \newline
 
-// This generates a carry chain, not a loop!
+// This generates a carry *chain*, not a loop!
 \newline
 
    assign carries = 
@@ -4093,7 +4217,7 @@ module alu(res, carry, zero, T, N, c, inst);
 endmodule // alu
 \newline
 
-// leda on
+// leda NTL_STR33 on
 \newline
 
 @

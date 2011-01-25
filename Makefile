@@ -6,6 +6,8 @@ LYXREV = # set e.g. to 14 for LyX 1.4
 
 all:	b16.v b16-fig.eps b16-fig.pdf b16.pdf
 
+files:	cpu.v stack.v alu.v debugging.v
+
 %.nw:	%.lyx$(LYXREV)
 	-rm $@
 	lyx -e literate $<
