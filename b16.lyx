@@ -1484,7 +1484,7 @@ inst
 \begin_inset Newline newline
 \end_inset
 
-casez(inst)
+case(inst)
 \begin_inset Newline newline
 \end_inset
 
@@ -1764,7 +1764,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-5'b00001: begin
+5'b00001: begin // call
 \begin_inset Newline newline
 \end_inset
 
@@ -1772,7 +1772,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-   R <= { !state ? incaddr[15:1] : P[15:1], c };
+   R <= { ~|state ? incaddr[15:1] : P[15:1], c };
 \begin_inset Newline newline
 \end_inset
 
@@ -1792,7 +1792,7 @@ end // case: 5'b00001
 \begin_inset Newline newline
 \end_inset
 
-5'b00010: begin
+5'b00010: begin // jmp
 \begin_inset Newline newline
 \end_inset
 
@@ -1808,7 +1808,11 @@ end
 \begin_inset Newline newline
 \end_inset
 
-5'b00011: { rp, c, P, R } <= 
+5'b00011: // ret
+\begin_inset Newline newline
+\end_inset
+
+          { rp, c, P, R } <= 
 \begin_inset Newline newline
 \end_inset
 
@@ -1816,7 +1820,11 @@ end
 \begin_inset Newline newline
 \end_inset
 
-5'b001??: begin
+5'b00100, 5'b00101, 5'b00110, 5'b00111:
+\begin_inset Newline newline
+\end_inset
+
+begin // conditional jmps
 \begin_inset Newline newline
 \end_inset
 
@@ -2079,11 +2087,19 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-5'b01001: { c, T } <= { 1'b1, ~T };
+5'b01001: // com
 \begin_inset Newline newline
 \end_inset
 
-5'b01110: { T, R, c } <= 
+   { c, T } <= { 1'b1, ~T };
+\begin_inset Newline newline
+\end_inset
+
+5'b01110: // *+
+\begin_inset Newline newline
+\end_inset
+
+   { T, R, c } <=
 \begin_inset Newline newline
 \end_inset
 
@@ -2091,7 +2107,11 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-5'b01111: { c, T, R } <= 
+5'b01111: // /-
+\begin_inset Newline newline
+\end_inset
+
+   { c, T, R } <=
 \begin_inset Newline newline
 \end_inset
 
@@ -2099,39 +2119,15 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-`ifndef FPGA
+5'b01000, 5'b01010, 5'b01011, 5'b01100, 5'b01101:
 \begin_inset Newline newline
 \end_inset
 
-5'b01???: { sp, c, T } <= { spinc, carry, res }; 
+   // xor, and, or, +, +c
 \begin_inset Newline newline
 \end_inset
 
-`else
-\begin_inset Newline newline
-\end_inset
-
-5'b01000: { sp, c, T } <= { spinc, carry, res };
-\begin_inset Newline newline
-\end_inset
-
-5'b01010: { sp, c, T } <= { spinc, carry, res };
-\begin_inset Newline newline
-\end_inset
-
-5'b01011: { sp, c, T } <= { spinc, carry, res };
-\begin_inset Newline newline
-\end_inset
-
-5'b01100: { sp, c, T } <= { spinc, carry, res };
-\begin_inset Newline newline
-\end_inset
-
-5'b01101: { sp, c, T } <= { spinc, carry, res }; 
-\begin_inset Newline newline
-\end_inset
-
-`endif
+   { sp, c, T } <= { spinc, carry, res };
 \begin_inset Newline newline
 \end_inset
 
@@ -2476,7 +2472,11 @@ Memory access can't just be done word wise, but also byte wise.
 \begin_inset Newline newline
 \end_inset
 
-5'b10?0?: begin
+5'b10000, 5'b10001, 5'b10100, 5'b10101:
+\begin_inset Newline newline
+\end_inset
+
+begin        // !+, @+, c!+, c@+
 \begin_inset Newline newline
 \end_inset
 
@@ -2492,7 +2492,11 @@ end
 \begin_inset Newline newline
 \end_inset
 
-5'b10?1?: T <= dataw;
+5'b10010, 5'b10011, 5'b10110, 5'b10111:
+\begin_inset Newline newline
+\end_inset
+
+   T <= dataw;  // @, lit, c@, litc
 \begin_inset Newline newline
 \end_inset
 
@@ -2597,7 +2601,7 @@ Furthermore, the incremented address may go back to the program pointer.
 \begin_inset Newline newline
 \end_inset
 
-if(!state || 
+if(~|state || 
 \begin_inset Newline newline
 \end_inset
 
@@ -2654,7 +2658,7 @@ Stack Instructions
 \begin_layout Standard
 Stack instructions change the stack pointer and move values into and out
  of latches.
- With the 8 used stack operations, one notes that 
+ With the 6 used stack operations, one notes that 
 \family typewriter
 swap
 \family default
@@ -2789,23 +2793,23 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-5'b11000: sp <= spinc;
+5'b11000: sp <= spinc;               // nip
 \begin_inset Newline newline
 \end_inset
 
-5'b11001: `DROP;
+5'b11001: `DROP;                     // drop
 \begin_inset Newline newline
 \end_inset
 
-5'b11010: { sp, T } <= { spdec, N };
+5'b11010: { sp, T } <= { spdec, N }; // over
 \begin_inset Newline newline
 \end_inset
 
-5'b11011: sp <= spdec;
+5'b11011: sp <= spdec;               // dup
 \begin_inset Newline newline
 \end_inset
 
-5'b11100: begin
+5'b11100: begin                      // >r
 \begin_inset Newline newline
 \end_inset
 
@@ -2817,7 +2821,7 @@ end // case: 5'b11100
 \begin_inset Newline newline
 \end_inset
 
-5'b11110: begin
+5'b11110: begin                      // r>
 \begin_inset Newline newline
 \end_inset
 
@@ -2833,7 +2837,7 @@ end // case: 5'b11110
 \begin_inset Newline newline
 \end_inset
 
-default ;
+default ;                            // noop
 \begin_inset Newline newline
 \end_inset
 
@@ -2845,7 +2849,17 @@ The Rest of the Implementation
 \end_layout
 
 \begin_layout Standard
-First the implementation file with comment and modules.
+First the implementation file(s) with comment and modules.
+ You can either have all in one file (
+\family typewriter
+b16.v
+\family default
+), or each module in a file with the same name as the module---the defines
+ will go to 
+\family typewriter
+b16-defines.v
+\family default
+ for central manipulation of the defines.
 \end_layout
 
 \begin_layout Scrap
@@ -2877,19 +2891,15 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
- *
-\begin_inset Newline newline
-\end_inset
-
-<<inst-comment>>
-\begin_inset Newline newline
-\end_inset
-
  */
 \begin_inset Newline newline
 \end_inset
 
- 
+@
+\end_layout
+
+\begin_layout Scrap
+<<defines>>=
 \begin_inset Newline newline
 \end_inset
 
@@ -2925,11 +2935,31 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
+/*
+\begin_inset Newline newline
+\end_inset
+
+<<inst-comment>>
+\begin_inset Newline newline
+\end_inset
+
+ */
+\begin_inset Newline newline
+\end_inset
+
+<<defines>>
+\begin_inset Newline newline
+\end_inset
+
 
 \begin_inset Newline newline
 \end_inset
 
 <<ALU>>
+\begin_inset Newline newline
+\end_inset
+
+<<latchen>>
 \begin_inset Newline newline
 \end_inset
 
@@ -2949,11 +2979,27 @@ First the implementation file with comment and modules.
 \end_layout
 
 \begin_layout Scrap
+<<b16-defines.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<defines>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
 <<alu.v>>=
 \begin_inset Newline newline
 \end_inset
 
 <<header>>
+\begin_inset Newline newline
+\end_inset
+
+`include "b16-defines.v"
 \begin_inset Newline newline
 \end_inset
 
@@ -2977,6 +3023,10 @@ First the implementation file with comment and modules.
 \begin_inset Newline newline
 \end_inset
 
+`include "b16-defines.v"
+\begin_inset Newline newline
+\end_inset
+
 
 \begin_inset Newline newline
 \end_inset
@@ -2989,11 +3039,51 @@ First the implementation file with comment and modules.
 \end_layout
 
 \begin_layout Scrap
+<<latchen.v>>=
+\begin_inset Newline newline
+\end_inset
+
+<<header>>
+\begin_inset Newline newline
+\end_inset
+
+`include "b16-defines.v"
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<<latchen>>
+\begin_inset Newline newline
+\end_inset
+
+@
+\end_layout
+
+\begin_layout Scrap
 <<cpu.v>>=
 \begin_inset Newline newline
 \end_inset
 
 <<header>>
+\begin_inset Newline newline
+\end_inset
+
+/*
+\begin_inset Newline newline
+\end_inset
+
+<<inst-comment>>
+\begin_inset Newline newline
+\end_inset
+
+ */
+\begin_inset Newline newline
+\end_inset
+
+`include "b16-defines.v"
 \begin_inset Newline newline
 \end_inset
 
@@ -3014,6 +3104,10 @@ First the implementation file with comment and modules.
 \end_inset
 
 <<header>>
+\begin_inset Newline newline
+\end_inset
+
+`include "b16-defines.v"
 \begin_inset Newline newline
 \end_inset
 
@@ -3390,7 +3484,7 @@ always @(state or inst or rd or run <<dbg senselist>>)
 \begin_inset Newline newline
 \end_inset
 
-     casez(inst)
+     case(inst)
 \begin_inset Newline newline
 \end_inset
 
@@ -3399,6 +3493,10 @@ always @(state or inst or rd or run <<dbg senselist>>)
 \end_inset
 
         5'b11100: rpush = 1'b1;
+\begin_inset Newline newline
+\end_inset
+
+        default ;
 \begin_inset Newline newline
 \end_inset
 
@@ -4770,10 +4868,6 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   wire write = push & ~clk & ~scan;
-\begin_inset Newline newline
-\end_inset
-
    reg `L stackmem[0:(1@<<dep)-1];
 \begin_inset Newline newline
 \end_inset
@@ -4783,6 +4877,30 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \end_inset
 
 `ifndef FPGA
+\begin_inset Newline newline
+\end_inset
+
+   wire write;
+\begin_inset Newline newline
+\end_inset
+
+   latchen genwrite(.clk(clk),
+\begin_inset Newline newline
+\end_inset
+
+                    .en(push),
+\begin_inset Newline newline
+\end_inset
+
+                    .scan(scan),
+\begin_inset Newline newline
+\end_inset
+
+                    .out(write));
+\begin_inset Newline newline
+\end_inset
+
+
 \begin_inset Newline newline
 \end_inset
 
@@ -4831,6 +4949,50 @@ endmodule // stack
 \end_inset
 
 @
+\end_layout
+
+\begin_layout Scrap
+<<latchen>>=
+\begin_inset Newline newline
+\end_inset
+
+`ifndef FPGA
+\begin_inset Newline newline
+\end_inset
+
+module latchen(clk, en, scan, out);
+\begin_inset Newline newline
+\end_inset
+
+   input clk, en, scan;
+\begin_inset Newline newline
+\end_inset
+
+   output out;
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+   assign out = en & ~clk & ~scan;
+\begin_inset Newline newline
+\end_inset
+
+endmodule
+\begin_inset Newline newline
+\end_inset
+
+`endif
+\begin_inset Newline newline
+\end_inset
+
+@
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout Bibliography

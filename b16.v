@@ -14,7 +14,8 @@
 
    This is not the source code of the program, the source code is a LyX
    literate programming style article.
- *
+ */
+/*
  * Instruction set:
  * 1, 5, 5, 5 bits
  *     0    1    2    3    4    5    6    7
@@ -25,7 +26,6 @@
  *  /1 !.   @.   @    lit  c!.  c@.  c@   litc
  * 18: nip  drop over dup  >r        r>
  */
- 
 `define L [l-1:0]
 `define DROP { sp, T } <= { spinc, N } 
 `define DEBUGGING
@@ -61,6 +61,14 @@ module alu(res, carry, zero, T, N, c, inst);
    assign zero = ~|T;
 endmodule // alu
 // leda NTL_STR33 on
+`ifndef FPGA
+module latchen(clk, en, scan, out);
+   input clk, en, scan;
+   output out;
+
+   assign out = en & ~clk & ~scan;
+endmodule
+`endif
 module stack(clk, sp, spdec, push, scan, in, out);
    parameter dep=2, l=16;
    input clk, push, scan;
@@ -68,10 +76,15 @@ module stack(clk, sp, spdec, push, scan, in, out);
    input `L in;
    output `L out;
 
-   wire write = push & ~clk & ~scan;
    reg `L stackmem[0:(1<<dep)-1];
 
 `ifndef FPGA
+   wire write;
+   latchen genwrite(.clk(clk),
+                    .en(push),
+                    .scan(scan),
+                    .out(write));
+
    always @(write or spdec or in)
       if(write) stackmem[spdec] <= in;
 `else
@@ -164,9 +177,10 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
         rpush = 1'b0;
         dpush = (|state[1:0] & rd) |
                 (inst[4] && inst[3] && inst[1]);
-        casez(inst)
+        case(inst)
            5'b00001: rpush = |state[1:0] | run;
            5'b11100: rpush = 1'b1;
+           default ;
         endcase // case(inst)
         `ifdef DEBUGGING
         if(!run && dw) case(daddr)
@@ -241,7 +255,7 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
                    P, I, R, rp, carry, res);
          end
       `endif
-         if(!state || 
+         if(~|state || 
             ({ inst[4:3], inst[1:0] } == 4'b1011))
             P <= incaddr;
          if(|state[1:0]) begin 
@@ -253,56 +267,57 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
             if(!data[15]) state[1:0] <= 2'b01;
          end
          state <= nextstate;
-         casez(inst)
-            5'b00001: begin
+         case(inst)
+            5'b00001: begin // call
                rp <= rpdec;
-               R <= { !state ? incaddr[15:1] : P[15:1], c };
+               R <= { ~|state ? incaddr[15:1] : P[15:1], c };
                P <= jmp;
                c <= 1'b0;
                if(state == 2'b11) `DROP;
             end // case: 5'b00001
-            5'b00010: begin
+            5'b00010: begin // jmp
                P <= jmp;
                if(state == 2'b11) `DROP;
             end
-            5'b00011: { rp, c, P, R } <= 
+            5'b00011: // ret
+                      { rp, c, P, R } <= 
                       { rpinc, R[0], R[l-1:1], 1'b0, toR };
-            5'b001??: begin
+            5'b00100, 5'b00101, 5'b00110, 5'b00111:
+            begin // conditional jmps
                if((inst[1] ? c : zero) ^ inst[0]) 
                   P <= jmp;
                `DROP;
             end
-            5'b01001: { c, T } <= { 1'b1, ~T };
-            5'b01110: { T, R, c } <= 
+            5'b01001: // com
+               { c, T } <= { 1'b1, ~T };
+            5'b01110: // *+
+               { T, R, c } <=
                { c ? { carry, res } : { 1'b0, T }, R };
-            5'b01111: { c, T, R } <= 
+            5'b01111: // /-
+               { c, T, R } <=
                { (c | carry) ? res : T, R, (c | carry) };
-            `ifndef FPGA
-            5'b01???: { sp, c, T } <= { spinc, carry, res }; 
-            `else
-            5'b01000: { sp, c, T } <= { spinc, carry, res };
-            5'b01010: { sp, c, T } <= { spinc, carry, res };
-            5'b01011: { sp, c, T } <= { spinc, carry, res };
-            5'b01100: { sp, c, T } <= { spinc, carry, res };
-            5'b01101: { sp, c, T } <= { spinc, carry, res }; 
-            `endif
-            5'b10?0?: begin
+            5'b01000, 5'b01010, 5'b01011, 5'b01100, 5'b01101:
+               // xor, and, or, +, +c
+               { sp, c, T } <= { spinc, carry, res };
+            5'b10000, 5'b10001, 5'b10100, 5'b10101:
+            begin        // !+, @+, c!+, c@+
                if(nextstate != 2'b10) T <= incaddr;
                sp <= rd ? spdec : spinc;
             end
-            5'b10?1?: T <= dataw;
-            5'b11000: sp <= spinc;
-            5'b11001: `DROP;
-            5'b11010: { sp, T } <= { spdec, N };
-            5'b11011: sp <= spdec;
-            5'b11100: begin
+            5'b10010, 5'b10011, 5'b10110, 5'b10111:
+               T <= dataw;  // @, lit, c@, litc
+            5'b11000: sp <= spinc;               // nip
+            5'b11001: `DROP;                     // drop
+            5'b11010: { sp, T } <= { spdec, N }; // over
+            5'b11011: sp <= spdec;               // dup
+            5'b11100: begin                      // >r
                R <= T; rp <= rpdec; `DROP;
             end // case: 5'b11100
-            5'b11110: begin
+            5'b11110: begin                      // r>
                { sp, T, R } <= { spdec, R, toR };
                rp <= rpinc;
             end // case: 5'b11110
-            default ;
+            default ;                            // noop
          endcase // case(inst)
       end else begin // debug
          `ifdef DEBUGGING
