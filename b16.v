@@ -32,7 +32,6 @@
 `define FPGA
 // `define BUSTRI
 
-// leda NTL_STR33 off
 module alu(res, carry, zero, T, N, c, inst);
    parameter l=16;
    input `L T, N;
@@ -60,7 +59,6 @@ module alu(res, carry, zero, T, N, c, inst);
    assign carry = carries[l];
    assign zero = ~|T;
 endmodule // alu
-// leda NTL_STR33 on
 `ifndef FPGA
 module latchen(clk, en, scan, out);
    input clk, en, scan;
