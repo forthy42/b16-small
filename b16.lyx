@@ -4663,10 +4663,6 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-// leda NTL_STR33 off
-\begin_inset Newline newline
-\end_inset
-
 module alu(res, carry, zero, T, N, c, inst);
 \begin_inset Newline newline
 \end_inset
@@ -4736,10 +4732,6 @@ module alu(res, carry, zero, T, N, c, inst);
 \end_inset
 
 endmodule // alu
-\begin_inset Newline newline
-\end_inset
-
-// leda NTL_STR33 on
 \begin_inset Newline newline
 \end_inset
 

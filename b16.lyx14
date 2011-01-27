@@ -1422,7 +1422,7 @@ inst
 <<instructions>>=
 \newline
 
-casez(inst)
+case(inst)
 \newline
 
    <<control flow>>
@@ -1695,13 +1695,13 @@ filbreak
 <<control flow>>=
 \newline
 
-5'b00001: begin
+5'b00001: begin // call
 \newline
 
    rp <= rpdec;
 \newline
 
-   R <= { !state ? incaddr[15:1] : P[15:1], c };
+   R <= { ~|state ? incaddr[15:1] : P[15:1], c };
 \newline
 
    P <= jmp;
@@ -1716,7 +1716,7 @@ filbreak
 end // case: 5'b00001
 \newline
 
-5'b00010: begin
+5'b00010: begin // jmp
 \newline
 
    P <= jmp;
@@ -1728,13 +1728,19 @@ end // case: 5'b00001
 end
 \newline
 
-5'b00011: { rp, c, P, R } <= 
+5'b00011: // ret
+\newline
+
+          { rp, c, P, R } <= 
 \newline
 
           { rpinc, R[0], R[l-1:1], 1'b0, toR };
 \newline
 
-5'b001??: begin
+5'b00100, 5'b00101, 5'b00110, 5'b00111:
+\newline
+
+begin // conditional jmps
 \newline
 
    if((inst[1] ? c : zero) ^ inst[0]) 
@@ -1991,46 +1997,37 @@ filbreak
 <<ALU operations>>=
 \newline
 
-5'b01001: { c, T } <= { 1'b1, ~T };
+5'b01001: // com
 \newline
 
-5'b01110: { T, R, c } <= 
+   { c, T } <= { 1'b1, ~T };
+\newline
+
+5'b01110: // *+
+\newline
+
+   { T, R, c } <=
 \newline
 
    { c ? { carry, res } : { 1'b0, T }, R };
 \newline
 
-5'b01111: { c, T, R } <= 
+5'b01111: // /-
+\newline
+
+   { c, T, R } <=
 \newline
 
    { (c | carry) ? res : T, R, (c | carry) };
 \newline
 
-`ifndef FPGA
+5'b01000, 5'b01010, 5'b01011, 5'b01100, 5'b01101:
 \newline
 
-5'b01???: { sp, c, T } <= { spinc, carry, res }; 
+   // xor, and, or, +, +c
 \newline
 
-`else
-\newline
-
-5'b01000: { sp, c, T } <= { spinc, carry, res };
-\newline
-
-5'b01010: { sp, c, T } <= { spinc, carry, res };
-\newline
-
-5'b01011: { sp, c, T } <= { spinc, carry, res };
-\newline
-
-5'b01100: { sp, c, T } <= { spinc, carry, res };
-\newline
-
-5'b01101: { sp, c, T } <= { spinc, carry, res }; 
-\newline
-
-`endif
+   { sp, c, T } <= { spinc, carry, res };
 \newline
 
 @
@@ -2347,7 +2344,10 @@ Memory access can't just be done word wise, but also byte wise.
 <<load/store>>=
 \newline
 
-5'b10?0?: begin
+5'b10000, 5'b10001, 5'b10100, 5'b10101:
+\newline
+
+begin        // !+, @+, c!+, c@+
 \newline
 
    if(nextstate != 2'b10) T <= incaddr;
@@ -2359,7 +2359,10 @@ Memory access can't just be done word wise, but also byte wise.
 end
 \newline
 
-5'b10?1?: T <= dataw;
+5'b10010, 5'b10011, 5'b10110, 5'b10111:
+\newline
+
+   T <= dataw;  // @, lit, c@, litc
 \newline
 
 @
@@ -2446,7 +2449,7 @@ Furthermore, the incremented address may go back to the program pointer.
 <<pointer increment>>=
 \newline
 
-if(!state || 
+if(~|state || 
 \newline
 
    ({ inst[4:3], inst[1:0] } == 4'b1011))
@@ -2497,7 +2500,7 @@ Stack Instructions
 \begin_layout Standard
 Stack instructions change the stack pointer and move values into and out
  of latches.
- With the 8 used stack operations, one notes that 
+ With the 6 used stack operations, one notes that 
 \family typewriter
 swap
 \family default
@@ -2631,19 +2634,19 @@ filbreak
 <<stack operations>>=
 \newline
 
-5'b11000: sp <= spinc;
+5'b11000: sp <= spinc;               // nip
 \newline
 
-5'b11001: `DROP;
+5'b11001: `DROP;                     // drop
 \newline
 
-5'b11010: { sp, T } <= { spdec, N };
+5'b11010: { sp, T } <= { spdec, N }; // over
 \newline
 
-5'b11011: sp <= spdec;
+5'b11011: sp <= spdec;               // dup
 \newline
 
-5'b11100: begin
+5'b11100: begin                      // >r
 \newline
 
    R <= T; rp <= rpdec; `DROP;
@@ -2652,7 +2655,7 @@ filbreak
 end // case: 5'b11100
 \newline
 
-5'b11110: begin
+5'b11110: begin                      // r>
 \newline
 
    { sp, T, R } <= { spdec, R, toR };
@@ -2664,7 +2667,7 @@ end // case: 5'b11100
 end // case: 5'b11110
 \newline
 
-default ;
+default ;                            // noop
 \newline
 
 @
@@ -2675,7 +2678,17 @@ The Rest of the Implementation
 \end_layout
 
 \begin_layout Standard
-First the implementation file with comment and modules.
+First the implementation file(s) with comment and modules.
+ You can either have all in one file (
+\family typewriter
+b16.v
+\family default
+), or each module in a file with the same name as the module---the defines
+ will go to 
+\family typewriter
+b16-defines.v
+\family default
+ for central manipulation of the defines.
 \end_layout
 
 \begin_layout Scrap
@@ -2700,16 +2713,14 @@ First the implementation file with comment and modules.
  * <<gpl-header>>
 \newline
 
- *
-\newline
-
-<<inst-comment>>
-\newline
-
  */
 \newline
 
- 
+@
+\end_layout
+
+\begin_layout Scrap
+<<defines>>=
 \newline
 
 `define L [l-1:0]
@@ -2737,10 +2748,25 @@ First the implementation file with comment and modules.
 <<header>>
 \newline
 
+/*
+\newline
+
+<<inst-comment>>
+\newline
+
+ */
+\newline
+
+<<defines>>
+\newline
+
 
 \newline
 
 <<ALU>>
+\newline
+
+<<latchen>>
 \newline
 
 <<Stack>>
@@ -2756,10 +2782,23 @@ First the implementation file with comment and modules.
 \end_layout
 
 \begin_layout Scrap
+<<b16-defines.v>>=
+\newline
+
+<<defines>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
 <<alu.v>>=
 \newline
 
 <<header>>
+\newline
+
+`include "b16-defines.v"
 \newline
 
 
@@ -2778,6 +2817,9 @@ First the implementation file with comment and modules.
 <<header>>
 \newline
 
+`include "b16-defines.v"
+\newline
+
 
 \newline
 
@@ -2788,10 +2830,41 @@ First the implementation file with comment and modules.
 \end_layout
 
 \begin_layout Scrap
+<<latchen.v>>=
+\newline
+
+<<header>>
+\newline
+
+`include "b16-defines.v"
+\newline
+
+
+\newline
+
+<<latchen>>
+\newline
+
+@
+\end_layout
+
+\begin_layout Scrap
 <<cpu.v>>=
 \newline
 
 <<header>>
+\newline
+
+/*
+\newline
+
+<<inst-comment>>
+\newline
+
+ */
+\newline
+
+`include "b16-defines.v"
 \newline
 
 
@@ -2808,6 +2881,9 @@ First the implementation file with comment and modules.
 \newline
 
 <<header>>
+\newline
+
+`include "b16-defines.v"
 \newline
 
 
@@ -3114,13 +3190,16 @@ always @(state or inst or rd or run <<dbg senselist>>)
              (inst[4] && inst[3] && inst[1]);
 \newline
 
-     casez(inst)
+     case(inst)
 \newline
 
         5'b00001: rpush = |state[1:0] | run;
 \newline
 
         5'b11100: rpush = 1'b1;
+\newline
+
+        default ;
 \newline
 
      endcase // case(inst)
@@ -4121,9 +4200,6 @@ filbreak
 <<ALU>>=
 \newline
 
-// leda NTL_STR33 off
-\newline
-
 module alu(res, carry, zero, T, N, c, inst);
 \newline
 
@@ -4176,9 +4252,6 @@ module alu(res, carry, zero, T, N, c, inst);
 \newline
 
 endmodule // alu
-\newline
-
-// leda NTL_STR33 on
 \newline
 
 @
@@ -4287,9 +4360,6 @@ module stack(clk, sp, spdec, push, scan, in, out);
 
 \newline
 
-   wire write = push & ~clk & ~scan;
-\newline
-
    reg `L stackmem[0:(1@<<dep)-1];
 \newline
 
@@ -4297,6 +4367,24 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \newline
 
 `ifndef FPGA
+\newline
+
+   wire write;
+\newline
+
+   latchen genwrite(.clk(clk),
+\newline
+
+                    .en(push),
+\newline
+
+                    .scan(scan),
+\newline
+
+                    .out(write));
+\newline
+
+
 \newline
 
    always @(write or spdec or in)
@@ -4333,6 +4421,40 @@ endmodule // stack
 \newline
 
 @
+\end_layout
+
+\begin_layout Scrap
+<<latchen>>=
+\newline
+
+`ifndef FPGA
+\newline
+
+module latchen(clk, en, scan, out);
+\newline
+
+   input clk, en, scan;
+\newline
+
+   output out;
+\newline
+
+
+\newline
+
+   assign out = en & ~clk & ~scan;
+\newline
+
+endmodule
+\newline
+
+`endif
+\newline
+
+@
+\newline
+
+
 \end_layout
 
 \begin_layout Bibliography
