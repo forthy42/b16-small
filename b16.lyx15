@@ -3090,6 +3090,10 @@ endmodule // cpu
 First, Verilog needs port declarations, so that it can know what's input
  and output.
  The parameter are used to configure other word sizes and stack depths.
+ The CPU is not fully scalable, e.g.
+ the instruction decoder or the byte swap operation for byte access depends
+ on 16 bit word size, but those parts of the CPU that are scalable can be
+ scaled by changing that parameter---the others need manual intervention.
 \begin_inset ERT
 status collapsed
 
