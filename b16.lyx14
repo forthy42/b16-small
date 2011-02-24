@@ -2877,7 +2877,7 @@ b16-defines.v
 \end_layout
 
 \begin_layout Scrap
-<<debugging.v>>=
+<<debugger.v>>=
 \newline
 
 <<header>>

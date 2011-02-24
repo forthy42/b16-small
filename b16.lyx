@@ -3099,7 +3099,7 @@ b16-defines.v
 \end_layout
 
 \begin_layout Scrap
-<<debugging.v>>=
+<<debugger.v>>=
 \begin_inset Newline newline
 \end_inset
 
