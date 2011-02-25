@@ -4848,7 +4848,7 @@ module stack(clk, sp, spdec, push, gwrite, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   reg [dep-1:0] i;
+   reg [dep:0] i;
 \begin_inset Newline newline
 \end_inset
 

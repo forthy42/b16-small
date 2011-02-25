@@ -69,7 +69,7 @@ module stack(clk, sp, spdec, push, gwrite, in, out);
    reg `L stackmem[0:(1<<dep)-1];
 
 `ifndef FPGA
-   reg [dep-1:0] i;
+   reg [dep:0] i;
 
    always @(clk or push or gwrite or spdec or in)
       if(~clk)
