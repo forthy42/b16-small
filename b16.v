@@ -59,17 +59,9 @@ module alu(res, carry, zero, T, N, c, inst);
    assign carry = carries[l];
    assign zero = ~|T;
 endmodule // alu
-`ifndef FPGA
-module latchen(clk, en, scan, out);
-   input clk, en, scan;
-   output out;
-
-   assign out = en & ~clk & ~scan;
-endmodule
-`endif
-module stack(clk, sp, spdec, push, scan, in, out);
+module stack(clk, sp, spdec, push, gwrite, in, out);
    parameter dep=2, l=16;
-   input clk, push, scan;
+   input clk, push, gwrite;
    input [dep-1:0] sp, spdec;
    input `L in;
    output `L out;
@@ -77,14 +69,14 @@ module stack(clk, sp, spdec, push, scan, in, out);
    reg `L stackmem[0:(1<<dep)-1];
 
 `ifndef FPGA
-   wire write;
-   latchen genwrite(.clk(clk),
-                    .en(push),
-                    .scan(scan),
-                    .out(write));
+   reg [dep-1:0] i;
 
-   always @(write or spdec or in)
-      if(write) stackmem[spdec] <= in;
+   always @(clk or push or gwrite or spdec or in)
+      if(~clk)
+         if(gwrite)
+            for(i=0; i<(1<<dep); i=i+1)
+               stackmem[i] <= in;
+         else if(push) stackmem[spdec] <= in;
 `else
    always @(posedge clk)
       if(push)
@@ -94,13 +86,13 @@ module stack(clk, sp, spdec, push, scan, in, out);
   assign out = stackmem[sp];
 
 endmodule // stack
-module cpu(clk, run, nreset, addr, rd, wr, data, 
-           dataout, scanning, atpg 
+module cpu(clk, latclk, run, nreset, addr, rd, wr, data, 
+           dataout, gwrite
 `ifdef DEBUGGING,
            dr, dw, daddr, din, dout, bp`endif);
    parameter rstaddr=16'h3FFE, show=0,
              l=16, sdep=4, rdep=4;
-   input clk, run, nreset, scanning, atpg;
+   input clk, latclk, run, nreset, gwrite;
    output `L addr;
    output rd;
    output [1:0] wr;
@@ -191,20 +183,20 @@ module cpu(clk, run, nreset, addr, rd, wr, data,
    wire [sdep-1:0] spdec, spinc;
    wire [rdep-1:0] rpdec, rpinc;
 
-   stack #(sdep,l) dstack(.clk(clk),
+   stack #(sdep,l) dstack(.clk(latclk),
                           .sp(sp),
                           .spdec(spdec),
                           .push(dpush),
                           .in(toN),
                           .out(N),
-                          .scan(scanning));
-   stack #(rdep,l) rstack(.clk(clk),
+                          .gwrite(gwrite));
+   stack #(rdep,l) rstack(.clk(latclk),
                           .sp(rp),
                           .spdec(rpdec),
                           .push(rpush),
                           .in(R),
                           .out(toR),
-                          .scan(scanning));
+                          .gwrite(gwrite));
 
    assign spdec = sp-{{(sdep-1){1'b0}}, 1'b1};
    assign spinc = sp+{{(sdep-1){1'b0}}, 1'b1};

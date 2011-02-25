@@ -2959,10 +2959,6 @@ b16-defines.v
 \begin_inset Newline newline
 \end_inset
 
-<<latchen>>
-\begin_inset Newline newline
-\end_inset
-
 <<Stack>>
 \begin_inset Newline newline
 \end_inset
@@ -3032,30 +3028,6 @@ b16-defines.v
 \end_inset
 
 <<Stack>>
-\begin_inset Newline newline
-\end_inset
-
-@
-\end_layout
-
-\begin_layout Scrap
-<<latchen.v>>=
-\begin_inset Newline newline
-\end_inset
-
-<<header>>
-\begin_inset Newline newline
-\end_inset
-
-`include "b16-defines.v"
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-<<latchen>>
 \begin_inset Newline newline
 \end_inset
 
@@ -3250,11 +3222,11 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-module cpu(clk, run, nreset, addr, rd, wr, data, 
+module cpu(clk, latclk, run, nreset, addr, rd, wr, data, 
 \begin_inset Newline newline
 \end_inset
 
-           dataout, scanning, atpg 
+           dataout, gwrite
 \begin_inset Newline newline
 \end_inset
 
@@ -3361,7 +3333,7 @@ parameter rstaddr=16'h3FFE, show=0,
 \begin_inset Newline newline
 \end_inset
 
-input clk, run, nreset, scanning, atpg;
+input clk, latclk, run, nreset, gwrite;
 \begin_inset Newline newline
 \end_inset
 
@@ -3556,7 +3528,7 @@ wire [rdep-1:0] rpdec, rpinc;
 \begin_inset Newline newline
 \end_inset
 
-stack #(sdep,l) dstack(.clk(clk),
+stack #(sdep,l) dstack(.clk(latclk),
 \begin_inset Newline newline
 \end_inset
 
@@ -3580,11 +3552,11 @@ stack #(sdep,l) dstack(.clk(clk),
 \begin_inset Newline newline
 \end_inset
 
-                       .scan(scanning));
+                       .gwrite(gwrite));
 \begin_inset Newline newline
 \end_inset
 
-stack #(rdep,l) rstack(.clk(clk),
+stack #(rdep,l) rstack(.clk(latclk),
 \begin_inset Newline newline
 \end_inset
 
@@ -3608,7 +3580,7 @@ stack #(rdep,l) rstack(.clk(clk),
 \begin_inset Newline newline
 \end_inset
 
-                       .scan(scanning));
+                       .gwrite(gwrite));
 \begin_inset Newline newline
 \end_inset
 
@@ -4836,7 +4808,7 @@ filbreak
 \begin_inset Newline newline
 \end_inset
 
-module stack(clk, sp, spdec, push, scan, in, out);
+module stack(clk, sp, spdec, push, gwrite, in, out);
 \begin_inset Newline newline
 \end_inset
 
@@ -4844,7 +4816,7 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   input clk, push, scan;
+   input clk, push, gwrite;
 \begin_inset Newline newline
 \end_inset
 
@@ -4876,23 +4848,7 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   wire write;
-\begin_inset Newline newline
-\end_inset
-
-   latchen genwrite(.clk(clk),
-\begin_inset Newline newline
-\end_inset
-
-                    .en(push),
-\begin_inset Newline newline
-\end_inset
-
-                    .scan(scan),
-\begin_inset Newline newline
-\end_inset
-
-                    .out(write));
+   reg [dep-1:0] i;
 \begin_inset Newline newline
 \end_inset
 
@@ -4900,11 +4856,27 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \begin_inset Newline newline
 \end_inset
 
-   always @(write or spdec or in)
+   always @(clk or push or gwrite or spdec or in)
 \begin_inset Newline newline
 \end_inset
 
-      if(write) stackmem[spdec] <= in;
+      if(~clk)
+\begin_inset Newline newline
+\end_inset
+
+         if(gwrite)
+\begin_inset Newline newline
+\end_inset
+
+            for(i=0; i<(1@<<dep); i=i+1)
+\begin_inset Newline newline
+\end_inset
+
+               stackmem[i] <= in;
+\begin_inset Newline newline
+\end_inset
+
+         else if(push) stackmem[spdec] <= in;
 \begin_inset Newline newline
 \end_inset
 
@@ -4941,46 +4913,6 @@ module stack(clk, sp, spdec, push, scan, in, out);
 \end_inset
 
 endmodule // stack
-\begin_inset Newline newline
-\end_inset
-
-@
-\end_layout
-
-\begin_layout Scrap
-<<latchen>>=
-\begin_inset Newline newline
-\end_inset
-
-`ifndef FPGA
-\begin_inset Newline newline
-\end_inset
-
-module latchen(clk, en, scan, out);
-\begin_inset Newline newline
-\end_inset
-
-   input clk, en, scan;
-\begin_inset Newline newline
-\end_inset
-
-   output out;
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-   assign out = en & ~clk & ~scan;
-\begin_inset Newline newline
-\end_inset
-
-endmodule
-\begin_inset Newline newline
-\end_inset
-
-`endif
 \begin_inset Newline newline
 \end_inset
 

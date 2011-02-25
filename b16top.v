@@ -216,7 +216,7 @@ assign	I2C_SDAT	=	1'bz;
                 addr, r,
                 drun, dr, dw, bp);
    
-   cpu b16(clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0, 1'b0,
+   cpu b16(clk, clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0,
 	   dr, dw, addru[3:1], datau, data_dbg, bp);
    
    SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, /*SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) :*/ LED7);

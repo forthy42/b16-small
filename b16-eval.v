@@ -21,7 +21,7 @@ module b16_eval(clk, reset, din, dout, a, d, wr_b, rd_b, ble_b, bhe_b);
    wire       intreq = 0;
    wire       nreset = ~reset;
    
-   cpu b16(clk, 1'b1, nreset, addr, r, w, data, dwrite, 1'b1, 1'b0, 1'b0
+   cpu b16(clk, clk, 1'b1, nreset, addr, r, w, data, dwrite, 1'b0
 `ifdef DEBUGGING, dr, dw, daddr, din, dout, bp`endif);
 
    assign d = r ? {(l){ 1'bz }} : dwrite;
