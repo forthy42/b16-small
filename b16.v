@@ -27,7 +27,8 @@
  * 18: nip  drop over dup  >r        r>
  */
 `define L [l-1:0]
-`define DROP { sp, T } <= { spinc, N } 
+
+`define DROP { sp, T } <= { spinc, N }
 `define DEBUGGING
 `define FPGA
 // `define BUSTRI
@@ -103,6 +104,7 @@ module cpu(clk, latclk, run, nreset, addr, rd, wr, data,
       input dr, dw;
       input `L din, bp;
       output `L dout;
+
    `endif
    reg [sdep-1:0] sp;
    reg [rdep-1:0] rp;
@@ -126,6 +128,7 @@ module cpu(clk, latclk, run, nreset, addr, rd, wr, data,
         2'b10: jmp = { P[15:6], I[4:0], 1'b0 };
         2'b11: jmp = { T[15:1], 1'b0 };
       endcase // casez(state)
+   
    wire `L res, toN, toR, N;
    wire carry, zero;
 
@@ -294,6 +297,7 @@ module cpu(clk, latclk, run, nreset, addr, rd, wr, data,
                if(nextstate != 2'b10) T <= incaddr;
                sp <= rd ? spdec : spinc;
             end
+
             5'b10010, 5'b10011, 5'b10110, 5'b10111:
                T <= dataw;  // @, lit, c@, litc
             5'b11000: sp <= spinc;               // nip
@@ -321,6 +325,7 @@ module cpu(clk, latclk, run, nreset, addr, rd, wr, data,
             3'h5: T <= din;
             3'h6: R <= din;
             3'h7: I <= din;
+
             default ;
          endcase
          if(dr) case(daddr)

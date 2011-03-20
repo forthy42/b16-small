@@ -1,5 +1,5 @@
-#LyX 2.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 413
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass literate-article
@@ -8,26 +8,18 @@
 \DeclareGraphicsExtensions{.pdf}
 \end_preamble
 \use_default_options false
-\maintain_unincluded_children false
 \language american
-\language_package default
 \inputencoding auto
-\fontencoding global
 \font_roman ae
 \font_sans default
 \font_typewriter default
 \font_default_family default
-\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
-\default_output_format default
-\output_sync 0
-\bibtex_command default
-\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref false
@@ -35,18 +27,9 @@
 \use_geometry true
 \use_amsmath 1
 \use_esint 0
-\use_mhchem 1
-\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
-\use_indices false
 \paperorientation portrait
-\suppress_date false
-\use_refstyle 0
-\index Index
-\shortcut idx
-\color #008000
-\end_index
 \leftmargin 36pt
 \topmargin 1in
 \rightmargin 36pt
@@ -54,16 +37,15 @@
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\paragraph_indentation default
+\defskip medskip
 \quotes_language english
 \papercolumns 2
 \papersides 1
 \paperpagestyle fancy
 \tracking_changes false
 \output_changes false
-\html_math_output 0
-\html_css_as_file 0
-\html_be_strict false
+\author "" 
+\author "" 
 \end_header
 
 \begin_body
@@ -132,7 +114,7 @@ s newest Forth processors.
  The minimalistic design fits into small FPGAs and ASICs and is ideally
  suited for applications that need both control and calculations.
  The factor is shifted towards control to save space.
- The synthesizable implementation uses Verilog.
+ The synthesizible implementation uses Verilog.
 \end_layout
 
 \begin_layout Section*
@@ -185,7 +167,7 @@ key "c18"
 
 \begin_layout Standard
 A word about Verilog: Verilog is a C-like language, but tailored for the
- purpose to simulate logic, and to write synthesizable code.
+ purpose to simulate logic, and to write synthesizible code.
  Variables are bits and bit vectors, and assignments are typically non-blocking,
  i.e.
  on assignments first all right sides are computed, and the left sides are
@@ -335,7 +317,7 @@ search whole word
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features tabularvalignment="middle">
+<features>
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="left" valignment="top" width="0pt">
 <row>
@@ -538,33 +520,33 @@ Carry Flag
 
 \begin_layout Scrap
 <<register declarations>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg [sdep-1:0] sp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg [rdep-1:0] rp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg `L T, I, P, R;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg [1:0] state;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg c;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -578,7 +560,7 @@ status collapsed
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="10">
-<features tabularvalignment="middle">
+<features>
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -1419,73 +1401,73 @@ filbreak
 
 \begin_layout Scrap
 <<instruction selection>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 // instruction and branch target selection   
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire [4:0] inst, rwinst;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg `L jmp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign inst = { 4'b0000, data[15], I[14:0] }
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
               >> (5*(3-state[1:0]));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign rwinst = { 5'b00000, I[14:0] }
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                 >> (5*(3-state[1:0]));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 always @(state or I or P or T or data)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    case(state[1:0])
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      2'b00: jmp = { data[14:0], 1'b0 };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      2'b01: jmp = { P[15:11], I[9:0], 1'b0 };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      2'b10: jmp = { P[15:6], I[4:0], 1'b0 };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      2'b11: jmp = { T[15:1], 1'b0 };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    endcase // casez(state)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -1499,33 +1481,33 @@ inst
 
 \begin_layout Scrap
 <<instructions>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 case(inst)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<control flow>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<ALU operations>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<load/store>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<stack operations>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endcase // case(inst)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -1779,89 +1761,89 @@ filbreak
 
 \begin_layout Scrap
 <<control flow>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b00001: begin // call
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    rp <= rpdec;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    R <= { ~|state ? incaddr[15:1] : P[15:1], c };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    P <= jmp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    c <= 1'b0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if(state == 2'b11) `DROP;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end // case: 5'b00001
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b00010: begin // jmp
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    P <= jmp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if(state == 2'b11) `DROP;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b00011: // ret
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
           { rp, c, P, R } <= 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
           { rpinc, R[0], R[l-1:1], 1'b0, toR };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b00100, 5'b00101, 5'b00110, 5'b00111:
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 begin // conditional jmps
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if((inst[1] ? c : zero) ^ inst[0]) 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       P <= jmp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    `DROP;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2102,53 +2084,53 @@ filbreak
 
 \begin_layout Scrap
 <<ALU operations>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b01001: // com
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { c, T } <= { 1'b1, ~T };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b01110: // *+
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { T, R, c } <=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { c ? { carry, res } : { 1'b0, T }, R };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b01111: // /-
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { c, T, R } <=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { (c | carry) ? res : T, R, (c | carry) };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b01000, 5'b01010, 5'b01011, 5'b01100, 5'b01101:
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    // xor, and, or, +, +c
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { sp, c, T } <= { spinc, carry, res };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2373,109 +2355,109 @@ filbreak
 
 \begin_layout Scrap
 <<address handling>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire `L incaddr, dataw, datas;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire tos2r, tos2n;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire incby, bswap, addrsel, access, rd;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire [1:0] wr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign incby = (rwinst[4:2] != 3'b101);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign access = (rwinst[4:3]==2'b10);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign addrsel = rd ? 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       (access & (rwinst[1:0] != 2'b11)) : |wr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign rd = (state==2'b00) || 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
             (access && (rwinst[1:0]!=2'b00));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign wr = (access && (rwinst[1:0]==2'b00)) ?
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
             { ~rwinst[2] | ~T[0], 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
               ~rwinst[2] | T[0] } : 2'b00;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign addr = addrsel ? T : P;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign incaddr = addr + incby + 1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign tos2n = (!rd | (rwinst[1:0] == 2'b11));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign toN = tos2n ? T : dataw;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign bswap = ~incby ^ addr[0];
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign datas = bswap ? { data[7:0], data[l-1:8] }
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                      : data;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign dataw = incby ? datas
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                      : { 8'h00, datas[7:0] }; 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign dataout = bswap ? { N[7:0], N[l-1:8] }
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        : N; 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2487,37 +2469,37 @@ Memory access can't just be done word wise, but also byte wise.
 
 \begin_layout Scrap
 <<load/store>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b10000, 5'b10001, 5'b10100, 5'b10101:
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 begin        // !+, @+, c!+, c@+
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if(nextstate != 2'b10) T <= incaddr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    sp <= rd ? spdec : spinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b10010, 5'b10011, 5'b10110, 5'b10111:
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    T <= dataw;  // @, lit, c@, litc
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2528,59 +2510,59 @@ Memory accesses need an extra cycle.
 
 \begin_layout Scrap
 <<load-store>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<pointer increment>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(|state[1:0]) begin 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<store afterwork>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end else begin 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<ifetch>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<debug>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 $write("%b[%b] T=%b%x:%x[%x], ",
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
        inst, state, c, T, N, sp);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 $write("P=%x, I=%x, R=%x[%x], res=%b%x
 \backslash
 n",
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
        P, I, R, rp, carry, res);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2592,21 +2574,21 @@ After the access is completed, the result for a load has to be pushed on
 
 \begin_layout Scrap
 <<store afterwork>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(rd && { inst[4:3], inst[1:0] } != 4'b1010)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    sp <= spdec;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(|wr) sp <= spinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2615,26 +2597,22 @@ Furthermore, the incremented address may go back to the program pointer.
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<pointer increment>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(~|state || 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    ({ inst[4:3], inst[1:0] } == 4'b1011))
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    P <= incaddr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2648,26 +2626,18 @@ nop
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<ifetch>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 I <= data; 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(!data[15]) state[1:0] <= 2'b01;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2820,57 +2790,57 @@ filbreak
 
 \begin_layout Scrap
 <<stack operations>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b11000: sp <= spinc;               // nip
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b11001: `DROP;                     // drop
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b11010: { sp, T } <= { spdec, N }; // over
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b11011: sp <= spdec;               // dup
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b11100: begin                      // >r
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    R <= T; rp <= rpdec; `DROP;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end // case: 5'b11100
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 5'b11110: begin                      // r>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    { sp, T, R } <= { spdec, R, toR };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    rp <= rpinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end // case: 5'b11110
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 default ;                            // noop
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -2893,343 +2863,335 @@ b16-defines.v
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<header>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 /*
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * b16 core: 16 bits, 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * inspired by c18 core from Chuck Moore
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * (c) 2002-2011 by Bernd Paysan
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * <<gpl-header>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  */
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<defines>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `define L [l-1:0]
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
+`define DROP { sp, T } <= { spinc, N } 
+\begin_inset Newline newline
+\end_inset
 
-\end_layout
-
-\begin_layout Scrap
-`define DROP { sp, T } <= { spinc, N }
-\end_layout
-
-\begin_layout Scrap
 `define DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `define FPGA
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 // `define BUSTRI
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<b16.v>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<header>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 /*
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<inst-comment>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  */
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<defines>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<ALU>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<Stack>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<cpu>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<debugger>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<b16-defines.v>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<defines>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<alu.v>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<header>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `include "b16-defines.v"
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<ALU>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<stack.v>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<header>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `include "b16-defines.v"
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
+
+\begin_inset Newline newline
+\end_inset
+
 <<Stack>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<cpu.v>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<header>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 /*
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<inst-comment>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  */
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `include "b16-defines.v"
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<cpu>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<debugger.v>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<header>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `include "b16-defines.v"
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
+
+\begin_inset Newline newline
+\end_inset
+
 <<debugger>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<gpl-header>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 This program is free software; you can redistribute it and/or modify
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 it under the terms of the GNU General Public License as published by
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 the Free Software Foundation; version 2 of the License or any later.
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 This program is distributed in the hope that it will be useful,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 GNU General Public License for more details.
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 This is not the source code of the program, the source code is a LyX
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 literate programming style article.
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<inst-comment>>= 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * Instruction set:
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * 1, 5, 5, 5 bits
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  *     0    1    2    3    4    5    6    7
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  *  0: nop  call jmp  ret  jz   jnz  jc   jnc
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  *  /3      exec goto ret  gz   gnz  gc   gnc
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  *  8: xor  com  and  or   +    +c   *+   /-
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * 10: !+   @+   @    lit  c!+  c@+  c@   litc
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  *  /1 !.
    @.
    @    lit  c!.
   c@.
   c@   litc
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
  * 18: nip  drop over dup  >r        r>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3257,81 +3219,81 @@ filbreak
 
 \begin_layout Scrap
 <<cpu>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 module cpu(clk, latclk, run, nreset, addr, rd, wr, data, 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
            dataout, gwrite
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
            dr, dw, daddr, din, dout, bp`endif);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<port declarations>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<register declarations>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<instruction selection>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<ALU instantiation>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<address handling>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<stack pushs>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<stack instantiation>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<state changes>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<debugging read>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    always @(posedge clk or negedge nreset)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       <<register updates>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endmodule // cpu
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3359,54 +3321,46 @@ filbreak
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<port declarations>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 parameter rstaddr=16'h3FFE, show=0,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
           l=16, sdep=4, rdep=4;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input clk, latclk, run, nreset, gwrite;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output `L addr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output rd;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output [1:0] wr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input  `L data;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output `L dataout;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 <<debugging-ports>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3417,37 +3371,37 @@ The ALU is instantiated with the configured width, and the necessary wires
 
 \begin_layout Scrap
 <<ALU instantiation>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire `L res, toN, toR, N;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire carry, zero;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 alu #(l) alu16(.res(res), .carry(carry),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
-               .zero(zero),
-\end_layout
+               .zero(zero), 
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                .T(T), .N(N), .c(c),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                .inst(inst[2:0]));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3475,65 +3429,65 @@ filbreak
 
 \begin_layout Scrap
 <<stack pushs>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg dpush, rpush;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 always @(state or inst or rd or run <<dbg senselist>>)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
   begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      rpush = 1'b0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      dpush = (|state[1:0] & rd) |
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
              (inst[4] && inst[3] && inst[1]);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      case(inst)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
         5'b00001: rpush = |state[1:0] | run;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
         5'b11100: rpush = 1'b1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
         default ;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      endcase // case(inst)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
      <<stack debugging>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
   end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3558,106 +3512,98 @@ filbreak
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<stack instantiation>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire [sdep-1:0] spdec, spinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire [rdep-1:0] rpdec, rpinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 stack #(sdep,l) dstack(.clk(latclk),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .sp(sp),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .spdec(spdec),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .push(dpush),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .in(toN),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .out(N),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .gwrite(gwrite));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 stack #(rdep,l) rstack(.clk(latclk),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .sp(rp),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .spdec(rpdec),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .push(rpush),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .in(R),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .out(toR),
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                        .gwrite(gwrite));
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign spdec = sp-{{(sdep-1){1'b0}}, 1'b1};
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign spinc = sp+{{(sdep-1){1'b0}}, 1'b1};
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign rpdec = rp-{{(rdep-1){1'b0}}, 1'b1};
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign rpinc = rp+{{(rdep-1){1'b0}}, 1'b1};
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3687,70 +3633,66 @@ filbreak
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<register updates>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(!nreset) begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<resets>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end else if(run) begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef REPORT_VERBOSE
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if(show) begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       <<debug>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<load-store>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    state <= nextstate;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<instructions>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end else begin // debug
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<debugging>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end // else: !if(nreset)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3774,50 +3716,42 @@ filbreak
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<resets>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 state <= 2'b11;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 P <= rstaddr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 T <= 16'h0000;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 I <= 16'h0000;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 R <= 16'h0000;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 c <= 1'b0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 sp <= 0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 rp <= 0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3844,25 +3778,25 @@ filbreak
 
 \begin_layout Scrap
 <<state changes>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire [1:0] nextstate;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign nextstate = ((~|inst) || (|inst[4:3])) ?
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                    state[1:0] + 2'b01 : 2'b00;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -3886,7 +3820,7 @@ The debugging module offers the following registers as address space:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="3">
-<features tabularvalignment="middle">
+<features>
 <column alignment="right" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -4183,357 +4117,353 @@ filbreak
 
 \begin_layout Scrap
 <<debugger>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 module debugger(clk, nreset, run,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                 addr, data, r, w,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                 cpu_addr, cpu_r,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                 drun, dr, dw, bp);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 parameter l=16, dbgaddr = 12'hFFE;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input clk, nreset, run, r, cpu_r;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input [1:0] w;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input [l-1:1] addr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input `L data, cpu_addr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output drun, dr, dw;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output `L bp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg drun, drun1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg `L bp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire dsel = (addr[l-1:4] == dbgaddr);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign dr = dsel & r;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign dw = dsel & |w;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 always @(posedge clk or negedge nreset)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(!nreset) begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    drun <= 1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    drun1 <= 1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    bp <= 16'hffff;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end else begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if(cpu_addr == bp && cpu_r)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       { drun, drun1 } <= 0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    else if(run) drun <= drun1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if((dr | dw) && (addr[3:1] == 3'h3)) begin
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       drun <= !dr & dw;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       drun1 <= !dr & dw & data[12];
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    if(dw && addr[3:1] == 3'h2) bp <= data;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 end
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endmodule
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<debugging>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(dw) case(daddr)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h0: { sp, T } <= { spdec, din };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h1: { rp, R } <= { rpdec, din };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h3: { c, state, sp, rp } <= 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
            { din[10:8],
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
              din[sdep+3:4], din[rdep-1:0] };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h4: P <= din;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h5: T <= din;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h6: R <= din;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h7: I <= din;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    default ;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endcase
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(dr) case(daddr)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h0: sp <= spinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h1: rp <= rpinc;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    default ;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endcase
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<debugging read>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 reg `L dout;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 always @(daddr or dr or run or P or T or R or I or
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
          state or sp or rp or c or N or toR or bp)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(!dr || run) dout = 'h0;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 else case(daddr)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h0: dout = N;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h1: dout = toR;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h2: dout = bp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h3: dout = { run, 4'h0, c, state,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                   {4-sdep{1'b0}}, sp,
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                   {4-rdep{1'b0}}, rp };
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h4: dout = P;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h5: dout = T;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h6: dout = R;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h7: dout = I;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endcase
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<debugging-ports>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    input [2:0] daddr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    input dr, dw;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    input `L din, bp;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    output `L dout;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 `endif
 \begin_inset Newline newline
 \end_inset
@@ -4543,57 +4473,57 @@ endcase
 
 \begin_layout Scrap
 <<dbg senselist>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 or run or dw or daddr
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
 \begin_layout Scrap
 <<stack debugging>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifdef DEBUGGING
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 if(!run && dw) case(daddr)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h0: dpush = 1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    3'h1: rpush = 1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    default ;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endcase
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -4706,81 +4636,81 @@ filbreak
 
 \begin_layout Scrap
 <<ALU>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 module alu(res, carry, zero, T, N, c, inst);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    <<ALU ports>>
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    wire        `L r1, r2;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    wire [l:0]  carries;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    assign r1 = T ^ N ^ carries;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    assign r2 = (T & N) | 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                (T & carries`L) | 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                (N & carries`L);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 // This generates a carry *chain*, not a loop!
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    assign carries = 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
         prop ? { r2[l-1:0], (c | selr) & andor } 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
              : { c, {(l){andor}}};
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    assign res = (selr & ~prop) ? r2 : r1;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    assign carry = carries[l];
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    assign zero = ~|T;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endmodule // alu
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -4803,54 +4733,50 @@ filbreak
 \end_layout
 
 \begin_layout Scrap
-
-\end_layout
-
-\begin_layout Scrap
 <<ALU ports>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 parameter l=16;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input `L T, N;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input c;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 input [2:0] inst;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output `L res;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 output carry, zero;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 wire prop, andor, selr;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 assign { prop, selr, andor } = inst;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
 \end_layout
 
@@ -4879,126 +4805,125 @@ filbreak
 
 \begin_layout Scrap
 <<Stack>>=
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 module stack(clk, sp, spdec, push, gwrite, in, out);
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    parameter dep=2, l=16;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    input clk, push, gwrite;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    input [dep-1:0] sp, spdec;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    input `L in;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    output `L out;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    reg `L stackmem[0:(1@<<dep)-1];
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `ifndef FPGA
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    reg [dep:0] i;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    always @(clk or push or gwrite or spdec or in)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       if(~clk)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
          if(gwrite)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
             for(i=0; i<(1@<<dep); i=i+1)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
                stackmem[i] <= in;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
          else if(push) stackmem[spdec] <= in;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `else
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
    always @(posedge clk)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
       if(push)
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
          stackmem[spdec] <= in;
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 `endif
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
   assign out = stackmem[sp];
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 endmodule // stack
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 @
-\end_layout
+\begin_inset Newline newline
+\end_inset
 
-\begin_layout Scrap
 
 \end_layout
 
 \begin_layout Bibliography
-\labelwidthstring References
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "c18"
