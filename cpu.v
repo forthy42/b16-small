@@ -26,67 +26,8 @@
  *  /1 !.   @.   @    lit  c!.  c@.  c@   litc
  * 18: nip  drop over dup  >r        r>
  */
-`define L [l-1:0]
+`include "b16-defines.v"
 
-`define DROP { sp, T } <= { spinc, N }
-`define DEBUGGING
-`define FPGA
-// `define BUSTRI
-
-module alu(res, carry, zero, T, N, c, inst);
-   parameter l=16;
-   input `L T, N;
-   input c;
-   input [2:0] inst;
-   output `L res;
-   output carry, zero;
-
-   wire prop, andor, selr;
-
-   assign { prop, selr, andor } = inst;
-
-   wire        `L r1, r2;
-   wire [l:0]  carries;
-
-   assign r1 = T ^ N ^ carries;
-   assign r2 = (T & N) | 
-               (T & carries`L) | 
-               (N & carries`L);
-// This generates a carry *chain*, not a loop!
-   assign carries = 
-        prop ? { r2[l-1:0], (c | selr) & andor } 
-             : { c, {(l){andor}}};
-   assign res = (selr & ~prop) ? r2 : r1;
-   assign carry = carries[l];
-   assign zero = ~|T;
-endmodule // alu
-module stack(clk, sp, spdec, push, gwrite, in, out);
-   parameter dep=2, l=16;
-   input clk, push, gwrite;
-   input [dep-1:0] sp, spdec;
-   input `L in;
-   output `L out;
-
-   reg `L stackmem[0:(1<<dep)-1];
-
-`ifndef FPGA
-   reg [dep:0] i;
-
-   always @(clk or push or gwrite or spdec or in)
-      if(~clk)
-         if(gwrite)
-            for(i=0; i<(1<<dep); i=i+1)
-               stackmem[i] <= in;
-         else if(push) stackmem[spdec] <= in;
-`else
-   always @(posedge clk)
-      if(push)
-         stackmem[spdec] <= in;
-`endif
-
-  assign out = stackmem[sp];
-
-endmodule // stack
 module cpu(clk, latclk, run, nreset, addr, rd, wr, data, 
            dataout, gwrite
 `ifdef DEBUGGING,
@@ -334,40 +275,3 @@ module cpu(clk, latclk, run, nreset, addr, rd, wr, data,
       end // else: !if(nreset)
 
 endmodule // cpu
-`ifdef DEBUGGING
-module debugger(clk, nreset, run,
-                addr, data, r, w,
-                cpu_addr, cpu_r,
-                drun, dr, dw, bp);
-parameter l=16, dbgaddr = 12'hFFE;
-input clk, nreset, run, r, cpu_r;
-input [1:0] w;
-input [l-1:1] addr;
-input `L data, cpu_addr;
-output drun, dr, dw;
-output `L bp;
-
-reg drun, drun1;
-reg `L bp;
-wire dsel = (addr[l-1:4] == dbgaddr);
-assign dr = dsel & r;
-assign dw = dsel & |w;
-
-always @(posedge clk or negedge nreset)
-if(!nreset) begin
-   drun <= 1;
-   drun1 <= 1;
-   bp <= 16'hffff;
-end else begin
-   if(cpu_addr == bp && cpu_r)
-      { drun, drun1 } <= 0;
-   else if(run) drun <= drun1;
-   if((dr | dw) && (addr[3:1] == 3'h3)) begin
-      drun <= !dr & dw;
-      drun1 <= !dr & dw & data[12];
-   end
-   if(dw && addr[3:1] == 3'h2) bp <= data;
-end
-
-endmodule
-`endif
