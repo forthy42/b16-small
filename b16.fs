@@ -253,7 +253,9 @@ Create pos-field 0 , 0 , 0 , 0 ,
     IP @ 2/ 1+ over invert and >r over and r> or = ;
 : inst, ( -- )  slot# @ 0= ?EXIT
     BEGIN  slot# @ 4 < WHILE  0 >slot  REPEAT  slot, ;
-: jmp, ( addr inst -- ) over fit? 0= IF inst, THEN
+: jmp, ( addr inst -- ) over fit? 0= IF
+	inst, over 1 <> IF  0 >slot  THEN  THEN
+    over fit? 0= abort" jmp across 2k/64b boundary!"
     swap 2/ addrmask and
     over 1 <> IF  $3FF and  THEN  bundle +!
     >slot 4 slot# ! ( inst, ) ;
@@ -391,6 +393,7 @@ $18 8 insts nip  drop  over dup  >r   --2  r>   --3
 
 macro: ;
   slot# @ 4 = bundle @ $8000 and and
+  bundle @ $7C00 and 2* hier $F800 and = and
   IF  slot# off  bundle @ $7FFF and 2* bundle off 2 jmp,
   ELSE  ret  THEN end-macro
 
