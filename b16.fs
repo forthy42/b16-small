@@ -249,8 +249,9 @@ Create pos-field 0 , 0 , 0 , 0 ,
 : insts3 ( n1 n -- )  bounds ?DO  I inst3  LOOP ;
 
 : addrmask ( -- mask ) $7FFF slot# @ 5 * rshift ;
-: fit? ( addr -- flag )  2/ addrmask
-    IP @ 2/ 1+ over invert and >r over and r> or = ;
+: fit?' ( addr mask -- flag )
+    IP @ 2/ 1+ over and >r and r> = ;
+: fit? ( addr -- flag )  2/ addrmask invert fit?' ;
 : inst, ( -- )  slot# @ 0= ?EXIT
     BEGIN  slot# @ 4 < WHILE  0 >slot  REPEAT  slot, ;
 : jmp, ( addr inst -- ) over fit? 0= IF
@@ -290,8 +291,8 @@ $14 2 insts23 c!+  c@+
 
 also Forth
 : BEGIN  inst, IP @ ;
-: fws  slot# @ 2 > IF  inst,  THEN  IP @ $FFC0 2dup and ;
-: fw   inst, IP @ $FC00 2dup and ;
+: fws  slot# @ 2 > IF  inst,  THEN  IP @ $FFC0 over ;
+: fw   inst, IP @ $FC00 over ;
 b16-asm
 : AHEAD  fw jmp ;
 : sAHEAD  fws jmp ;
@@ -318,6 +319,7 @@ b16-asm
 : csIF  fws jnc ;
 Forth
 : THEN ( addr mask -- ) inst,
+    over 2/ over fit?' 0= abort" resolve across 2k/64b boundary!"
     swap >r r@ ram@ over and swap invert IP @ 2/ and or r> ram! ;
 b16-asm
 : REPEAT ( addr1 addr2 -- )  jmp THEN ;
