@@ -77,7 +77,7 @@ module cpu(clk, latclk, run, nreset, addr, rd, wr, data,
                   .T(T), .N(N), .c(c),
                   .inst(inst[2:0]));
    wire `L incaddr, dataw, datas;
-   wire tos2r, tos2n;
+   wire tos2n;
    wire incby, bswap, addrsel, access, rd;
    wire [1:0] wr;
 

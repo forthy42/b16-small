@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BaliProject version="1.3" title="b16" device="LFE2-12E-5F256C" synthesis="synplify" default_implementation="b16">
+    <Options/>
+    <Implementation title="b16" dir="b16" description="b16" default_strategy="I/O Assistant">
+        <Options/>
+        <Source name="b16.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="b16top.v" type="Verilog" type_short="Verilog">
+            <Options top_module="b16top"/>
+        </Source>
+        <Source name="dbg_uart.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="SEG7_LUT_4.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="SEG7_LUT.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="sfr.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="uart.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="b16.lpf" type="Logic Preference" type_short="LPF">
+            <Options/>
+        </Source>
+    </Implementation>
+    <Strategy name="Strategy1" file="Strategy1.sty"/>
+</BaliProject>

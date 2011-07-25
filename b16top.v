@@ -170,21 +170,31 @@ assign	FL_DQ		=	8'hzz;
 assign	SRAM_DQ		=	16'hzzzz;
 assign	SD_DAT		=	1'bz;
 assign	I2C_SDAT	=	1'bz;
+// all unconnected outputs to harmless values
+assign { DRAM_ADDR, DRAM_LDQM, DRAM_UDQM, DRAM_WE_N, DRAM_CAS_N, DRAM_RAS_N, DRAM_CS_N } = 'hF;
+assign { DRAM_BA_0, DRAM_BA_1, DRAM_CLK, DRAM_CKE } = 0;
+assign { FL_ADDR, FL_WE_N, FL_RST_N, FL_OE_N, FL_CE_N } = 'hF;
+assign { SD_DAT3, SD_CMD, SD_CLK } = 0;
+assign { VGA_HS, VGA_VS, VGA_R, VGA_G, VGA_B } = 0;
+assign { AUD_ADCLRCK, AUD_DACLRCK, AUD_DACDAT, AUD_BCLK, AUD_XCK } = 0;
+assign { TDO, I2C_SCLK } = 1;
 
-   reg [27:0] 	counter;
    wire 	clk = CLOCK_50;
+`ifdef SLOW_CLOCK
+   reg [27:0] 	counter;
 
    always@(posedge clk or negedge nreset)
      if(!nreset)
        counter <= 0;
      else
        counter <= counter + 1;
-   
+`endif
+
    wire 	nreset = KEY[0];
    wire 	rc;
    wire [1:0] 	wc;
    wire [15:0] 	addrc, dwritec;
-   reg [15:0] 	data, addr_i;
+   reg [15:0] 	data;
    reg [2:0] 	sel;
    reg 	  READY;
 
@@ -194,17 +204,17 @@ assign	I2C_SDAT	=	1'bz;
    wire       dox;
    wire       dix, wip;
 
-   wire   dr, drun, irqrun;
-   wire [1:0] dw, wru;
+   wire   dr, dw, drun, irqrun;
+   wire [1:0] wru;
    wire [2:0] dstate;
-   wire [15:0] caddr, cin, cout, LED7;
-   wire [15:0] addru, datau, data_dbg, bp;
+   wire [15:0] LED7;
+   wire [15:0] addru, datau, data_dbg, ramdata, bp;
    wire        run = irqrun & ~csu & drun & (/* SW[3] ? &counter[22:0] : */ &READY);
 
    uart rs232(clk, nreset, UART_RXD, UART_TXD, id, od, dix, dox, wip, rate, LEDR);
 
    dbg_uart dbgmem(clk, nreset, dix, dox, id, od,
-		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 5'b00100, irqrun, &READY, drun });
+		   csu, addru, ru, wru, dr ? data_dbg : data, datau, { 5'b00100, irqrun, &READY, drun }, dstate);
 
    wire [15:0] addr = csu ? addru : addrc;
    wire [15:0] dwrite = csu ? datau : dwritec;
@@ -212,7 +222,7 @@ assign	I2C_SDAT	=	1'bz;
    wire r = csu ? ru : rc;
    
    debugger dbg(clk, nreset, ~csu & &READY,
-                addru, datau, ru, wru,
+                addru[15:1], datau, ru, wru,
                 addr, r,
                 drun, dr, dw, bp);
    
@@ -221,21 +231,15 @@ assign	I2C_SDAT	=	1'bz;
    
    SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, /*SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) :*/ LED7);
 
-   reg [7:0] bootraml[0:4095] /* synthesis ramstyle="no_rw_check" */;
-   reg [7:0] bootramh[0:4095] /* synthesis ramstyle="no_rw_check" */;
-
+   bootram bootmem(.clk(~clk), .nreset(nreset), .sel(sel[1]), .r(r), .w(w),
+		   .addr(addr[12:1]), .din(dwrite), .dout(ramdata));
+   
    always @(negedge clk or negedge nreset)
      if(!nreset) begin
        READY <= -1;
-       addr_i <= 0;
      end else begin
-       addr_i <= addr;
        if(sel[0]) READY <= READY + 1;
        else READY <= -1;
-       if(sel[1] & !r) begin
-	     if(w[1]) bootramh[addr[12:1]] <= dwrite[15:8];
-	     if(w[0]) bootraml[addr[12:1]] <= dwrite[ 7:0];
-       end
      end
 
    wire [15:0] sfr_data;
@@ -243,18 +247,16 @@ assign	I2C_SDAT	=	1'bz;
    sfr sfr_block(clk, nreset, drun, sel[2], addr[7:0], r, w, dwrite, sfr_data,
 		 LED7, GPIO_0, GPIO_1, irqrun, { KEY[3:1], SW });
    
-   always @(r or w or sel or addr_i or SRAM_DQ)
-     begin
-	data <= 0;
-	  casez({ r, sel })
-	    4'b1100: data <= sfr_data;
-            4'b1010: data <= { bootramh[addr_i[12:1]], bootraml[addr_i[12:1]] };
-	    4'b1001: data <= SRAM_DQ;
-	  endcase // case(sel)
-     end
-	 
+   always @*
+     case({ r, sel })
+       4'b1100: data <= sfr_data;
+       4'b1010: data <= ramdata;
+       4'b1001: data <= SRAM_DQ;
+       default: data <= 0;
+     endcase // case(sel)
+   
    always @(addr)
-      if(addr[15:8] == 8'hff) sel <= 3'b100;
+     if(addr[15:8] == 8'hff) sel <= 3'b100;
       else if(addr[15:13] == 3'h1) sel <= 3'b010;
 	   else sel <= 3'b001;
 
@@ -268,10 +270,4 @@ assign	I2C_SDAT	=	1'bz;
    
    assign LEDG = { SRAM_WE_N, SRAM_CE_N, SRAM_OE_N, SRAM_UB_N, SRAM_LB_N, sel };
    
-   initial
-      begin
-	 $readmemh("b16l.hex", bootraml);
-	 $readmemh("b16h.hex", bootramh);
-      end
-
 endmodule

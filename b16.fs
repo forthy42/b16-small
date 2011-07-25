@@ -377,6 +377,29 @@ $800 Value rom-end
 	I over - 1+ 0 <# I ram@          0 # # 2drop bl hold # # # # '@ hold #>
 	fd write-line throw
     2 +LOOP fd close-file throw  drop decimal ;
+: .hex' ( start n "file" -- ) over swap hex
+    parse-name new-fd
+    bounds ?DO
+	I over - 2/ 0 <# I ram@ 0 # # # # 2drop #>
+	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+: .hexl' ( start n "file" -- ) over swap hex
+    parse-name new-fd
+    bounds ?DO
+	I over - 2/ 0 <# I ram@ 0 # # 2drop #>
+	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+: .hexh' ( start n "file" -- ) over swap hex
+    parse-name new-fd
+    bounds ?DO
+	I over - 2/ 0 <# I ram@ 8 rshift 0 # # 2drop #>
+	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+: .hexb' ( start n "file" -- ) over swap hex
+    parse-name new-fd
+    bounds ?DO
+	I over -    0 <# I ram@ 8 rshift 0 # # 2drop #>
+	fd write-line throw
+	I over - 1+ 0 <# I ram@          0 # # 2drop #>
+	fd write-line throw
+    2 +LOOP fd close-file throw  drop decimal ;
 : .end inst, ;
 : ;; inst, ;
 : macro: : ;

@@ -2380,7 +2380,7 @@ wire `L incaddr, dataw, datas;
 \end_layout
 
 \begin_layout Scrap
-wire tos2r, tos2n;
+wire tos2n;
 \end_layout
 
 \begin_layout Scrap

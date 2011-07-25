@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE EP2C20F484C7
 set_global_assignment -name TOP_LEVEL_ENTITY b16top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:58:38  MARCH 26, 2009"
-set_global_assignment -name LAST_QUARTUS_VERSION "10.1 SP1"
+set_global_assignment -name LAST_QUARTUS_VERSION 11.0
 set_global_assignment -name EDA_DESIGN_ENTRY_SYNTHESIS_TOOL "Design Compiler"
 set_global_assignment -name EDA_INPUT_VCC_NAME VDD -section_id eda_design_synthesis
 set_global_assignment -name EDA_LMF_FILE altsyn.lmf -section_id eda_design_synthesis
@@ -503,6 +503,9 @@ set_global_assignment -name MISC_FILE "C:/cygwin/home/bernd/b16-small/b16top.dpf
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name STRATIX_CONFIGURATION_DEVICE EPCS4
 set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_global_assignment -name VERILOG_FILE bootram.v
 set_global_assignment -name VERILOG_FILE sfr.v
 set_global_assignment -name VERILOG_FILE dbg_uart.v
 set_global_assignment -name VERILOG_FILE uart.v
@@ -510,5 +513,4 @@ set_global_assignment -name VERILOG_FILE SEG7_LUT.v
 set_global_assignment -name VERILOG_FILE SEG7_LUT_4.v
 set_global_assignment -name VERILOG_FILE b16.v
 set_global_assignment -name VERILOG_FILE b16top.v
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiamondModule name="bootraml" module="RAM_DQ" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2011 07 26 01:11:20.246" version="7.1" type="Module" synthesis="synplify" source_format="Verilog">
+  <Package>
+		<File name="/home/bernd/proj/b16-small/b16l.mem" type="mem" modified="2011 07 25 22:03:51.000"/>
+		<File name="bootraml.lpc" type="lpc" modified="2011 07 26 01:11:16.000"/>
+		<File name="bootraml.v" type="top_level_verilog" modified="2011 07 26 01:11:16.000"/>
+		<File name="bootraml_tmpl.v" type="template_verilog" modified="2011 07 26 01:11:16.000"/>
+		<File name="tb_bootraml_tmpl.v" type="testbench_verilog" modified="2011 07 26 01:11:16.000"/>
+  </Package>
+</DiamondModule>
