@@ -192,6 +192,7 @@ Create pos-field 0 , 0 , 0 , 0 ,
 
 [IFUNDEF] sourceline#  : sourceline# line @ ; [THEN]
 
+: hier IP @ ;
 : include listpos? @ >r listpos? off ['] include catch r> listpos? ! throw ;
 : .#4 base @ >r hex 0 <# # # # # #> type r> base ! ;
 : .#2 base @ >r hex 0 <# # # #> type r> base ! ;
@@ -200,34 +201,34 @@ Create pos-field 0 , 0 , 0 , 0 ,
 	I c@ #tab = IF  8 + -8 and  ELSE  1+  THEN  LOOP ;
 : .slot# ( -- )    listing? @ IF
 	'# emit sourceline# . >in? .
-	'$ emit IP @ 2 +  extra-inc @ + .#4 space
+	'$ emit hier 2 +  extra-inc @ + .#4 space
 	slot# @ 1- .#1 ."  pos," cr
     THEN
     listing @ listpos? @ and IF
-    	sourceline# >in? IP @ 2 + extra-inc @ + slot# @ 1- pos,
+    	sourceline# >in? hier 2 + extra-inc @ + slot# @ 1- pos,
     THEN ;
 : .slot#2 ( -- )    listing? @ IF
 	'# emit sourceline# . >in? .
-	'$ emit IP @ .#4 space
+	'$ emit hier .#4 space
 	slot# @ .#1 ."  pos," cr
     THEN
     listing @ listpos? @ and IF
-    	sourceline# >in? IP @ slot# @ pos,
+    	sourceline# >in? hier slot# @ pos,
     THEN ;
 : slot, ( -- )
     listing? @ IF
 	#tab emit source drop >in? type cr
-	'@ emit IP @ .#4 space bundle @ .#4 cr
+	'@ emit hier .#4 space bundle @ .#4 cr
 	extra-inc @ 0 ?DO
-	    '@ emit I cell+ extra-inc + c@ IP @ I 2 + + .#4 space .#2 cr
+	    '@ emit I cell+ extra-inc + c@ hier I 2 + + .#4 space .#2 cr
     LOOP
     THEN
-    bundle @ IP @ ram!  2 IP +!
+    bundle @ hier ram!  2 IP +!
     extra-inc @ 0 ?DO
-        I cell+ extra-inc + c@ IP @ ramc!  1 IP +!
+        I cell+ extra-inc + c@ hier ramc!  1 IP +!
     LOOP
     slot# off bundle off extra-inc off
-    IP @ 1 and abort" odd IP" .slot#2 ;
+    hier 1 and abort" odd IP" .slot#2 ;
 : >slot ( inst -- )
     slot# @ 4 = IF slot, THEN 
     dup 1 > slot# @ 0= and IF  .slot#2  1 slot# +!  THEN
@@ -250,7 +251,7 @@ Create pos-field 0 , 0 , 0 , 0 ,
 
 : addrmask ( -- mask ) $7FFF slot# @ 5 * rshift ;
 : fit?' ( addr mask -- flag )
-    IP @ 2/ 1+ over and >r and r> = ;
+    hier 2/ 1+ over and >r and r> = ;
 : fit? ( addr -- flag )  2/ addrmask invert fit?' ;
 : inst, ( -- )  slot# @ 0= ?EXIT
     BEGIN  slot# @ 4 < WHILE  0 >slot  REPEAT  slot, ;
@@ -268,9 +269,9 @@ Create pos-field 0 , 0 , 0 , 0 ,
 also B16-asm definitions
 
 : F Forth ' state @ IF  compile,  ELSE  execute  THEN  B16-asm ; immediate
-: c, ( n -- )   IP @ ramc!  1 IP +! ;
-: ,  ( c -- )   IP @ ram!   2 IP +! ;
-: align ( -- )  inst, IP @ 1 and IP +! ;
+: c, ( n -- )   hier ramc!  1 IP +! ;
+: ,  ( c -- )   hier ram!   2 IP +! ;
+: align ( -- )  inst, hier 1 and IP +! ;
 : org ( n -- )  inst, IP ! .slot#2 slot# off ;
 : $, ( addr u -- )
     bounds ?DO
@@ -290,9 +291,9 @@ $14 2 insts23 c!+  c@+
     clit, ;
 
 also Forth
-: BEGIN  inst, IP @ ;
-: fws  slot# @ 2 > IF  inst,  THEN  IP @ $FFC0 over ;
-: fw   inst, IP @ $FC00 over ;
+: BEGIN  inst, hier ;
+: fws  slot# @ 2 > IF  inst,  THEN  hier $FFC0 over ;
+: fw   inst, hier $FC00 over ;
 b16-asm
 : AHEAD  fw jmp ;
 : sAHEAD  fws jmp ;
@@ -320,7 +321,7 @@ b16-asm
 Forth
 : THEN ( addr mask -- ) inst,
     over 2/ over fit?' 0= abort" resolve across 2k/64b boundary!"
-    swap >r r@ ram@ over and swap invert IP @ 2/ and or r> ram! ;
+    swap >r r@ ram@ over and swap invert hier 2/ and or r> ram! ;
 b16-asm
 : REPEAT ( addr1 addr2 -- )  jmp THEN ;
 : ELSE  AHEAD  2swap  THEN ;
@@ -404,10 +405,10 @@ $800 Value rom-end
 : ;; inst, ;
 : macro: : ;
 : end-macro postpone ; ; immediate
-: : Create  inst, IP @ , DOES> @ inst, 1 jmp, ;
-: | Create  inst, IP @ , DOES> @ ;
-: Label Create  inst, IP @ , DOES> @ [ b16-asm ] # [ forth ] ;
-: hier IP @ ;
+: : Create  inst, hier , DOES> @ inst, 1 jmp, ;
+: | Create  inst, hier , DOES> @ ;
+: |# Create  inst, hier , DOES> @ # ;
+: Label Create  inst, hier , DOES> @ [ b16-asm ] # [ forth ] ;
 : ' ' >body @ ;
 
 $00 inst nop
@@ -501,11 +502,11 @@ previous b16-asm also Forth
 
 : prog ( >defs -- )  also b16-asm interpret previous inst, ;
 : comp ( >defs -- )
-    IP @ >r prog r@ RAM + IP @ r@ - r> dbg!s ;
+    hier >r prog r@ RAM + hier r@ - r> dbg!s ;
 : eval ( >defs -- )
-    IP @ >r comp r@ exec r> org &20 wait ?in ;
+    hier >r comp r@ exec r> org &20 wait ?in ;
 : sim  ( >defs -- )
-    IP @ >r prog r@ P ! 0 rp ! 4 slot ! ['] run catch drop r> org ;
+    hier >r prog r@ P ! 0 rp ! 4 slot ! ['] run catch drop r> org ;
 
 Forth
 [ELSE]
