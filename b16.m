@@ -141,7 +141,7 @@ b16-ide implements
   THEN ;
 : save-file ( -- )
   filename $@ r/w create-file throw isfile !
-  :[ isfile@ write-line throw ]: code-source dump
+  [: isfile@ write-line throw ;] code-source dump
   isfile@ close-file throw  isfile off
   reload ;
 : show  first-time @ 0= IF load-args first-time on THEN

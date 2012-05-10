@@ -417,13 +417,13 @@ $03 inst ret
 $08 8 insts xor  com   and  or   +    +c   *+   /-
 $18 8 insts nip  drop  over dup  >r   --2  r>   --3
 
-macro: ;
+: ;
   slot# @ 4 = bundle @ $8000 and and
   bundle @ $7C00 and 2* hier $F800 and = and
   IF  slot# off  bundle @ $7FFF and 2* bundle off 2 jmp,
   ELSE  ret  THEN end-macro
 
-macro: org inst, IP ! .slot#2 end-macro
+: org inst, IP ! .slot#2 end-macro
   
 previous previous definitions
 

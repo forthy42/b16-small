@@ -18,7 +18,7 @@ dbg-empty
     record-dbg 0= IF  2drop  EXIT  THEN
     dbg-buf dbg# bounds ?DO
 	dup I @ = I @ -1 = or  IF  I 2!  unloop EXIT  THEN
-    2 cells +LOOP  2drop ." No space in DBG" cr ;
+    2 cells +LOOP  2drop ( ." No space in DBG" cr ) ;
 : dbg> ( addr -- data )
     dbg-buf dbg# bounds ?DO
 	dup I @ = IF  drop I cell+ @ unloop  EXIT  THEN
