@@ -15,35 +15,35 @@ include b16-db.fs   \ RAM Debugging Interface
 include b16-sqrt.fs
 
 : init-port
-   $03FF # GPIO02T # !
+   $0111 # GPIO02T # !
    $0000 # GPIO02  # ! ;
 
 GPIO02 Value port
 
 : after ( ms -- dtime )
-    #25000 # mul
+    #12500 # mul
 : tick-after ( ticks -- dtime )
     TVAL1 # @  TVAL0 # @ d+ ;
 
 : µafter ( µs -- dtime )
-    #25 # mul tick-after ;
+    #12 # mul tick-after ;
 
 \ min: 740, max: 2250
 : ausschlag ( 0-ffff -- dtime )
-    #37750 # mul nip
-    #18500 # 0 # d+  tick-after ;
+    #18875 # mul nip
+    #09250 # + 0 #  tick-after ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
 
 : till ( dtime -- )
-    TVAL0 # ! TVAL1 # !  >irq ;
+    TVAL0 # !+ !  >irq ;
 
 \ microseconds:
 
 : -motor  $0000 # port # ! ;
 : motor1  $0001 # port # ! ;
-: motor2  $0002 # port # ! ;
-: motor3  $0004 # port # ! ;
+: motor2  $0010 # port # ! ;
+: motor3  $0100 # port # ! ;
 
 : motor-loop
     BEGIN
@@ -51,19 +51,13 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
         motor1 pos1 # @ ausschlag till
         motor2 pos2 # @ ausschlag till
         motor3 pos3 # @ ausschlag till
+        1 # LED7 # +!
         -motor till
     AGAIN ;
 
-: test-loop
-    BEGIN
-        1000 # after  motor1  till  1 # LED7 # +!
-        2000 # after  motor2  till  2 # LED7 # +!
-        3000 # after  motor3  till  4 # LED7 # +!
-    AGAIN ;
-
 : boot
-     $00 # LED7 # !
-     init-port test-loop ;
+     $00 # LED7 # ! 0 # dup dup 0 # !+ !+ !
+     init-port motor-loop ;
 
 $3FFE org
      boot ;;

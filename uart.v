@@ -32,7 +32,7 @@ module uart(clk, nreset, rx, tx, id, od, dix, dox, wip, rate, debug);
 	disr <= 0;
 	dosr <= 0;
 	srset <= 0;
-	lastrx <= 3'b11;
+	lastrx <= 2'b11;
 	bitcnt <= 0;
 	bitcnto <= 0;
 	tx <= 1;

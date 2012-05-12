@@ -204,7 +204,7 @@ assign { TDO, I2C_SCLK } = 1;
    wire       dox;
    wire       dix, wip;
 
-   wire   dr, dw, drun, irqrun;
+   wire   dr, dw, drun, irqrun, csu, ru;
    wire [1:0] wru;
    wire [2:0] dstate;
    wire [15:0] LED7;
@@ -221,15 +221,18 @@ assign { TDO, I2C_SCLK } = 1;
    wire [1:0] w = csu ? wru : wc;
    wire r = csu ? ru : rc;
    
-   debugger dbg(clk, nreset, ~csu & &READY,
-                addru[15:1], datau, ru, wru,
-                addr, r,
-                drun, dr, dw, bp);
-   
-   cpu b16(clk, clk, run, nreset, addrc, rc, wc, data, dwritec, 1'b0,
-	   dr, dw, addru[3:1], datau, data_dbg, bp);
-   
-   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3, /*SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) :*/ LED7);
+   debugger dbg(.clk(clk), .nreset(nreset), .run(~csu & &READY),
+                .addr(addru[15:1]), .data(datau), .r(ru), .w(wru),
+                .cpu_addr(addr), .cpu_r(r),
+                .drun(drun), .dr(dr), .dw(dw), .bp(bp));
+   cpu b16(.clk(clk), .latclk(clk), .run(run), .nreset(nreset),
+	   .addr(addrc), .rd(rc), .wr(wc), .data(data), .dataout(dwritec), .gwrite(1'b0),
+	   .dr(dr), .dw(dw), .daddr(addru[3:1]), .din(datau), .dout(data_dbg), .bp(bp));
+   SEG7_LUT_4 u0 ( HEX0,HEX1,HEX2,HEX3,
+   `ifdef SWITCHES
+                   SW[2] ? SW[0] ? { 8'h0, dix, ru, wru, 1'b0, dstate } : rate : SW[1] ? (SW[0] ? addr : data) :
+   `endif
+                   LED7);
 
    bootram bootmem(.clk(~clk), .nreset(nreset), .sel(sel[1]), .r(r), .w(w),
 		   .addr(addr[12:1]), .din(dwrite), .dout(ramdata));
@@ -244,7 +247,7 @@ assign { TDO, I2C_SCLK } = 1;
 
    wire [15:0] sfr_data;
    
-   sfr sfr_block(clk, nreset, drun, sel[2], addr[7:0], r, w, dwrite, sfr_data,
+   sfr sfr_block(clk, nreset, 1'b1 /* drun */, sel[2], addr[7:0], r, w, dwrite, sfr_data,
 		 LED7, GPIO_0, GPIO_1, irqrun, { KEY[3:1], SW });
    
    always @*

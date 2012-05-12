@@ -56,14 +56,14 @@ module dbg_uart(clk, nreset, dix, dox, id, od,
 	   end
 	end else if(dix) begin
 	   case(state)
-	     3'b000: casez(id)
+	     3'b000: case(id)
 		      "a": state <= 2;
 		      "i": { dox, od } <= { 1'b1, status };
 		      "w": state <= 1;
 		      "W": state <= 4;
 		      "r": ru <= 1;
 		      "l": { addru, dox, od } <= { addru + 1, 1'b1, lowbyte };
-		      8'hzz: state <= 0;
+		      default: state <= 0;
 		    endcase // casez (id)
 	     3'b001: begin
 		datau <= { id, id };
