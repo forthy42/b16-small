@@ -3,9 +3,23 @@
 include regmap.asm
 
 $0000 org
+\ motor angle 0-ffff for 0-180°
 | pos1 0 ,
 | pos2 0 ,
 | pos3 0 ,
+\ position, in mm relative to north tower, floor level
+\ (front/right/up is positive
+| x 0 ,
+| y 0 ,
+| z 0 ,
+\ position transformation left tower
+| xl 0 ,
+| yl 0 ,
+| scl 0 , \ string circle radius
+\ position transformation right tower
+| xr 0 ,
+| yr 0 ,
+| scr 0 , \ string circle radius
 
 $2000 org
 include b16-prim.fs \ Extentions fuer b16
@@ -38,27 +52,52 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 : till ( dtime -- )
     TVAL0 # !+ !  >irq ;
 
-\ microseconds:
+\ motor control
 
 : -motor  $0000 # port # ! ;
 : motor1  $0001 # port # ! ;
 : motor2  $0010 # port # ! ;
 : motor3  $0100 # port # ! ;
 
+: do-motor
+    motor1 pos1 # @ ausschlag till -motor
+    motor2 pos2 # @ ausschlag till -motor
+    motor3 pos3 # @ ausschlag till -motor ;
+
+\ coordinate transforation
+
+800 Constant distance#  \ 800mm from tower to tower
+200 Constant arm#       \ 200mm arm length
+250 Constant height#    \ 250mm height
+400 Constant faden#     \ 400mm string length
+faden# F dup F negate F * Constant -faden²#
+
+macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
+
+$B504 Constant 1/sqrt2
+
+: >xl  y # @ u2/ x # @ 1/sqrt2 # mul nip + xl # ! ;
+: >xr  y # @ u2/ x # @ 1/sqrt2 # mul nip - xr # ! ;
+: >yl  distance# y # @ 1/sqrt2 # mul nip - x # @ u2/ + yl # ! ;
+: >yr  distance# y # @ 1/sqrt2 # mul nip - x # @ u2/ - yr # ! ;
+: >sc  ( n -- n' ) dup mul -faden²# 2# d+ sqrt ;
+: >scl yl # @ >sc scl # ! ;
+: >scr yr # @ >sc scr # ! ;
+
+: coord-calc  >xl >xr >yl >yr >scl >scr ;
+
+\ main loop
+
 : motor-loop
     BEGIN
-        20 # after
-        motor1 pos1 # @ ausschlag till 1 # LED7 # +!  
-        motor2 pos2 # @ ausschlag till 1 # LED7 # +!
-        motor3 pos3 # @ ausschlag till 1 # LED7 # +!
-        -motor
-        till
+        20 # after  do-motor  coord-calc  till
         1 # LED7 # +!
     AGAIN ;
 
 : boot
-     $00 # LED7 # ! $E000 # dup dup 0 # !+ !+ !
-     init-port motor-loop ;
+    $00 # LED7 # ! $E000 # dup dup 0 # !+ !+ !
+    0 # dup dup x #  !+ !+ !
+    init-port motor-loop ;
 
 $3FFE org
      boot ;;

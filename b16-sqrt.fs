@@ -14,9 +14,9 @@
         IF - r> 1+ >r ELSE drop THEN
         r> ;
 
-: sqrt 0 # 0 #
-  sqr- sqr- sqr- sqr-  sqr- sqr- sqr- sqr-
-  sqr- sqr- sqr- sqr-  sqr- sqr- sqr- sqr-  nip nip nip ;
+: sqrt ( d -- n ) 0 # dup
+    sqr- sqr- sqr- sqr-  sqr- sqr- sqr- sqr-
+    sqr- sqr- sqr- sqr-  sqr- sqr- sqr- sqr-  nip nip nip ;
 
 \    &1     # dup mul sqrt >h +l
 \    &2     # dup mul sqrt >h +l
