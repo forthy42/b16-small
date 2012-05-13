@@ -247,7 +247,7 @@ assign { TDO, I2C_SCLK } = 1;
 
    wire [15:0] sfr_data;
    
-   sfr sfr_block(clk, nreset, 1'b1 /* drun */, sel[2], addr[7:0], r, w, dwrite, sfr_data,
+   sfr sfr_block(clk, nreset, drun, sel[2], addr[7:0], r, w, dwrite, sfr_data,
 		 LED7, GPIO_0, GPIO_1, irqrun, { KEY[3:1], SW });
    
    always @*

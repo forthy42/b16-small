@@ -195,7 +195,7 @@ b16-state implements
     ELSE
        ['] bp-watch ^ &100 after dpy schedule
     THEN ;
-: update  stopped @ 0= ?EXIT  load-regs stopped dup @ >r off
+: update  stopped @ 0= ?EXIT  load-regs  stopped dup @ >r off
   regs 0 + w@ 0 p# assign
   regs 2 + w@ 0 t# assign
   regs 4 + w@ 0 r# assign

@@ -15,23 +15,23 @@ include b16-db.fs   \ RAM Debugging Interface
 include b16-sqrt.fs
 
 : init-port
-   $0111 # GPIO02T # !
+   $1111 # GPIO02T # !
    $0000 # GPIO02  # ! ;
 
 GPIO02 Value port
 
 : after ( ms -- dtime )
-    #12500 # mul
+    #50000 # mul
 : tick-after ( ticks -- dtime )
     TVAL1 # @  TVAL0 # @ d+ ;
 
 : µafter ( µs -- dtime )
-    #12 # mul tick-after ;
+    #50 # mul tick-after ;
 
 \ min: 740, max: 2250
 : ausschlag ( 0-ffff -- dtime )
-    #18875 # mul nip
-    #09250 # + 0 #  tick-after ;
+    #37750 # mul nip
+    #20000 # + dup + 0 # dup +c  tick-after ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
 
@@ -47,23 +47,24 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 
 : motor-loop
     BEGIN
-        50 # after
-        motor1 pos1 # @ ausschlag till
-        motor2 pos2 # @ ausschlag till
-        motor3 pos3 # @ ausschlag till
+        20 # after
+        motor1 pos1 # @ ausschlag till 1 # LED7 # +!  
+        motor2 pos2 # @ ausschlag till 1 # LED7 # +!
+        motor3 pos3 # @ ausschlag till 1 # LED7 # +!
+        -motor
+        till
         1 # LED7 # +!
-        -motor till
     AGAIN ;
 
 : boot
-     $00 # LED7 # ! 0 # dup dup 0 # !+ !+ !
+     $00 # LED7 # ! $E000 # dup dup 0 # !+ !+ !
      init-port motor-loop ;
 
 $3FFE org
      boot ;;
 $2000 $2000 .hex b16.hex        \ print verilog hex for $2000 bytes
-\ $2000 $2000 .hexh b16h.hex      \ print verilog hex for $2000 bytes
-\ $2000 $2000 .hexl b16l.hex      \ print verilog hex for $2000 bytes
+$2000 $2000 .hexh b16h.hex      \ print verilog hex for $2000 bytes
+$2000 $2000 .hexl b16l.hex      \ print verilog hex for $2000 bytes
 $2000 $2000 .hexh' b16h.mem     \ print verilog hex for $2000 bytes, unaddressed
 $2000 $2000 .hexl' b16l.mem     \ print verilog hex for $2000 bytes, unaddressed
 \ $2000 $2000 .hexb b16b.hex      \ print verilog hex for $2000 bytes

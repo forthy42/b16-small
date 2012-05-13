@@ -45,15 +45,15 @@ module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
    
    always @(negedge clk or negedge nreset)
      if(!nreset) begin
-	LED7 <= 0;
+	LED7 <= 16'hdead;
 	gpio_0o <= 0;
 	gpio_1o <= 0;
 	gpio_0t <= 0;
 	gpio_1t <= 0;
 	tval0 <= 0;
 	tval1 <= 0;
-	irqact <= 8'hff;
-	irqmask <= 8'hff;
+	irqact <= 1;
+	irqmask <= 1;
 	keys_reg <= 0;
      end else begin // if (!nreset)
 	keys_reg <= keys;
