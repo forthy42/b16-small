@@ -66,20 +66,25 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 
 \ coordinate transforation
 
-800 Constant distance#  \ 800mm from tower to tower
-200 Constant arm#       \ 200mm arm length
-250 Constant height#    \ 250mm height
-400 Constant faden#     \ 400mm string length
+decimal
+#800 Constant distance#  \ 800mm from tower to tower
+distance# F 2/ Constant distance/2#
+distance# s>f .5e fsqrt f* f>s Constant distance/rt2#
+#200 Constant arm#       \ 200mm arm length
+#250 Constant height#    \ 250mm height
+#400 Constant faden#     \ 400mm string length
 faden# F dup F negate F * Constant -faden²#
 
 macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
 
 $B504 Constant 1/sqrt2
 
-: >xl  y # @ u2/ x # @ 1/sqrt2 # mul nip + xl # ! ;
-: >xr  y # @ u2/ x # @ 1/sqrt2 # mul nip - xr # ! ;
-: >yl  distance# y # @ 1/sqrt2 # mul nip - x # @ u2/ + yl # ! ;
-: >yr  distance# y # @ 1/sqrt2 # mul nip - x # @ u2/ - yr # ! ;
+: >xl  x # @ 2/ 1/sqrt2 # y # @ distance/rt2# # - usmul nip + xl # ! ;
+: >xr  x # @ 2/ 1/sqrt2 # y # @ distance/rt2# # - usmul nip - xr # ! ;
+: >yl  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip -
+    distance/rt2# # + yl # ! ;
+: >yr  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip +
+    distance/rt2# # + yr # ! ;
 : >sc  ( n -- n' ) dup mul -faden²# 2# d+ sqrt ;
 : >scl yl # @ >sc scl # ! ;
 : >scr yr # @ >sc scr # ! ;

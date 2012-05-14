@@ -78,7 +78,8 @@ macro: d2* ( d -- 2*d )   over over d+ end-macro
 macro: 2dup over over end-macro
 macro: under swap over end-macro
 
-: u2/ >r $0000 # dup *+ drop drop r> ;
+: u2/ >r $0000 # *+ drop r> $7FFF # and ;
+: 2/  u2/ dup $4000 # and dup + + ;
 
 : mul ( u1 u2 -- ud )   \ unsigned expanding multiplication
     >r                  \ move multiplicant to register R
@@ -87,6 +88,10 @@ macro: under swap over end-macro
                         \ 17 mul-step instructions
     nip r> swap         \ drop second multiplicant, reorder results
 ;                       \ return to caller
+
+: usmul ( u1 s2 -- d )  \ unsigned by signed mul
+    dup $8000 # and IF  over >r  ELSE  0 # >r  THEN
+    mul r> - ;
 
 : div ( ud udiv -- uqout umod ) \ unsigned division with remainder
     com                 \ invert divider
