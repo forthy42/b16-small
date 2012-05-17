@@ -101,8 +101,8 @@ addr# get drop n# get drop base @ >r hex
 BEGIN  2dup scratch swap 2/ 8 min dbg@s
     cr over 0 <# # # # # #> type ." : "
     scratch over $10 umin bounds ?DO
-        I c@ 0 <# # # #> type space
-    LOOP
+        I w@ 0 <# # # # # #> type space
+    2 +LOOP
     $10 /string dup 0= UNTIL
 2drop r> base !
  ]S ( MINOS ) X" Dump" button new 

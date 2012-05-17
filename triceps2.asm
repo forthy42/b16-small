@@ -79,8 +79,8 @@ macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
 
 $B504 Constant 1/sqrt2
 
-: >xl  x # @ 2/ 1/sqrt2 # y # @ distance/rt2# # - usmul nip + xl # ! ;
-: >xr  x # @ 2/ 1/sqrt2 # y # @ distance/rt2# # - usmul nip - xr # ! ;
+: >xl  1/sqrt2 # y # @ distance/rt2# # - usmul nip x # @ 2/ - xl # ! ;
+: >xr  1/sqrt2 # distance/rt2# # y # @ - usmul nip x # @ 2/ - xr # ! ;
 : >yl  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip -
     distance/rt2# # + yl # ! ;
 : >yr  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip +
