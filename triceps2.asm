@@ -1,5 +1,5 @@
 \ triceps2
-\ -*- forth-mode -*-
+
 include regmap.asm
 
 $0000 org
@@ -12,14 +12,18 @@ $0000 org
 | x 0 ,
 | y 0 ,
 | z 0 ,
+| sc 0 , \ string circle radius
+| b 0 ,
 \ position transformation left tower
 | xl 0 ,
 | yl 0 ,
-| scl 0 , \ string circle radius
+| scl 0 , \ string circle radius left
+| bl 0 ,
 \ position transformation right tower
 | xr 0 ,
 | yr 0 ,
-| scr 0 , \ string circle radius
+| scr 0 , \ string circle radius right
+| br 0 ,
 
 $2000 org
 include b16-prim.fs \ Extentions fuer b16
@@ -85,11 +89,19 @@ $B504 Constant 1/sqrt2
     distance/rt2# # + yl # ! ;
 : >yr  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip +
     distance/rt2# # + yr # ! ;
-: >sc  ( n -- n' ) dup mul -faden²# 2# d+ sqrt ;
-: >scl yl # @ >sc scl # ! ;
-: >scr yr # @ >sc scr # ! ;
+: >sc>  ( n -- n' ) dup mul -faden²# 2# d+ sqrt ;
+: >sc  y  # @ >sc> sc  # ! ;
+: >scl yl # @ >sc> scl # ! ;
+: >scr yr # @ >sc> scr # ! ;
+: >b>   ( n -- n' )  @ dup mul faden# z # @ - dup mul d+ sqrt ;
+: >b   sc  # @ >b>  b   # ! ;
+: >bl  scl # @ >b>  bl  # ! ;
+: >br  scr # @ >b>  br  # ! ;
 
-: coord-calc  >xl >xr >yl >yr >scl >scr ;
+: coord-calc
+    >xl >xr >yl >yr
+    >sc >scl >scr
+    >b >bl >br ;
 
 \ main loop
 
@@ -117,3 +129,21 @@ $2000 $2000 .hexl' b16l.mem     \ print verilog hex for $2000 bytes, unaddressed
 \      boot ;;
 \ $2000 $200 .hexb b16b.ee8
 .end                    \ end of test program
+0 [IF]
+Local Variables:
+mode: Forth
+forth-local-words:
+    (
+    (("\|") non-immediate (font-lock-type-face . 2)
+     "[ \t\n]" t name (font-lock-variable-name-face . 3))
+    (("macro:") definition-starter (font-lock-keyword-face . 1)
+     "[ \t\n]" t name (font-lock-function-name-face . 3))
+    (("end-macro") definition-ender (font-lock-keyword-face . 1))
+    )
+forth-local-indent-words:
+    (
+	(("macro:") (0 . 2) (0 . 2) non-immediate)
+    	(("end-macro") (-2 . 0) (0 . -2))
+    )
+End:
+[THEN]
