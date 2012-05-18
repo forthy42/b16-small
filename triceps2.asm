@@ -16,19 +16,22 @@ $0000 org
 | y 0 ,
 | sc 0 , \ string circle radius
 | b 0 ,
-| alpha 0 , 0 , 0 , 0 ,
+| cos 0 ,
+| alpha 0 , 0 , 0 ,
 \ position transformation left tower
 | xl 0 ,
 | yl 0 ,
 | scl 0 , \ string circle radius left
 | bl 0 ,
-| alphal 0 , 0 , 0 , 0 ,
+| cosl 0 ,
+| alphal 0 , 0 , 0 ,
 \ position transformation right tower
 | xr 0 ,
 | yr 0 ,
 | scr 0 , \ string circle radius right
 | br 0 ,
-| alphar 0 , 0 , 0 , 0 ,
+| cosr 0 ,
+| alphar 0 , 0 , 0 ,
 
 $2000 org
 include b16-prim.fs \ Extentions fuer b16
@@ -38,8 +41,8 @@ include b16-db.fs   \ RAM Debugging Interface
 include b16-sqrt.fs
 
 : init-port
-   $1111 # GPIO02T # !
-   $0000 # GPIO02  # ! ;
+   $0000 # GPIO02  # !
+   $1111 # GPIO02T # ! ;
 
 GPIO02 Value port
 
@@ -89,6 +92,26 @@ macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
 
 $B504 Constant 1/sqrt2
 
+\ arccos computation
+\ input scaling is -1..1 is -$8000..$7FFF
+\ output scaling is 0..pi 0..$FFFF
+\ 64 value table, linear interpolation
+\ most accurate around pi/2, which is what we want
+
+$40 Constant tablesize#
+
+also forth
+: gentable -1e tablesize# 1+ 0 DO  fdup facos pi f/ $FFFF s>f f* f>s
+        [ previous ] , [ also forth ]
+        1e 32e f/ f+
+    LOOP  fdrop ;
+previous
+| acostable  gentable
+
+: acos ( cos -- alpha )
+    $8000 # + tablesize# # mul 2* acostable # + @+ @
+    >r over r> mul >r drop >r com r> mul r> + nip ;
+
 \ coord transformation words
 
 : >xl  1/sqrt2 # y # @        usmul nip x # @ 2/ - xl # ! ;
@@ -98,20 +121,22 @@ $B504 Constant 1/sqrt2
 
 : >sc>  ( addr -- )  @+ >r distance/rt2# # + dup mul -faden²# 2# d+ sqrt r> ! ;
 : >b>   ( addr -- )  @+ >r dup mul height# # z # @ - dup mul d+ sqrt r> ! ;
-: >alpha> ( addr -- ) @+ >r
+: >cos> ( addr -- ) @+ >r
     dup >r dup mul drop arm²-faden²# # + 2/ 2/ >r 0 # r>
     r> arm# # mul drop
     over 0<IF  dup >r + r>  THEN
     div drop
     r> ! ;
+: >alpha> ( addr -- ) @+ >r acos r> ! ;
 
 : >sc     y  # >sc>  yl # >sc>  yr # >sc> ;
 : >b      sc  # >b>  scl # >b>  scr # >b> ;
-: >alpha  b  # >alpha>  bl # >alpha>  br # >alpha> ;
+: >cos    b  # >cos>  bl # >cos>  br # >cos> ;
+: >alpha  cos # >alpha>  cosl # >alpha>  cosr # >alpha> ;
 
 : coord-calc
     >xl >xr >yl >yr
-    >sc >b >alpha ;
+    >sc >b >cos >alpha ;
 
 \ main loop
 
