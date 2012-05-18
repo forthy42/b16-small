@@ -71,12 +71,12 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 \ coordinate transforation
 
 decimal
-#800 Constant distance#  \ 800mm from tower to tower
+#500 Constant distance#  \ 500mm from tower to tower
 distance# F 2/ Constant distance/2#
 distance# s>f .5e fsqrt f* f>s Constant distance/rt2#
-#200 Constant arm#       \ 200mm arm length
-#250 Constant height#    \ 250mm height
-#400 Constant faden#     \ 400mm string length
+#200 Constant arm#       \ 20cm arm length
+#140 Constant height#    \ 14cm height
+#320 Constant faden#     \ 32cm string length
 faden# F dup F negate F * Constant -faden²#
 
 macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
@@ -93,7 +93,7 @@ $B504 Constant 1/sqrt2
 : >sc  y  # @ >sc> sc  # ! ;
 : >scl yl # @ >sc> scl # ! ;
 : >scr yr # @ >sc> scr # ! ;
-: >b>   ( n -- n' )  @ dup mul faden# z # @ - dup mul d+ sqrt ;
+: >b>   ( n -- n' )  dup mul height# # z # @ - dup mul d+ sqrt ;
 : >b   sc  # @ >b>  b   # ! ;
 : >bl  scl # @ >b>  bl  # ! ;
 : >br  scr # @ >b>  br  # ! ;
@@ -112,8 +112,8 @@ $B504 Constant 1/sqrt2
     AGAIN ;
 
 : boot
-    $00 # LED7 # ! $E000 # dup dup 0 # !+ !+ !
-    0 # dup dup x #  !+ !+ !
+    $00 # LED7 # ! $4000 # dup dup 0 # !+ !+ !
+    0 # distance/rt2# # over x #  !+ !+ !
     init-port motor-loop ;
 
 $3FFE org
@@ -142,8 +142,8 @@ forth-local-words:
     )
 forth-local-indent-words:
     (
-	(("macro:") (0 . 2) (0 . 2) non-immediate)
-    	(("end-macro") (-2 . 0) (0 . -2))
+        (("macro:") (0 . 2) (0 . 2) non-immediate)
+        (("end-macro") (-2 . 0) (0 . -2))
     )
 End:
 [THEN]
