@@ -8,22 +8,27 @@ $0000 org
 | pos2 0 ,
 | pos3 0 ,
 \ position, in mm relative to north tower, floor level
-\ (front/right/up is positive
+\ (front/right/up is positive)
+\ north tower aligns with board, center is zero point
+| z 0 , \ no need to transform this
+
 | x 0 ,
 | y 0 ,
-| z 0 ,
 | sc 0 , \ string circle radius
 | b 0 ,
+| alpha 0 , 0 , 0 , 0 ,
 \ position transformation left tower
 | xl 0 ,
 | yl 0 ,
 | scl 0 , \ string circle radius left
 | bl 0 ,
+| alphal 0 , 0 , 0 , 0 ,
 \ position transformation right tower
 | xr 0 ,
 | yr 0 ,
 | scr 0 , \ string circle radius right
 | br 0 ,
+| alphar 0 , 0 , 0 , 0 ,
 
 $2000 org
 include b16-prim.fs \ Extentions fuer b16
@@ -68,40 +73,45 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
     motor2 pos2 # @ ausschlag till -motor
     motor3 pos3 # @ ausschlag till -motor ;
 
-\ coordinate transforation
+\ coordinate transforation constants
 
 decimal
 #500 Constant distance#  \ 500mm from tower to tower
 distance# F 2/ Constant distance/2#
-distance# s>f .5e fsqrt f* f>s Constant distance/rt2#
+distance# s>f .5e fsqrt f* f>s Constant distance/rt2# \ center to arm
 #200 Constant arm#       \ 20cm arm length
 #140 Constant height#    \ 14cm height
 #320 Constant faden#     \ 32cm string length
 faden# F dup F negate F * Constant -faden²#
+arm# F dup F * faden# F dup F * F - Constant arm²-faden²#
 
 macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
 
 $B504 Constant 1/sqrt2
 
-: >xl  1/sqrt2 # y # @ distance/rt2# # - usmul nip x # @ 2/ - xl # ! ;
-: >xr  1/sqrt2 # distance/rt2# # y # @ - usmul nip x # @ 2/ - xr # ! ;
-: >yl  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip -
-    distance/rt2# # + yl # ! ;
-: >yr  y # @ distance/rt2# # - 2/ 1/sqrt2 # x # @ usmul nip +
-    distance/rt2# # + yr # ! ;
-: >sc>  ( n -- n' ) dup mul -faden²# 2# d+ sqrt ;
-: >sc  y  # @ >sc> sc  # ! ;
-: >scl yl # @ >sc> scl # ! ;
-: >scr yr # @ >sc> scr # ! ;
-: >b>   ( n -- n' )  dup mul height# # z # @ - dup mul d+ sqrt ;
-: >b   sc  # @ >b>  b   # ! ;
-: >bl  scl # @ >b>  bl  # ! ;
-: >br  scr # @ >b>  br  # ! ;
+\ coord transformation words
+
+: >xl  1/sqrt2 # y # @        usmul nip x # @ 2/ - xl # ! ;
+: >xr  1/sqrt2 # y # @ negate usmul nip x # @ 2/ - xr # ! ;
+: >yl  y # @ 2/ 1/sqrt2 # x # @ usmul nip - yl # ! ;
+: >yr  y # @ 2/ 1/sqrt2 # x # @ usmul nip + yr # ! ;
+
+: >sc>  ( addr -- )  @+ >r distance/rt2# # + dup mul -faden²# 2# d+ sqrt r> ! ;
+: >b>   ( addr -- )  @+ >r dup mul height# # z # @ - dup mul d+ sqrt r> ! ;
+: >alpha> ( addr -- ) @+ >r
+    dup >r dup mul drop arm²-faden²# # + 2/ 2/ >r 0 # r>
+    r> arm# # mul drop
+    over 0<IF  dup >r + r>  THEN
+    div drop
+    r> ! ;
+
+: >sc     y  # >sc>  yl # >sc>  yr # >sc> ;
+: >b      sc  # >b>  scl # >b>  scr # >b> ;
+: >alpha  b  # >alpha>  bl # >alpha>  br # >alpha> ;
 
 : coord-calc
     >xl >xr >yl >yr
-    >sc >scl >scr
-    >b >bl >br ;
+    >sc >b >alpha ;
 
 \ main loop
 
@@ -113,7 +123,7 @@ $B504 Constant 1/sqrt2
 
 : boot
     $00 # LED7 # ! $4000 # dup dup 0 # !+ !+ !
-    0 # distance/rt2# # over x #  !+ !+ !
+    0 # dup dup z #  !+ !+ !
     init-port motor-loop ;
 
 $3FFE org
@@ -139,11 +149,13 @@ forth-local-words:
     (("macro:") definition-starter (font-lock-keyword-face . 1)
      "[ \t\n]" t name (font-lock-function-name-face . 3))
     (("end-macro") definition-ender (font-lock-keyword-face . 1))
+    (("0<if") compile-only (font-lock-keyword-face . 2))
     )
 forth-local-indent-words:
     (
         (("macro:") (0 . 2) (0 . 2) non-immediate)
         (("end-macro") (-2 . 0) (0 . -2))
+        (("0<if") (0 . 2) (0 . 2))
     )
 End:
 [THEN]

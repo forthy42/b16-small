@@ -19,6 +19,8 @@ macro: - com +c end-macro
 
 macro: negate com 0 # +c end-macro
 
+macro: dnegate com >r com 0 # +c r> 0 # +c end-macro
+
 : rot ( n1 n2 n3 -- n2 n3 n1 ) >r swap r> swap ;
 
 macro: 2drop drop drop end-macro
@@ -38,6 +40,8 @@ macro: >   ( n1 n2 -- flag )
 macro: =   ( n1 n2 -- flag )
    xor 0= end-macro
 
+macro: 0<IF  $8000 # and IF  end-macro
+
 : u<  ( u1 u2 -- flag )
    com +c cIF 0 # ELSE -1 # THEN ;
 
@@ -45,15 +49,15 @@ macro: =   ( n1 n2 -- flag )
    dup IF dup THEN ;
 
 : abs ( n -- u )
-   dup 0< IF com 0 # +c THEN ;
+   dup 0<IF com 0 # +c THEN ;
 
 : max ( n1 n2 -- n1 | n2 )
-   over over - 0<
-   IF nip ELSE drop THEN ;
+   over over -
+   0<IF nip ELSE drop THEN ;
 
 : min ( n1 n2 -- n1 | n2 )
-   over over - 0<
-   IF drop ELSE nip THEN ;
+   over over -
+   0<IF drop ELSE nip THEN ;
 
 macro: 1- 1 # - end-macro
 macro: 2- 2 # - end-macro
