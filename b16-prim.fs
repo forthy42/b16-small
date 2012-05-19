@@ -12,38 +12,37 @@ macro: cells  dup  + end-macro
 macro: r@ r> dup >r end-macro
 
 macro: EXIT ; end-macro
-
 macro: ?EXIT IF ; THEN end-macro
 
 macro: - com +c end-macro
-
 macro: negate com 0 # +c end-macro
-
 macro: dnegate com >r com 0 # +c r> 0 # +c end-macro
+
+macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
 
 : rot ( n1 n2 n3 -- n2 n3 n1 ) >r swap r> swap ;
 
 macro: 2drop drop drop end-macro
 
-: 0=  ( n -- flg ) 
-   IF 0 # ELSE -1 # THEN ;
-
-: 0<  ( n -- flg )
-   $8000 # and IF -1 # ELSE 0 # THEN ;
+: 0<  ( n -- flag )  com
+: 0>  ( n -- flag )  $8000 # and
+: 0=  ( n -- flag )  IF 0 # ELSE -1 # THEN ;
 
 macro: <   ( n1 n2 -- flag )
    - 0< end-macro
 
 macro: >   ( n1 n2 -- flag )
-   swap - 0< end-macro
+   - 0> end-macro
 
 macro: =   ( n1 n2 -- flag )
    xor 0= end-macro
 
 macro: 0<IF  $8000 # and IF  end-macro
+macro: =IF  xor -IF  end-macro
+macro: u<IF  com +c -cIF  end-macro
 
 : u<  ( u1 u2 -- flag )
-   com +c cIF 0 # ELSE -1 # THEN ;
+   u<IF -1 # ELSE 0 # THEN ;
 
 : ?dup ( n -- n n | 0 )
    dup IF dup THEN ;

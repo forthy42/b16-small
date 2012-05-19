@@ -14,30 +14,43 @@ $0000 org
 \ north tower aligns with board, center is zero point
 | z 0 , \ no need to transform this
 | y 0 ,
+| c 0 , \ triangle hypothenuse
 | x 0 ,
 | sc 0 , \ string circle radius
-| b 0 ,
 | cos 0 ,
 | alpha 0 ,
-| angle | pos1 0 , 0 ,
+| angle | pos1 0 ,
+| b 0 ,
 \ position transformation left tower
 | yl 0 ,
+| cl 0 ,
 | xl 0 ,
 | scl 0 , \ string circle radius left
-| bl 0 ,
 | cosl 0 ,
 | alphal 0 ,
-| anglel | pos2 0 , 0 ,
+| anglel | pos2 0 ,
+| bl 0 ,
 \ position transformation right tower
 | yr 0 ,
+| cr 0 ,
 | xr 0 ,
 | scr 0 , \ string circle radius right
-| br 0 ,
 | cosr 0 ,
 | alphar 0 ,
-| angler | pos3 0 , 0 ,
+| angler | pos3 0 ,
+| br 0 ,
 
 $2000 org
+\ coordinate transforation constants
+
+decimal
+| distance #305 ,        \ center to arm
+| arm      #200 ,        \ 20cm arm length
+| height   #140 ,        \ 14cm height
+| faden    #310 ,        \ 32cm string length
+
+$B504 Constant 1/sqrt2
+
 include b16-prim.fs \ Extentions fuer b16
 
 include b16-db.fs   \ RAM Debugging Interface
@@ -84,22 +97,6 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
     motor2 pos2 # @ ausschlag till -motor
     motor3 pos3 # @ ausschlag till -motor ;
 
-\ coordinate transforation constants
-
-decimal
-#500 Constant distance#  \ 500mm from tower to tower
-distance# F 2/ Constant distance/2#
-distance# s>f .5e fsqrt f* f>s Constant distance/rt2# \ center to arm
-#200 Constant arm#       \ 20cm arm length
-#140 Constant height#    \ 14cm height
-#320 Constant faden#     \ 32cm string length
-faden# F dup F negate F * Constant -faden²#
-arm# F dup F * faden# F dup F * F - Constant arm²-faden²#
-
-macro: 2# F dup $FFFF F and # $10 F rshift # end-macro
-
-$B504 Constant 1/sqrt2
-
 \ arccos computation
 \ input scaling is -1..1 is -$8000..$7FFF
 \ output scaling is 0..pi 0..$FFFF
@@ -122,34 +119,41 @@ previous
 
 \ coord transformation words
 
+macro: faden² faden # @ dup mul end-macro
+
 : >xl  1/sqrt2 # y # @        usmul nip x # @ 2/ - xl # ! ;
 : >xr  1/sqrt2 # y # @ negate usmul nip x # @ 2/ - xr # ! ;
 : >yl  y # @ 2/ negate 1/sqrt2 # x # @ usmul nip - yl # ! ;
 : >yr  y # @ 2/ negate 1/sqrt2 # x # @ usmul nip + yr # ! ;
 
-: >sc>  ( addr -- )  @+ >r abs dup mul -faden²# 2# d+ sqrt r> ! ;
-: >b>   ( addr -- )  @+ >r dup mul height# # z # @ - dup mul d+ sqrt r> ! ;
-: >cos> ( addr -- ) @+ >r
-    dup >r dup mul drop arm²-faden²# # + 2/ 2/ >r 0 # r>
-    r> arm# # mul drop sdiv drop r> ! ;
+: >sc>  ( addr -- )  @+ >r >r faden² r> abs dup mul d- sqrt r> ! ;
+: >c>   ( addr -- )  @+ >r distance # @ +
+    dup mul height # @ z # @ - abs dup mul d+ sqrt r> ! ;
+\ : >b>   ( addr -- )  @+ >r dup mul height # @ z # @ - dup mul d+ sqrt r> ! ;
+: >cos> ( c-addr b-addr -- ) @+ >r >r
+    @ u2/ dup dup mul drop
+    arm # @ 2/ dup mul drop r> 2/ dup mul drop - +
+    over >r >r drop 0 # r> 2/ r>
+    arm # @ mul drop sdiv drop r> ! ;
 : >alpha> ( addr -- ) @+ >r acos r> ! ;
-: >angle1 ( y-addr -- angle )  @ distance/rt2# # + 2* >r
-    0 # height# # z # @ - r> sdiv drop acos ;
+: >angle1 ( y-addr -- angle )  @ >r
+    0 # height # @ z # @ - r> 2* sdiv drop acos ;
 : >angle2 ( angle alpha-addr -- )
     @+ >r + $8000 # + r> ! ;
 
 : >sc     x  # >sc>  xl # >sc>  xr # >sc> ;
-: >b      sc  # >b>  scl # >b>  scr # >b> ;
-: >cos    b  # >cos>  bl # >cos>  br # >cos> ;
+: >c      y  # >c>   yl # >c>   yr # >c> ;
+\ : >b      sc  # >b>  scl # >b>  scr # >b> ;
+: >cos    c # sc  # >cos>  cl # scl # >cos>  cr # scr # >cos> ;
 : >alpha  cos # >alpha>  cosl # >alpha>  cosr # >alpha> ;
 : >angle
-    y  # >angle1 alpha  # >angle2
-    yl # >angle1 alphal # >angle2
-    yr # >angle1 alphar # >angle2 ;
+    c  # >angle1 dup b  # !  alpha  # >angle2
+    cl # >angle1 dup bl # !  alphal # >angle2
+    cr # >angle1 dup br # !  alphar # >angle2 ;
 
 : coord-calc
     >xl >xr >yl >yr
-    >sc >b >cos >alpha >angle ;
+    >sc >c >cos >alpha >angle ;
 
 \ main loop
 
@@ -160,8 +164,8 @@ previous
     AGAIN ;
 
 : boot
-    $00 # LED7 # ! $4000 # dup dup 0 # !+ !+ !
-    0 # dup dup z #  !+ !+ !
+    $00 # LED7 # !
+    0 # dup dup dup z #  !+ !+ !+ !
     init-port motor-loop ;
 
 $3FFE org

@@ -193,7 +193,7 @@ b16-state implements
     status@ $1 and 0= IF
        stoptoggle with set draw endwith update
     ELSE
-       ['] bp-watch ^ &100 after dpy schedule
+       ['] bp-watch ^ &500 after dpy schedule
     THEN ;
 : update  stopped @ 0= ?EXIT  load-regs  stopped dup @ >r off
   regs 0 + w@ 0 p# assign
