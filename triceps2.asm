@@ -124,8 +124,8 @@ previous
 
 : >xl  1/sqrt2 # y # @        usmul nip x # @ 2/ - xl # ! ;
 : >xr  1/sqrt2 # y # @ negate usmul nip x # @ 2/ - xr # ! ;
-: >yl  y # @ 2/ 1/sqrt2 # x # @ usmul nip - yl # ! ;
-: >yr  y # @ 2/ 1/sqrt2 # x # @ usmul nip + yr # ! ;
+: >yl  y # @ 2/ negate 1/sqrt2 # x # @ usmul nip - yl # ! ;
+: >yr  y # @ 2/ negate 1/sqrt2 # x # @ usmul nip + yr # ! ;
 
 : >sc>  ( addr -- )  @+ >r abs dup mul -faden²# 2# d+ sqrt r> ! ;
 : >b>   ( addr -- )  @+ >r dup mul height# # z # @ - dup mul d+ sqrt r> ! ;
