@@ -4,34 +4,38 @@ include regmap.asm
 
 $0000 org
 \ motor angle 0-ffff for 0-180°
+0 [IF]
 | pos1 0 ,
 | pos2 0 ,
 | pos3 0 ,
+[THEN]
 \ position, in mm relative to north tower, floor level
 \ (front/right/up is positive)
 \ north tower aligns with board, center is zero point
 | z 0 , \ no need to transform this
-
-| x 0 ,
 | y 0 ,
+| x 0 ,
 | sc 0 , \ string circle radius
 | b 0 ,
 | cos 0 ,
-| alpha 0 , 0 , 0 ,
+| alpha 0 ,
+| angle | pos1 0 , 0 ,
 \ position transformation left tower
-| xl 0 ,
 | yl 0 ,
+| xl 0 ,
 | scl 0 , \ string circle radius left
 | bl 0 ,
 | cosl 0 ,
-| alphal 0 , 0 , 0 ,
+| alphal 0 ,
+| anglel | pos2 0 , 0 ,
 \ position transformation right tower
-| xr 0 ,
 | yr 0 ,
+| xr 0 ,
 | scr 0 , \ string circle radius right
 | br 0 ,
 | cosr 0 ,
-| alphar 0 , 0 , 0 ,
+| alphar 0 ,
+| angler | pos3 0 , 0 ,
 
 $2000 org
 include b16-prim.fs \ Extentions fuer b16
@@ -55,9 +59,13 @@ GPIO02 Value port
     #50 # mul tick-after ;
 
 \ min: 740, max: 2250
+\ min: 600, max: 2100?
+#19000 Constant motor-min#
+#37750 Constant motor-gain#
+
 : ausschlag ( 0-ffff -- dtime )
-    #37750 # mul nip
-    #20000 # + dup + 0 # dup +c  tick-after ;
+    motor-gain# # mul nip
+    motor-min#  # + dup + 0 # dup +c  tick-after ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
 
@@ -119,24 +127,29 @@ previous
 : >yl  y # @ 2/ 1/sqrt2 # x # @ usmul nip - yl # ! ;
 : >yr  y # @ 2/ 1/sqrt2 # x # @ usmul nip + yr # ! ;
 
-: >sc>  ( addr -- )  @+ >r distance/rt2# # + dup mul -faden²# 2# d+ sqrt r> ! ;
+: >sc>  ( addr -- )  @+ >r abs dup mul -faden²# 2# d+ sqrt r> ! ;
 : >b>   ( addr -- )  @+ >r dup mul height# # z # @ - dup mul d+ sqrt r> ! ;
 : >cos> ( addr -- ) @+ >r
     dup >r dup mul drop arm²-faden²# # + 2/ 2/ >r 0 # r>
-    r> arm# # mul drop
-    over 0<IF  dup >r + r>  THEN
-    div drop
-    r> ! ;
+    r> arm# # mul drop sdiv drop r> ! ;
 : >alpha> ( addr -- ) @+ >r acos r> ! ;
+: >angle1 ( y-addr -- angle )  @ distance/rt2# # + 2* >r
+    0 # height# # z # @ - r> sdiv drop acos ;
+: >angle2 ( angle alpha-addr -- )
+    @+ >r + $8000 # + r> ! ;
 
-: >sc     y  # >sc>  yl # >sc>  yr # >sc> ;
+: >sc     x  # >sc>  xl # >sc>  xr # >sc> ;
 : >b      sc  # >b>  scl # >b>  scr # >b> ;
 : >cos    b  # >cos>  bl # >cos>  br # >cos> ;
 : >alpha  cos # >alpha>  cosl # >alpha>  cosr # >alpha> ;
+: >angle
+    y  # >angle1 alpha  # >angle2
+    yl # >angle1 alphal # >angle2
+    yr # >angle1 alphar # >angle2 ;
 
 : coord-calc
     >xl >xr >yl >yr
-    >sc >b >cos >alpha ;
+    >sc >b >cos >alpha >angle ;
 
 \ main loop
 

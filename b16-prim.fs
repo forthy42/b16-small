@@ -94,9 +94,11 @@ macro: under swap over end-macro
 ;                       \ return to caller
 
 : usmul ( u1 s2 -- d )  \ unsigned by signed mul
-    dup $8000 # and IF  over >r  ELSE  0 # >r  THEN
+    dup 0<IF  over >r  ELSE  0 # >r  THEN
     mul r> - ;
 
+: sdiv ( d udiv -- quot umod )
+    over 0<IF  dup >r + r>  THEN
 : div ( ud udiv -- uqout umod ) \ unsigned division with remainder
     com                 \ invert divider
     >r over r> over >r nip >r nip r>    \ move low part of divident to A
