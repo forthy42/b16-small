@@ -469,9 +469,10 @@ Variable spi-addr
 : postfix? ( addr1 u1 addr2 u2 -- flag )
     tuck 2>r over swap - 0 max /string 2r> str= ;
 
-: upload ( -- )  b16-reset rom-offset rom-size bounds ?DO
+: upload ( -- )  record-dbg >r  false to record-dbg
+    b16-reset rom-offset rom-size bounds ?DO
 	I ram@ I dbg!
-    2 +LOOP b16-run ;
+    2 +LOOP b16-run  r> to record-dbg ;
 
 \ read processor status
 

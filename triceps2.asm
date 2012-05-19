@@ -49,6 +49,10 @@ decimal
 | height   #140 ,        \ 14cm height
 | faden    #310 ,        \ 32cm string length
 
+| offset1 $800 ,
+| offset2 $700 ,
+| offset3 $580 ,
+
 $B504 Constant 1/sqrt2
 
 include b16-prim.fs \ Extentions fuer b16
@@ -93,9 +97,9 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 : motor3  $0100 # port # ! ;
 
 : do-motor
-    motor1 pos1 # @ ausschlag till -motor
-    motor2 pos2 # @ ausschlag till -motor
-    motor3 pos3 # @ ausschlag till -motor ;
+    motor1 pos1 # @ offset1 # @ + ausschlag till -motor
+    motor2 pos2 # @ offset2 # @ + ausschlag till -motor
+    motor3 pos3 # @ offset3 # @ + ausschlag till -motor ;
 
 \ arccos computation
 \ input scaling is -1..1 is -$8000..$7FFF

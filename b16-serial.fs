@@ -4,7 +4,7 @@ dos also
 
 0 value b16
 true Value do-serial
-true Value record-dbg
+false Value record-dbg
 
 $1000 cells Constant dbg#
 
