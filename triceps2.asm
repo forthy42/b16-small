@@ -51,6 +51,8 @@ $0000 org
 | stepz  0 , | errz 0 ,
 | speed  0 ,
 
+| freiablage &0 ,
+
 $2000 org
 \ coordinate transforation constants
 
@@ -139,10 +141,7 @@ previous
 
 macro: faden² faden # @ dup mul end-macro
 
-: >xl  sqrt3/2 # y # @        usmul nip x # @ 2/ - xl # ! ;
-: >xr  sqrt3/2 # y # @ negate usmul nip x # @ 2/ - xr # ! ;
-: >yl  y # @ 2/ negate sqrt3/2 # x # @ usmul nip - yl # ! ;
-: >yr  y # @ 2/ negate sqrt3/2 # x # @ usmul nip + yr # ! ;
+: >xy  ( x y -- xl ) >r 2/ negate sqrt3/2 # r> usmul nip ;
 
 : >sc>  ( addr -- )  @+ >r >r faden² r> abs dup mul d- sqrt r> ! ;
 : >c>   ( addr -- )  @+ >r distance # @ +
@@ -170,7 +169,11 @@ macro: faden² faden # @ dup mul end-macro
     cr # >angle1 dup br # !  alphar # >angle2 ;
 
 : coord-calc
-    >xl >xr >yl >yr
+    x # @ y # @
+    2dup >xy + xl # !
+    2dup >xy - xr # !  swap
+    2dup >xy - yl # !
+         >xy + yr # !
     >sc >c >cos >alpha >angle ;
 
 \ wait loop
@@ -203,10 +206,10 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
     stepz # @+ @. >r + z # @ stepz # @ 0< +c z # ! r> !
     -1 # dist # +! ;
 : movesteps ( -- )
-    speed # @ dist # @ u2/ u2/ umin
+    speed # @ dist # @ umin  u2/ u2/
     speedlimit# # umin u2/ u2/ 1 # +
-    BEGIN  movestep dist # @ -IF  drop ;  THEN
-    LOOP  1 # speed # +! ;
+    BEGIN  movestep  1 # speed # +!  dist # @ -IF  drop ;  THEN
+    LOOP ;
 
 : >pos    BEGIN  movesteps 1 # wait  dist # @ -UNTIL ;
 : moveto ( x y -- )  >moveto  >pos ;
@@ -218,15 +221,143 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : pick   down lift ;
 : place  20 # wait  down release ;
 
+\ game play: positions
+
+: spiel-feld ( x-nr y-nr -- )
+    #20 # mul #-60 # + >r #20 # mul #-60 # + r>  moveto ;
+
+: reihe ( nr -- x y )
+    dup >r #10 # mul
+    #-950 # r> 1 # and IF  #-20 # +  THEN ;
+
+: reihe1 ( nr -- )  reihe                                    moveto ;
+: reihe2 ( nr -- )  reihe  over >r dup r>  >xy + >r >xy - r> moveto ;
+: reihe3 ( nr -- )  reihe  over >r dup r>  >xy - >r >xy + r> moveto ;
+
+| reihen ' reihe1 , ' reihe2 , ' reihe3 ,
+
+: ablage ( nr -- )  0 # #11 # div swap cells reihen # + @ exec ;
+
+: kugel-wegnehmen ( n m -- )
+   spiel-feld pick ;
+
+: kugel-ablegen   ( n m -- )
+   spiel-feld place ;
+
+: kugel-entfernen
+   freiablage # @ ablage place  1 # freiablage # +! ;
+
+: kugel-holen
+   -1 # freiablage # +! freiablage # @ ablage pick ;
+
+: .stand &33 # freiablage # @ - 0 # 
+    &10 # div swap $10 # mul drop swap + LED7 # ! ;
+
+: einraeumen
+   kugel-holen kugel-ablegen .stand ;
+
+: spiele1 ( n m -- )
+    2dup          kugel-wegnehmen
+    2dup >r 2- r> kugel-ablegen
+         >r 1- r> kugel-wegnehmen kugel-entfernen ;
+
+: spiele2 ( n m -- )
+    2dup kugel-wegnehmen 2dup 2+ kugel-ablegen 1+
+    kugel-wegnehmen kugel-entfernen ;
+
+: spiele3 ( n m -- )
+    2dup          kugel-wegnehmen
+    2dup >r 2+ r> kugel-ablegen
+         >r 1+ r> kugel-wegnehmen kugel-entfernen ;
+
+: spiele4 ( n m -- )
+    2dup kugel-wegnehmen 2dup 2- kugel-ablegen 1-
+    kugel-wegnehmen kugel-entfernen ;
+
+: 2drops 2drop ;  \ weil 2drop ein Macro ist
+
+Label /spiele ( n m flg -- )
+' 2drops  ,
+' spiele1 ,
+' spiele2 ,
+' spiele3 ,
+' spiele4 ,
+\ DOES> swap cells + perform ;
+
+: spiele ( n m flg -- )
+    cells /spiele + @ exec .stand ;
 
 \ game play: Tasker
 
-: game \  down  BEGIN  motor-step  AGAIN
-    BEGIN  pick 30 # wait
-        0 # 80 # moveto
-        80 # 0 # moveto
-        0 # 0 # moveto
-        place  30 # wait  AGAIN ;
+: game
+    BEGIN
+	&33 # freiablage !
+	6 # 4 # einraeumen
+	6 # 3 # einraeumen
+	6 # 2 # einraeumen
+	5 # 4 # einraeumen
+	5 # 3 # einraeumen
+	5 # 2 # einraeumen
+	4 # 6 # einraeumen
+	4 # 5 # einraeumen
+	4 # 4 # einraeumen
+	4 # 3 # einraeumen
+	4 # 2 # einraeumen
+	4 # 1 # einraeumen
+	4 # 0 # einraeumen
+	3 # 6 # einraeumen
+	3 # 5 # einraeumen
+	3 # 4 # einraeumen
+	3 # 2 # einraeumen
+	3 # 1 # einraeumen
+	3 # 0 # einraeumen
+	2 # 6 # einraeumen
+	2 # 5 # einraeumen
+	2 # 4 # einraeumen
+	2 # 3 # einraeumen
+	2 # 2 # einraeumen
+	2 # 1 # einraeumen
+	2 # 0 # einraeumen
+	1 # 4 # einraeumen
+	1 # 3 # einraeumen
+	1 # 2 # einraeumen
+	0 # 4 # einraeumen
+	0 # 3 # einraeumen
+	0 # 2 # einraeumen
+	
+	3 # 1 # 2 # spiele
+	1 # 2 # 3 # spiele
+	4 # 2 # 1 # spiele
+	6 # 2 # 1 # spiele
+	1 # 4 # 4 # spiele
+	3 # 4 # 1 # spiele
+	1 # 2 # 3 # spiele
+	3 # 2 # 3 # spiele
+	5 # 4 # 1 # spiele
+	2 # 0 # 2 # spiele
+	2 # 3 # 4 # spiele
+	6 # 4 # 4 # spiele
+	4 # 0 # 1 # spiele
+	4 # 6 # 4 # spiele
+	2 # 6 # 3 # spiele
+	4 # 3 # 2 # spiele
+	2 # 0 # 2 # spiele
+	0 # 4 # 3 # spiele
+	3 # 4 # 1 # spiele
+	6 # 2 # 1 # spiele
+	4 # 1 # 2 # spiele
+	0 # 2 # 2 # spiele
+	0 # 4 # 3 # spiele
+	4 # 6 # 4 # spiele
+	2 # 5 # 4 # spiele
+	4 # 3 # 2 # spiele
+	2 # 2 # 2 # spiele
+	4 # 5 # 1 # spiele
+	2 # 5 # 4 # spiele
+	2 # 3 # 3 # spiele
+	5 # 3 # 1 # spiele
+	3 # 3 # kugel-wegnehmen kugel-entfernen .stand
+	#1000 # wait  AGAIN
 
 \ boot
 

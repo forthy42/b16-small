@@ -80,6 +80,8 @@ macro: d+ ( d1 d2 - d3 )  >r rot + swap r> +c end-macro
 
 macro: d- ( d1 d2 - d3 )  >r com rot + swap r> com +c end-macro
 
+macro: 2>r  over >r >r drop  end-macro
+
 macro: 2* ( n1 -- 2*n1 )  dup + end-macro
 
 macro: d2* ( d -- 2*d )   over over d+ end-macro
