@@ -181,18 +181,19 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : lift     20 # BEGIN   1 # z # +!  1 # wait  LOOP ;
 : release  20 # z # +! 10 # wait ;
 : pick   down lift ;
-: place  10 # wait  down release ;
+: place  20 # wait  down release ;
 
+16 Constant speedlimit#
 : >moveto ( x y -- )  y # @ - deltay # !  x # @ - deltax # !
     deltax # @ abs dup mul  deltay # @ abs dup mul d+ sqrt 2* 2* dist # !
     0 # dup deltax # @ dist # @ sdiv drop stepx # !+ !
     0 # dup deltay # @ dist # @ sdiv drop stepy # !+ !
-    1 # speed # ! ;
+    0 # speed # ! ;
 : movestep ( -- )
     stepx # @+ @. >r + x # @ stepx # @ 0< +c x # ! r> ! 
     stepy # @+ @. >r + y # @ stepy # @ 0< +c y # ! r> !
     -1 # dist # +! ;
-: movesteps ( -- )  speed # @ dist # @ u2/ u2/ umin
+: movesteps ( -- )  speed # @ dist # @ u2/ u2/ umin speedlimit# # umin u2/ 1 # +
     BEGIN  movestep dist # @ -IF  drop ;  THEN
     LOOP  1 # speed # +! ;
 
@@ -202,8 +203,8 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 \ game play: Tasker
 
 : game  BEGIN  pick 30 # wait
-        0 # 40 # moveto
-        40 # 0 # moveto
+        0 # 80 # moveto
+        80 # 0 # moveto
         0 # 0 # moveto
         place  30 # wait  AGAIN ;
 
