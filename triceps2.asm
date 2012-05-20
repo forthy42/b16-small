@@ -44,25 +44,30 @@ $0000 org
 
 | deltax 0 ,
 | deltay 0 ,
+| deltaz 0 ,
 | dist   0 ,
 | stepx  0 , | errx 0 ,
 | stepy  0 , | erry 0 ,
+| stepz  0 , | errz 0 ,
 | speed  0 ,
 
 $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #305 ,        \ center to arm
+| distance #325 ,        \ center to arm
 | arm      #200 ,        \ 20cm arm length
 | height   #140 ,        \ 14cm height
-| faden    #310 ,        \ 32cm string length
+| faden    #400 ,        \ 31cm string length
 
-| offset1 $800 ,
-| offset2 $700 ,
-| offset3 $580 ,
+| offset1 $-200 ,
+| offset2 $-600 ,
+| offset3 $-500 ,
 
-$B504 Constant 1/sqrt2
+| motor-min#  #16800 ,
+| motor-gain# #48000 ,
+
+$DDB3 Constant sqrt3/2
 
 include b16-prim.fs \ Extentions fuer b16
 
@@ -86,12 +91,12 @@ GPIO02 Value port
 
 \ min: 740, max: 2250
 \ min: 600, max: 2100?
-#19000 Constant motor-min#
-#37750 Constant motor-gain#
+\ #19000 Constant motor-min#
+\ #37750 Constant motor-gain#
 
 : ausschlag ( 0-ffff -- dtime )
-    motor-gain# # mul nip
-    motor-min#  # + dup + 0 # dup +c  tick-after ;
+    motor-gain# # @ mul nip
+    motor-min#  # @ + dup + 0 # dup +c  tick-after ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
 
@@ -134,10 +139,10 @@ previous
 
 macro: faden² faden # @ dup mul end-macro
 
-: >xl  1/sqrt2 # y # @        usmul nip x # @ 2/ - xl # ! ;
-: >xr  1/sqrt2 # y # @ negate usmul nip x # @ 2/ - xr # ! ;
-: >yl  y # @ 2/ negate 1/sqrt2 # x # @ usmul nip - yl # ! ;
-: >yr  y # @ 2/ negate 1/sqrt2 # x # @ usmul nip + yr # ! ;
+: >xl  sqrt3/2 # y # @        usmul nip x # @ 2/ - xl # ! ;
+: >xr  sqrt3/2 # y # @ negate usmul nip x # @ 2/ - xr # ! ;
+: >yl  y # @ 2/ negate sqrt3/2 # x # @ usmul nip - yl # ! ;
+: >yr  y # @ 2/ negate sqrt3/2 # x # @ usmul nip + yr # ! ;
 
 : >sc>  ( addr -- )  @+ >r >r faden² r> abs dup mul d- sqrt r> ! ;
 : >c>   ( addr -- )  @+ >r distance # @ +
@@ -177,32 +182,47 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
     BEGIN  motor-step  LOOP ;
 
-: down     10 # BEGIN  -2 # z # +!  1 # wait  LOOP ;
-: lift     20 # BEGIN   1 # z # +!  1 # wait  LOOP ;
-: release  20 # z # +! 10 # wait ;
-: pick   down lift ;
-: place  20 # wait  down release ;
-
 16 Constant speedlimit#
-: >moveto ( x y -- )  y # @ - deltay # !  x # @ - deltax # !
-    deltax # @ abs dup mul  deltay # @ abs dup mul d+ sqrt 2* 2* dist # !
+: >movez ( z -- )  z # @ - dup deltaz # !  abs 2* 2* dist # !
+    0 # dup stepx # !+ !
+    0 # dup stepy # !+ !
+    0 # dup deltaz # @ dist # @ sdiv drop stepz # !+ !
+    0 # speed # ! ;
+: >moveto ( x y -- )
+    y # @ - deltay # !  x # @ - deltax # !
+    deltax # @ abs 2* dup mul
+    deltay # @ abs 2* dup mul d+
+    sqrt dist # !
     0 # dup deltax # @ dist # @ sdiv drop stepx # !+ !
     0 # dup deltay # @ dist # @ sdiv drop stepy # !+ !
+    0 # dup stepz # !+ !
     0 # speed # ! ;
 : movestep ( -- )
     stepx # @+ @. >r + x # @ stepx # @ 0< +c x # ! r> ! 
     stepy # @+ @. >r + y # @ stepy # @ 0< +c y # ! r> !
+    stepz # @+ @. >r + z # @ stepz # @ 0< +c z # ! r> !
     -1 # dist # +! ;
-: movesteps ( -- )  speed # @ dist # @ u2/ u2/ umin speedlimit# # umin u2/ 1 # +
+: movesteps ( -- )
+    speed # @ dist # @ u2/ u2/ umin
+    speedlimit# # umin u2/ u2/ 1 # +
     BEGIN  movestep dist # @ -IF  drop ;  THEN
     LOOP  1 # speed # +! ;
 
-: moveto ( x y -- )  >moveto
-    BEGIN  movesteps 1 # wait  dist # @ -UNTIL ;
+: >pos    BEGIN  movesteps 1 # wait  dist # @ -UNTIL ;
+: moveto ( x y -- )  >moveto  >pos ;
+: movez ( z -- )  >movez  >pos ;
+
+: down     15 # movez ;
+: lift     35 # movez ;
+: release  35 # z # ! 10 # wait ;
+: pick   down lift ;
+: place  20 # wait  down release ;
+
 
 \ game play: Tasker
 
-: game  BEGIN  pick 30 # wait
+: game \  down  BEGIN  motor-step  AGAIN
+    BEGIN  pick 30 # wait
         0 # 80 # moveto
         80 # 0 # moveto
         0 # 0 # moveto
@@ -212,7 +232,8 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 
 : boot
     $00 # LED7 # !
-    0 # dup dup 28 # z #  !+ !+ !+ !
+    0 # dup dup #35 # z #  !+ !+ !+ !
+    0 # deltaz # !
     init-port
     BEGIN  game  AGAIN ;
 
