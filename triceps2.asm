@@ -204,14 +204,14 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
     stepx # @+ @. >r + x # @ stepx # @ 0< +c x # ! r> ! 
     stepy # @+ @. >r + y # @ stepy # @ 0< +c y # ! r> !
     stepz # @+ @. >r + z # @ stepz # @ 0< +c z # ! r> !
-    -1 # dist # +! ;
+    dist # @. >r -1 # + dup 0<IF  drop 0 #  THEN  r> ! ;
 : movesteps ( -- )
     speed # @ dist # @ umin  u2/ u2/
     speedlimit# # umin u2/ u2/ 1 # +
     BEGIN  movestep  1 # speed # +!  dist # @ -IF  drop ;  THEN
     LOOP ;
 
-: >pos    BEGIN  movesteps 1 # wait  dist # @ -UNTIL ;
+: >pos    BEGIN  movesteps motor-step  dist # @ -UNTIL ;
 : moveto ( x y -- )  >moveto  >pos ;
 : movez ( z -- )  >movez  >pos ;
 
@@ -224,11 +224,11 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 \ game play: positions
 
 : spiel-feld ( x-nr y-nr -- )
-    #20 # mul #-60 # + >r #20 # mul #-60 # + r>  moveto ;
+    #20 # mul drop #-60 # + >r #20 # mul drop #-60 # + r>  moveto ;
 
 : reihe ( nr -- x y )
-    dup >r #10 # mul
-    #-950 # r> 1 # and IF  #-20 # +  THEN ;
+    dup >r #10 # mul drop #-50 # +
+    #-95 # r> 1 # and IF  #-20 # +  THEN ;
 
 : reihe1 ( nr -- )  reihe                                    moveto ;
 : reihe2 ( nr -- )  reihe  over >r dup r>  >xy + >r >xy - r> moveto ;
@@ -236,25 +236,25 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 
 | reihen ' reihe1 , ' reihe2 , ' reihe3 ,
 
-: ablage ( nr -- )  0 # #11 # div swap cells reihen # + @ exec ;
-
-: kugel-wegnehmen ( n m -- )
-   spiel-feld pick ;
-
-: kugel-ablegen   ( n m -- )
-   spiel-feld place ;
-
-: kugel-entfernen
-   freiablage # @ ablage place  1 # freiablage # +! ;
-
-: kugel-holen
-   -1 # freiablage # +! freiablage # @ ablage pick ;
+: ablage ( nr -- )  0 # #11 # div swap cells reihen # + @ goto ;
 
 : .stand &33 # freiablage # @ - 0 # 
-    &10 # div swap $10 # mul drop swap + LED7 # ! ;
+    &10 # div swap 2* 2* 2* 2* + LED7 # ! ;
+
+macro: kugel-wegnehmen ( n m -- )
+   spiel-feld pick end-macro
+
+macro: kugel-ablegen   ( n m -- )
+   spiel-feld place end-macro
+
+: kugel-entfernen
+   freiablage # @ ablage place  1 # freiablage # +!  .stand ;
+
+: kugel-holen
+   -1 # freiablage # +! freiablage # @ ablage pick  ;
 
 : einraeumen
-   kugel-holen kugel-ablegen .stand ;
+   kugel-holen kugel-ablegen  .stand ;
 
 : spiele1 ( n m -- )
     2dup          kugel-wegnehmen
@@ -276,69 +276,57 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 
 : 2drops 2drop ;  \ weil 2drop ein Macro ist
 
-Label /spiele ( n m flg -- )
-' 2drops  ,
-' spiele1 ,
-' spiele2 ,
-' spiele3 ,
-' spiele4 ,
-\ DOES> swap cells + perform ;
-
-: spiele ( n m flg -- )
-    cells /spiele + @ exec .stand ;
-
 \ game play: Tasker
 
 : 432einraeumen  ( n -- )
     dup 4 # einraeumen  dup 3 # einraeumen  2 # einraeumen ;
 : 654einraeumen ( n -- )
-    dup 6 # einraeumen  dup 5 # einraeumen  4 # einraeumen ;
+    dup 6 # einraeumen  dup 5 # einraeumen  dup  4 # einraeumen ;
 : 210einraeumen ( n -- )
     dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;
-: 6..0einraeumen  dup 654einraeumen  dup 3 # einraeumen 210einraeumen ;
 
 : game
-    &33 # freiablage !
-    6 # 432einraeumen
-    5 # 432einraeumen
-    4 # 6..0einraeumen
-    3 # 654einraeumen  3 # 210einraeumen
-    2 # 6..0einraeumen
-    1 # 432einraeumen
-    0 # 432einraeumen
+    &33 # freiablage # !
+                           6 # 432einraeumen
+                           5 # 432einraeumen
+    4 # 654einraeumen  dup 3 # einraeumen  210einraeumen
+    3 # 654einraeumen                      210einraeumen
+    2 # 654einraeumen  dup 3 # einraeumen  210einraeumen
+                           1 # 432einraeumen
+                           0 # 432einraeumen
     
-    3 # 1 # 2 # spiele
-    1 # 2 # 3 # spiele
-    4 # 2 # 1 # spiele
-    6 # 2 # 1 # spiele
-    1 # 4 # 4 # spiele
-    3 # 4 # 1 # spiele
-    1 # 2 # 3 # spiele
-    3 # 2 # 3 # spiele
-    5 # 4 # 1 # spiele
-    2 # 0 # 2 # spiele
-    2 # 3 # 4 # spiele
-    6 # 4 # 4 # spiele
-    4 # 0 # 1 # spiele
-    4 # 6 # 4 # spiele
-    2 # 6 # 3 # spiele
-    4 # 3 # 2 # spiele
-    2 # 0 # 2 # spiele
-    0 # 4 # 3 # spiele
-    3 # 4 # 1 # spiele
-    6 # 2 # 1 # spiele
-    4 # 1 # 2 # spiele
-    0 # 2 # 2 # spiele
-    0 # 4 # 3 # spiele
-    4 # 6 # 4 # spiele
-    2 # 5 # 4 # spiele
-    4 # 3 # 2 # spiele
-    2 # 2 # 2 # spiele
-    4 # 5 # 1 # spiele
-    2 # 5 # 4 # spiele
-    2 # 3 # 3 # spiele
-    5 # 3 # 1 # spiele
-    3 # 3 # kugel-wegnehmen kugel-entfernen .stand
+    3 # 1 # spiele2
+    1 # 2 # spiele3
+    4 # 2 # spiele1
+    6 # 2 # spiele1
+    1 # 4 # spiele4
+    3 # 4 # spiele1
+    1 # 2 # spiele3
+    3 # 2 # spiele3
+    5 # 4 # spiele1
+    2 # 0 # spiele2
+    2 # 3 # spiele4
+    6 # 4 # spiele4
+    4 # 0 # spiele1
+    4 # 6 # spiele4
+    2 # 6 # spiele3
+    4 # 3 # spiele2
+    2 # 0 # spiele2
+    0 # 4 # spiele3
+    3 # 4 # spiele1
+    6 # 2 # spiele1
+    4 # 1 # spiele2
+    0 # 2 # spiele2
+    0 # 4 # spiele3
+    4 # 6 # spiele4
+    2 # 5 # spiele4
+    4 # 3 # spiele2
+    2 # 2 # spiele2
+    4 # 5 # spiele1
+    2 # 5 # spiele4
+    2 # 3 # spiele3
+    5 # 3 # spiele1
+    3 # 3 # kugel-wegnehmen kugel-entfernen
     #1000 # wait ;
 
 \ boot
