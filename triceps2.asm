@@ -40,6 +40,11 @@ $0000 org
 | angler | pos3 0 ,
 | br 0 ,
 
+\ tasker storage
+
+| save-stack 0 , 0 , 0 ,
+| wait-tick 0 ,
+
 $2000 org
 \ coordinate transforation constants
 
@@ -159,18 +164,32 @@ macro: faden² faden # @ dup mul end-macro
     >xl >xr >yl >yr
     >sc >c >cos >alpha >angle ;
 
-\ main loop
+\ wait loop
 
-: motor-loop
-    BEGIN
-        20 # after  do-motor  coord-calc  till
-        1 # LED7 # +!
-    AGAIN ;
+: motor-step ( -- )
+    10 # after till  10 # after  do-motor  coord-calc  till
+    1 # LED7 # +! ;
+macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
+: wait ( n -- )
+    BEGIN  motor-step  LOOP ;
+
+: down     10 # BEGIN  -2 # z # +!  1 # wait  LOOP ;
+: lift     20 # BEGIN   1 # z # +!  1 # wait  LOOP ;
+: release  20 # z # +! 10 # wait ;
+: pick   down lift ;
+: place  down release ;
+
+\ game play: Tasker
+
+: game  BEGIN  pick 30 # wait  place  30 # wait  AGAIN ;
+
+\ boot
 
 : boot
     $00 # LED7 # !
-    0 # dup dup dup z #  !+ !+ !+ !
-    init-port motor-loop ;
+    0 # dup dup 28 # z #  !+ !+ !+ !
+    init-port
+    BEGIN  game  AGAIN ;
 
 $3FFE org
      boot ;;
@@ -195,13 +214,16 @@ forth-local-words:
     (("macro:") definition-starter (font-lock-keyword-face . 1)
      "[ \t\n]" t name (font-lock-function-name-face . 3))
     (("end-macro") definition-ender (font-lock-keyword-face . 1))
-    (("0<if") compile-only (font-lock-keyword-face . 2))
+    (("0<if" "-if" "cif" "-cif" "u<if" "-until" "cuntil" "-cuntil"
+     "-while" "cwhile" "-cwhile") compile-only (font-lock-keyword-face . 2))
     )
 forth-local-indent-words:
     (
         (("macro:") (0 . 2) (0 . 2) non-immediate)
         (("end-macro") (-2 . 0) (0 . -2))
-        (("0<if") (0 . 2) (0 . 2))
+        (("0<if" "-if" "cif" "-cif" "u<if") (0 . 2) (0 . 2))
+        (("-until" "cuntil" "-cuntil") (-2 . 0) (-2 . 0))
+        (("-while" "cwhile" "-cwhile") (-2 . 4) (0 . 2))
     )
 End:
 [THEN]
