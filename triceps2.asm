@@ -68,8 +68,8 @@ decimal
 | offset2 $-600 ,
 | offset3 $-500 ,
 
-| motor-min#  #17700 ,
-| motor-gain# #46000 ,
+| motor-min#  #18300 ,
+| motor-gain# #45000 ,
 
 $DDB3 Constant sqrt3/2
 
@@ -217,11 +217,11 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : moveto ( x y -- )  2dup destination !+ !  >moveto  >pos ;
 : movez ( z -- )  >movez  >pos ;
 
-: down     15 # movez ;
-: lift     35 # movez ;
-: release  35 # z # ! 10 # wait ;
+: down     #15 # movez ;
+: lift     #40 # movez ;
+: release  #40 # z # ! 10 # wait ;
 : pick   down lift ;
-: place  20 # wait  down release ;
+: place  #20 # wait  down release ;
 
 \ game play: positions
 
@@ -235,9 +235,9 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : reihe1 ( nr -- )
     reihe  #20 # + moveto ;
 : reihe2 ( nr -- )
-    reihe  >r #20  # + r> over >r dup r>  >xy + >r >xy - r> moveto ;
+    reihe  >r #15  # + r> over >r dup r>  >xy + >r >xy - r> moveto ;
 : reihe3 ( nr -- )
-    reihe  >r #-20 # + r> over >r dup r>  >xy - >r >xy + r> moveto ;
+    reihe  >r #-15 # + r> over >r dup r>  >xy - >r >xy + r> moveto ;
 
 | reihen ' reihe1 , ' reihe2 , ' reihe3 ,
 
@@ -291,9 +291,12 @@ macro: kugel-ablegen   ( n m -- )
     dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;
 
 : calibrate
-    0 # reihe1          250 # wait
-    0 # reihe2          250 # wait
-    0 # reihe3          250 # wait
+     0 # reihe1         250 # wait
+    10 # reihe1         250 # wait
+     0 # reihe2         250 # wait
+    10 # reihe2         250 # wait
+     0 # reihe3         250 # wait
+    10 # reihe3         250 # wait
     3 # 3 # spiel-feld  250 # wait
     15 # movez          250 # wait
     6 # 3 # spiel-feld  250 # wait
@@ -301,10 +304,10 @@ macro: kugel-ablegen   ( n m -- )
     3 # 0 # spiel-feld  250 # wait ;
 
 \ boot
-$2800 org
+
 : boot
     $00 # LED7 # !
-    0 # dup dup #35 # z #  !+ !+ !+ !
+    0 # dup dup #40 # z #  !+ !+ !+ !
     0 # deltaz # !
     init-port
     calibrate
