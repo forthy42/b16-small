@@ -58,6 +58,12 @@ macro: u<IF  com +c -cIF  end-macro
    over over -
    0<IF drop ELSE nip THEN ;
 
+: umax ( n1 n2 -- n1 | n2 )
+   2dup u<IF nip ELSE drop THEN ;
+
+: umin ( n1 n2 -- n1 | n2 )
+   2dup u<IF drop ELSE nip THEN ;
+
 macro: 1- 1 # - end-macro
 macro: 2- 2 # - end-macro
 

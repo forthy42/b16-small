@@ -40,10 +40,14 @@ $0000 org
 | angler | pos3 0 ,
 | br 0 ,
 
-\ tasker storage
+\ position tracking
 
-| save-stack 0 , 0 , 0 ,
-| wait-tick 0 ,
+| deltax 0 ,
+| deltay 0 ,
+| dist   0 ,
+| stepx  0 , | errx 0 ,
+| stepy  0 , | erry 0 ,
+| speed  0 ,
 
 $2000 org
 \ coordinate transforation constants
@@ -167,7 +171,7 @@ macro: faden² faden # @ dup mul end-macro
 \ wait loop
 
 : motor-step ( -- )
-    10 # after till  10 # after  do-motor  coord-calc  till
+    coord-calc  12 # after  till  8 # after  do-motor  till
     1 # LED7 # +! ;
 macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
@@ -177,11 +181,31 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : lift     20 # BEGIN   1 # z # +!  1 # wait  LOOP ;
 : release  20 # z # +! 10 # wait ;
 : pick   down lift ;
-: place  down release ;
+: place  10 # wait  down release ;
+
+: >moveto ( x y -- )  y # @ - deltay # !  x # @ - deltax # !
+    deltax # @ abs dup mul  deltay # @ abs dup mul d+ sqrt 2* 2* dist # !
+    0 # dup deltax # @ dist # @ sdiv drop stepx # !+ !
+    0 # dup deltay # @ dist # @ sdiv drop stepy # !+ !
+    1 # speed # ! ;
+: movestep ( -- )
+    stepx # @+ @. >r + x # @ stepx # @ 0< +c x # ! r> ! 
+    stepy # @+ @. >r + y # @ stepy # @ 0< +c y # ! r> !
+    -1 # dist # +! ;
+: movesteps ( -- )  speed # @ dist # @ u2/ u2/ umin
+    BEGIN  movestep dist # @ -IF  drop ;  THEN
+    LOOP  1 # speed # +! ;
+
+: moveto ( x y -- )  >moveto
+    BEGIN  movesteps 1 # wait  dist # @ -UNTIL ;
 
 \ game play: Tasker
 
-: game  BEGIN  pick 30 # wait  place  30 # wait  AGAIN ;
+: game  BEGIN  pick 30 # wait
+        0 # 40 # moveto
+        40 # 0 # moveto
+        0 # 0 # moveto
+        place  30 # wait  AGAIN ;
 
 \ boot
 
