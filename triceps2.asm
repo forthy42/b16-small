@@ -289,75 +289,57 @@ Label /spiele ( n m flg -- )
 
 \ game play: Tasker
 
+: 432einraeumen  ( n -- )
+    dup 4 # einraeumen  dup 3 # einraeumen  2 # einraeumen ;
+: 654einraeumen ( n -- )
+    dup 6 # einraeumen  dup 5 # einraeumen  4 # einraeumen ;
+: 210einraeumen ( n -- )
+    dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;
+: 6..0einraeumen  dup 654einraeumen  dup 3 # einraeumen 210einraeumen ;
+
 : game
-    BEGIN
-	&33 # freiablage !
-	6 # 4 # einraeumen
-	6 # 3 # einraeumen
-	6 # 2 # einraeumen
-	5 # 4 # einraeumen
-	5 # 3 # einraeumen
-	5 # 2 # einraeumen
-	4 # 6 # einraeumen
-	4 # 5 # einraeumen
-	4 # 4 # einraeumen
-	4 # 3 # einraeumen
-	4 # 2 # einraeumen
-	4 # 1 # einraeumen
-	4 # 0 # einraeumen
-	3 # 6 # einraeumen
-	3 # 5 # einraeumen
-	3 # 4 # einraeumen
-	3 # 2 # einraeumen
-	3 # 1 # einraeumen
-	3 # 0 # einraeumen
-	2 # 6 # einraeumen
-	2 # 5 # einraeumen
-	2 # 4 # einraeumen
-	2 # 3 # einraeumen
-	2 # 2 # einraeumen
-	2 # 1 # einraeumen
-	2 # 0 # einraeumen
-	1 # 4 # einraeumen
-	1 # 3 # einraeumen
-	1 # 2 # einraeumen
-	0 # 4 # einraeumen
-	0 # 3 # einraeumen
-	0 # 2 # einraeumen
-	
-	3 # 1 # 2 # spiele
-	1 # 2 # 3 # spiele
-	4 # 2 # 1 # spiele
-	6 # 2 # 1 # spiele
-	1 # 4 # 4 # spiele
-	3 # 4 # 1 # spiele
-	1 # 2 # 3 # spiele
-	3 # 2 # 3 # spiele
-	5 # 4 # 1 # spiele
-	2 # 0 # 2 # spiele
-	2 # 3 # 4 # spiele
-	6 # 4 # 4 # spiele
-	4 # 0 # 1 # spiele
-	4 # 6 # 4 # spiele
-	2 # 6 # 3 # spiele
-	4 # 3 # 2 # spiele
-	2 # 0 # 2 # spiele
-	0 # 4 # 3 # spiele
-	3 # 4 # 1 # spiele
-	6 # 2 # 1 # spiele
-	4 # 1 # 2 # spiele
-	0 # 2 # 2 # spiele
-	0 # 4 # 3 # spiele
-	4 # 6 # 4 # spiele
-	2 # 5 # 4 # spiele
-	4 # 3 # 2 # spiele
-	2 # 2 # 2 # spiele
-	4 # 5 # 1 # spiele
-	2 # 5 # 4 # spiele
-	2 # 3 # 3 # spiele
-	5 # 3 # 1 # spiele
-	3 # 3 # kugel-wegnehmen kugel-entfernen .stand
-	#1000 # wait  AGAIN
+    &33 # freiablage !
+    6 # 432einraeumen
+    5 # 432einraeumen
+    4 # 6..0einraeumen
+    3 # 654einraeumen  3 # 210einraeumen
+    2 # 6..0einraeumen
+    1 # 432einraeumen
+    0 # 432einraeumen
+    
+    3 # 1 # 2 # spiele
+    1 # 2 # 3 # spiele
+    4 # 2 # 1 # spiele
+    6 # 2 # 1 # spiele
+    1 # 4 # 4 # spiele
+    3 # 4 # 1 # spiele
+    1 # 2 # 3 # spiele
+    3 # 2 # 3 # spiele
+    5 # 4 # 1 # spiele
+    2 # 0 # 2 # spiele
+    2 # 3 # 4 # spiele
+    6 # 4 # 4 # spiele
+    4 # 0 # 1 # spiele
+    4 # 6 # 4 # spiele
+    2 # 6 # 3 # spiele
+    4 # 3 # 2 # spiele
+    2 # 0 # 2 # spiele
+    0 # 4 # 3 # spiele
+    3 # 4 # 1 # spiele
+    6 # 2 # 1 # spiele
+    4 # 1 # 2 # spiele
+    0 # 2 # 2 # spiele
+    0 # 4 # 3 # spiele
+    4 # 6 # 4 # spiele
+    2 # 5 # 4 # spiele
+    4 # 3 # 2 # spiele
+    2 # 2 # 2 # spiele
+    4 # 5 # 1 # spiele
+    2 # 5 # 4 # spiele
+    2 # 3 # 3 # spiele
+    5 # 3 # 1 # spiele
+    3 # 3 # kugel-wegnehmen kugel-entfernen .stand
+    #1000 # wait ;
 
 \ boot
 
