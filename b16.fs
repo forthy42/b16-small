@@ -405,10 +405,10 @@ $800 Value rom-end
 : ;; inst, ;
 : macro: : ;
 : end-macro postpone ; ; immediate
-: : Create  inst, hier , DOES> @ inst, 1 jmp, ;
-: | Create  inst, hier , DOES> @ ;
-: |# Create  inst, hier , DOES> @ # ;
-: Label Create  inst, hier , DOES> @ [ b16-asm ] # [ forth ] ;
+: : Create  inst, hier , .slot#2 DOES> @ inst, 1 jmp, ;
+: | Create  inst, hier , .slot#2 DOES> @ ;
+: |# Create  inst, hier , .slot#2 DOES> @ [ b16-asm ] # [ forth ] ;
+: Label Create  inst, hier , .slot#2 DOES> @ [ b16-asm ] # [ forth ] ;
 : ' ' >body @ ;
 
 $00 inst nop

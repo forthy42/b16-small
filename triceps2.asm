@@ -53,11 +53,13 @@ $0000 org
 
 | freiablage &0 ,
 
+|# destination 0 , 0 ,
+
 $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #325 ,        \ center to arm
+| distance #335 ,        \ center to arm
 | arm      #200 ,        \ 20cm arm length
 | height   #140 ,        \ 14cm height
 | faden    #400 ,        \ 31cm string length
@@ -66,8 +68,8 @@ decimal
 | offset2 $-600 ,
 | offset3 $-500 ,
 
-| motor-min#  #16800 ,
-| motor-gain# #48000 ,
+| motor-min#  #17700 ,
+| motor-gain# #46000 ,
 
 $DDB3 Constant sqrt3/2
 
@@ -185,8 +187,8 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
     BEGIN  motor-step  LOOP ;
 
-16 Constant speedlimit#
-: >movez ( z -- )  z # @ - dup deltaz # !  abs 2* 2* dist # !
+32 Constant speedlimit#
+: >movez ( z -- )  z # @ - dup deltaz # !  abs 2* 2* 2* dist # !
     0 # dup stepx # !+ !
     0 # dup stepy # !+ !
     0 # dup deltaz # @ dist # @ sdiv drop stepz # !+ !
@@ -195,15 +197,15 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
     y # @ - deltay # !  x # @ - deltax # !
     deltax # @ abs 2* dup mul
     deltay # @ abs 2* dup mul d+
-    sqrt dist # !
+    sqrt 2* dup -IF  drop 1 #  THEN  dist # ! \ avoid zero delta
     0 # dup deltax # @ dist # @ sdiv drop stepx # !+ !
     0 # dup deltay # @ dist # @ sdiv drop stepy # !+ !
     0 # dup stepz # !+ !
     0 # speed # ! ;
 : movestep ( -- )
-    stepx # @+ @. >r + x # @ stepx # @ 0< +c x # ! r> ! 
-    stepy # @+ @. >r + y # @ stepy # @ 0< +c y # ! r> !
-    stepz # @+ @. >r + z # @ stepz # @ 0< +c z # ! r> !
+    stepx # @+ @. >r >r dup 0< r> x # @ d+ x # ! r> ! 
+    stepy # @+ @. >r >r dup 0< r> y # @ d+ y # ! r> !
+    stepz # @+ @. >r >r dup 0< r> z # @ d+ z # ! r> !
     dist # @. >r -1 # + dup 0<IF  drop 0 #  THEN  r> ! ;
 : movesteps ( -- )
     speed # @ dist # @ umin  u2/ u2/
@@ -212,7 +214,7 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
     LOOP ;
 
 : >pos    BEGIN  movesteps motor-step  dist # @ -UNTIL ;
-: moveto ( x y -- )  >moveto  >pos ;
+: moveto ( x y -- )  2dup destination !+ !  >moveto  >pos ;
 : movez ( z -- )  >movez  >pos ;
 
 : down     15 # movez ;
@@ -228,11 +230,14 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 
 : reihe ( nr -- x y )
     dup >r #10 # mul drop #-50 # +
-    #-95 # r> 1 # and IF  #-20 # +  THEN ;
+    #-115 # r> 1 # and IF  #-20 # +  THEN ;
 
-: reihe1 ( nr -- )  reihe                                    moveto ;
-: reihe2 ( nr -- )  reihe  over >r dup r>  >xy + >r >xy - r> moveto ;
-: reihe3 ( nr -- )  reihe  over >r dup r>  >xy - >r >xy + r> moveto ;
+: reihe1 ( nr -- )
+    reihe  #20 # + moveto ;
+: reihe2 ( nr -- )
+    reihe  >r #20  # + r> over >r dup r>  >xy + >r >xy - r> moveto ;
+: reihe3 ( nr -- )
+    reihe  >r #-20 # + r> over >r dup r>  >xy - >r >xy + r> moveto ;
 
 | reihen ' reihe1 , ' reihe2 , ' reihe3 ,
 
@@ -285,7 +290,25 @@ macro: kugel-ablegen   ( n m -- )
 : 210einraeumen ( n -- )
     dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;
 
-: game
+: calibrate
+    0 # reihe1          250 # wait
+    0 # reihe2          250 # wait
+    0 # reihe3          250 # wait
+    3 # 3 # spiel-feld  250 # wait
+    15 # movez          250 # wait
+    6 # 3 # spiel-feld  250 # wait
+    3 # 6 # spiel-feld  250 # wait
+    3 # 0 # spiel-feld  250 # wait ;
+
+\ boot
+$2800 org
+: boot
+    $00 # LED7 # !
+    0 # dup dup #35 # z #  !+ !+ !+ !
+    0 # deltaz # !
+    init-port
+    calibrate
+    BEGIN
     &33 # freiablage # !
                            6 # 432einraeumen
                            5 # 432einraeumen
@@ -327,16 +350,8 @@ macro: kugel-ablegen   ( n m -- )
     2 # 3 # spiele3
     5 # 3 # spiele1
     3 # 3 # kugel-wegnehmen kugel-entfernen
-    #1000 # wait ;
-
-\ boot
-
-: boot
-    $00 # LED7 # !
-    0 # dup dup #35 # z #  !+ !+ !+ !
-    0 # deltaz # !
-    init-port
-    BEGIN  game  AGAIN ;
+    #1000 # wait
+    AGAIN ;
 
 $3FFE org
      boot ;;
