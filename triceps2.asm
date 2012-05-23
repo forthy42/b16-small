@@ -54,6 +54,7 @@ $0000 org
 | freiablage &0 ,
 
 |# destination 0 , 0 ,
+|# tremor 0 ,
 
 $2000 org
 \ coordinate transforation constants
@@ -80,8 +81,8 @@ include b16-db.fs   \ RAM Debugging Interface
 include b16-sqrt.fs
 
 : init-port
-   $0000 # GPIO02  # !
-   $1111 # GPIO02T # ! ;
+    TIMERVAL0 # @+ @  swap TVAL0 # !+ !
+    $0000 # GPIO02  # !  $1111 # GPIO02T # ! ;
 
 GPIO02 Value port
 
@@ -99,6 +100,7 @@ GPIO02 Value port
 \ #37750 Constant motor-gain#
 
 : ausschlag ( 0-ffff -- dtime )
+    tremor @ IF  $-40 # ELSE $40 # THEN +
     motor-gain# # @ mul nip
     motor-min#  # @ + dup + 0 # dup +c  tick-after ;
 
@@ -117,7 +119,8 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 : do-motor
     motor1 pos1 # @ offset1 # @ + ausschlag till -motor
     motor2 pos2 # @ offset2 # @ + ausschlag till -motor
-    motor3 pos3 # @ offset3 # @ + ausschlag till -motor ;
+    motor3 pos3 # @ offset3 # @ + ausschlag till -motor
+    tremor @ com tremor ! ;
 
 \ arccos computation
 \ input scaling is -1..1 is -$8000..$7FFF
@@ -182,12 +185,12 @@ macro: faden² faden # @ dup mul end-macro
 
 : motor-step ( -- )
     coord-calc  12 # after  till  8 # after  do-motor  till
-    1 # LED7 # +! ;
+    ( 1 # LED7 # +! ) ;
 macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
     BEGIN  motor-step  LOOP ;
 
-32 Constant speedlimit#
+24 Constant speedlimit#
 : >movez ( z -- )  z # @ - dup deltaz # !  abs 2* 2* 2* dist # !
     0 # dup stepx # !+ !
     0 # dup stepy # !+ !
@@ -298,62 +301,64 @@ macro: kugel-ablegen   ( n m -- )
      0 # reihe3         250 # wait
     10 # reihe3         250 # wait
     3 # 3 # spiel-feld  250 # wait
-    15 # movez          250 # wait
+    down                250 # wait
     6 # 3 # spiel-feld  250 # wait
     3 # 6 # spiel-feld  250 # wait
-    3 # 0 # spiel-feld  250 # wait ;
+    3 # 0 # spiel-feld  250 # wait
+    lift                250 # wait ;
 
 \ boot
 
 : boot
     $00 # LED7 # !
     0 # dup dup #40 # z #  !+ !+ !+ !
-    0 # deltaz # !
+    0 # deltaz # !  0 # tremor !
     init-port
     calibrate
     BEGIN
-    &33 # freiablage # !
-                           6 # 432einraeumen
-                           5 # 432einraeumen
-    4 # 654einraeumen  dup 3 # einraeumen  210einraeumen
-    3 # 654einraeumen                      210einraeumen
-    2 # 654einraeumen  dup 3 # einraeumen  210einraeumen
-                           1 # 432einraeumen
+        &33 # freiablage # !
                            0 # 432einraeumen
-    
-    3 # 1 # spiele2
-    1 # 2 # spiele3
-    4 # 2 # spiele1
-    6 # 2 # spiele1
-    1 # 4 # spiele4
-    3 # 4 # spiele1
-    1 # 2 # spiele3
-    3 # 2 # spiele3
-    5 # 4 # spiele1
-    2 # 0 # spiele2
-    2 # 3 # spiele4
-    6 # 4 # spiele4
-    4 # 0 # spiele1
-    4 # 6 # spiele4
-    2 # 6 # spiele3
-    4 # 3 # spiele2
-    2 # 0 # spiele2
-    0 # 4 # spiele3
-    3 # 4 # spiele1
-    6 # 2 # spiele1
-    4 # 1 # spiele2
-    0 # 2 # spiele2
-    0 # 4 # spiele3
-    4 # 6 # spiele4
-    2 # 5 # spiele4
-    4 # 3 # spiele2
-    2 # 2 # spiele2
-    4 # 5 # spiele1
-    2 # 5 # spiele4
-    2 # 3 # spiele3
-    5 # 3 # spiele1
-    3 # 3 # kugel-wegnehmen kugel-entfernen
-    #1000 # wait
+                           1 # 432einraeumen
+    2 # 654einraeumen  dup 3 # einraeumen  210einraeumen
+    3 # 654einraeumen                      210einraeumen
+    4 # 654einraeumen  dup 3 # einraeumen  210einraeumen
+                           5 # 432einraeumen
+                           6 # 432einraeumen
+        
+        3 # 1 # spiele2
+        1 # 2 # spiele3
+        4 # 2 # spiele1
+        6 # 2 # spiele1
+        1 # 4 # spiele4
+        3 # 4 # spiele1
+        1 # 2 # spiele3
+        3 # 2 # spiele3
+        5 # 4 # spiele1
+        2 # 0 # spiele2
+        2 # 3 # spiele4
+        6 # 4 # spiele4
+        4 # 0 # spiele1
+        4 # 6 # spiele4
+        2 # 6 # spiele3
+        4 # 3 # spiele2
+        2 # 0 # spiele2
+        0 # 4 # spiele3
+        3 # 4 # spiele1
+        6 # 2 # spiele1
+        4 # 1 # spiele2
+        0 # 2 # spiele2
+        0 # 4 # spiele3
+        4 # 6 # spiele4
+        2 # 5 # spiele4
+        4 # 3 # spiele2
+        2 # 2 # spiele2
+        4 # 5 # spiele1
+        2 # 5 # spiele4
+        2 # 3 # spiele3
+        5 # 3 # spiele1
+        3 # 3 # kugel-wegnehmen kugel-entfernen
+        3 # 3 # spiel-feld
+        #1000 # wait
     AGAIN ;
 
 $3FFE org
