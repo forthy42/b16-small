@@ -288,7 +288,7 @@ macro: kugel-ablegen   ( n m -- )
 
 : 432einraeumen  ( n -- )
     dup 4 # einraeumen  dup 3 # einraeumen  2 # einraeumen ;
-: 654einraeumen ( n -- n )
+: 654einraeumen ( n -- )
     dup 6 # einraeumen  dup 5 # einraeumen  dup  4 # einraeumen ;
 : 210einraeumen ( n -- )
     dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;

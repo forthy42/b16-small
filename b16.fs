@@ -523,7 +523,7 @@ b16-asm also Forth
 : asm-included ( addr u -- )
     s" " listing $! float also f-init b16-asm definitions included previous forth definitions ;
 
-previous previous Forth
+previous Forth
 \ asm-load boot.asm
 
 [IFDEF] b16-debug
