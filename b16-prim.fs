@@ -103,6 +103,9 @@ macro: under swap over end-macro
 : usmul ( u1 s2 -- d )  \ unsigned by signed mul
     dup 0<IF  over >r  ELSE  0 # >r  THEN
     mul r> - ;
+: sumul ( s1 u2 -- d )  \ signed by unsigned mul
+    over 0<IF  dup >r  ELSE  0 # >r  THEN
+    mul r> - ;
 
 : sdiv ( d udiv -- quot umod )
     over 0<IF  dup >r + r>  THEN

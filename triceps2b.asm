@@ -60,10 +60,10 @@ $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #335 ,        \ center to arm
+| distance #335 ,        \ 33.5cm center to arm
 | arm      #200 ,        \ 20cm arm length
 | height   #140 ,        \ 14cm height
-| faden    #400 ,        \ 31cm string length
+| faden    #400 ,        \ 40cm string length
 
 | offset1 $-200 ,
 | offset2 $-600 ,
@@ -229,24 +229,18 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 \ game play: positions
 
 : spiel-feld ( x-nr y-nr -- )
-    #20 # mul drop #-60 # + >r #20 # mul drop #-60 # + r>  moveto ;
+    #20 # sumul drop #-60 # + >r #20 # sumul drop #-60 # + r>  moveto ;
 
-: reihe ( nr -- x y )
-    dup >r #10 # mul drop #-50 # +
-    #-115 # r> 1 # and IF  #-20 # +  THEN ;
+: reihe1 ( nr -- )  -1 # +   -1 #    spiel-feld ;
+: reihe2 ( nr -- )  -1 # + >r 7 # r> spiel-feld ;
+: reihe3 ( nr -- )  com 8 # + 7 #    spiel-feld ;
+: reihe4 ( nr -- )  com 8 # + >r -1 # r> spiel-feld ;
 
-: reihe1 ( nr -- )
-    reihe  #20 # + moveto ;
-: reihe2 ( nr -- )
-    reihe  >r #15  # + r> over >r dup r>  >xy + >r >xy - r> moveto ;
-: reihe3 ( nr -- )
-    reihe  >r #-15 # + r> over >r dup r>  >xy - >r >xy + r> moveto ;
+| reihen ' reihe1 , ' reihe2 , ' reihe3 , ' reihe4 ,
 
-| reihen ' reihe1 , ' reihe2 , ' reihe3 ,
+: ablage ( nr -- )  0 # #8 # div swap cells reihen # + @ goto ;
 
-: ablage ( nr -- )  0 # #11 # div swap cells reihen # + @ goto ;
-
-: .stand &33 # freiablage # @ - 0 # 
+: .stand &32 # freiablage # @ - 0 # 
     &10 # div swap 2* 2* 2* 2* + LED7 # ! ;
 
 macro: kugel-wegnehmen ( n m -- )
@@ -294,12 +288,11 @@ macro: kugel-ablegen   ( n m -- )
     dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;
 
 : calibrate
+    3 # 3 # spiel-feld  250 # wait
      0 # reihe1         250 # wait
-    10 # reihe1         250 # wait
      0 # reihe2         250 # wait
-    10 # reihe2         250 # wait
      0 # reihe3         250 # wait
-    10 # reihe3         250 # wait
+     0 # reihe4         250 # wait
     3 # 3 # spiel-feld  250 # wait
     down                250 # wait
     6 # 3 # spiel-feld  250 # wait
@@ -308,7 +301,7 @@ macro: kugel-ablegen   ( n m -- )
     lift                250 # wait ;
 
 \ boot
-
+$2800 org
 : boot
     $00 # LED7 # !
     0 # dup dup #40 # z #  !+ !+ !+ !
@@ -316,7 +309,7 @@ macro: kugel-ablegen   ( n m -- )
     init-port
     calibrate
     BEGIN
-        &33 # freiablage # !
+        &32 # freiablage # !
                            0 # 432einraeumen
                            1 # 432einraeumen
     2 # 654einraeumen  dup 3 # einraeumen  210einraeumen
