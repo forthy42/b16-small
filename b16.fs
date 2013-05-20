@@ -327,30 +327,30 @@ b16-asm
 : ELSE  AHEAD  2swap  THEN ;
 : sELSE  sAHEAD  2swap  THEN ;
 Forth
-0 Value fd
+0 Value b16-fd
 0 Value rom-start
 $800 Value rom-end
-: new-fd ( addr u -- ) r/w create-file throw to fd ;
+: new-fd ( addr u -- ) r/w create-file throw to b16-fd ;
 : .mif-head ( addr u -- ) new-fd
-    s" WIDTH = 8;" fd write-line throw
-    s" DEPTH = 512;" fd write-line throw
-    s" ADDRESS_RADIX = HEX;" fd write-line throw
-    s" DATA_RADIX = HEX;" fd write-line throw
-    s" CONTENT BEGIN" fd write-line throw ;
+    s" WIDTH = 8;" b16-fd write-line throw
+    s" DEPTH = 512;" b16-fd write-line throw
+    s" ADDRESS_RADIX = HEX;" b16-fd write-line throw
+    s" DATA_RADIX = HEX;" b16-fd write-line throw
+    s" CONTENT BEGIN" b16-fd write-line throw ;
 : .mif-head16 ( addr u -- ) new-fd
-    s" WIDTH = 16;" fd write-line throw
-    s" DEPTH = 512;" fd write-line throw
-    s" ADDRESS_RADIX = HEX;" fd write-line throw
-    s" DATA_RADIX = HEX;" fd write-line throw
-    s" CONTENT BEGIN" fd write-line throw ;
-: .mif-tail ( -- )  s" END;" fd write-line throw
-    fd close-file throw ;
-: .mif-dump ( val addr -- ) s"         " fd write-file throw
-    0 <# #S #> fd write-file throw s"  : " fd write-file throw
-    0 <# # # #> fd write-file throw s" ;" fd write-line throw ;
-: .mif16-dump ( val addr -- ) s"         " fd write-file throw
-    0 <# #S #> fd write-file throw s"  : " fd write-file throw
-    0 <# # # # # #> fd write-file throw s" ;" fd write-line throw ;
+    s" WIDTH = 16;" b16-fd write-line throw
+    s" DEPTH = 512;" b16-fd write-line throw
+    s" ADDRESS_RADIX = HEX;" b16-fd write-line throw
+    s" DATA_RADIX = HEX;" b16-fd write-line throw
+    s" CONTENT BEGIN" b16-fd write-line throw ;
+: .mif-tail ( -- )  s" END;" b16-fd write-line throw
+    b16-fd close-file throw ;
+: .mif-dump ( val addr -- ) s"         " b16-fd write-file throw
+    0 <# #S #> b16-fd write-file throw s"  : " b16-fd write-file throw
+    0 <# # # #> b16-fd write-file throw s" ;" b16-fd write-line throw ;
+: .mif16-dump ( val addr -- ) s"         " b16-fd write-file throw
+    0 <# #S #> b16-fd write-file throw s"  : " b16-fd write-file throw
+    0 <# # # # # #> b16-fd write-file throw s" ;" b16-fd write-line throw ;
 : .mif ( "file" -- )  hex inst,
     parse-name .mif-head16
     rom-end rom-start ?DO I ram@ I rom-start - 2/ .mif16-dump 2 +LOOP
@@ -359,48 +359,48 @@ $800 Value rom-end
     parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # # # 2drop bl hold # # # # '@ hold #>
-	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw 2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hexl ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # 2drop bl hold # # # # '@ hold #>
-	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw 2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hexh ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 8 rshift 0 # # 2drop bl hold # # # # '@ hold #>
-	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw 2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hexb ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over -    0 <# I ram@ 8 rshift 0 # # 2drop bl hold # # # # '@ hold #>
-	fd write-line throw
+	b16-fd write-line throw
 	I over - 1+ 0 <# I ram@          0 # # 2drop bl hold # # # # '@ hold #>
-	fd write-line throw
-    2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw
+    2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hex' ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # # # 2drop #>
-	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw 2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hexl' ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 0 # # 2drop #>
-	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw 2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hexh' ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over - 2/ 0 <# I ram@ 8 rshift 0 # # 2drop #>
-	fd write-line throw 2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw 2 +LOOP b16-fd close-file throw  drop decimal ;
 : .hexb' ( start n "file" -- ) over swap hex
     parse-name new-fd
     bounds ?DO
 	I over -    0 <# I ram@ 8 rshift 0 # # 2drop #>
-	fd write-line throw
+	b16-fd write-line throw
 	I over - 1+ 0 <# I ram@          0 # # 2drop #>
-	fd write-line throw
-    2 +LOOP fd close-file throw  drop decimal ;
+	b16-fd write-line throw
+    2 +LOOP b16-fd close-file throw  drop decimal ;
 : .end inst, ;
 : ;; inst, ;
 : macro: : ;
@@ -429,8 +429,6 @@ previous previous definitions
 
 \ communication program
 
-s" bigforth" environment? [IF]  2drop
-  
 include b16-serial.fs
 include regmap.fs
 
@@ -478,7 +476,7 @@ Variable spi-addr
 
 16 Constant stack-depth
 Create regs  5 2* allot
-here stack-depth 4* allot
+here stack-depth 2* 2* allot
 Constant stack
 
 also forth
@@ -487,15 +485,15 @@ also forth
   DBG_P regs 4 dbg@s
   DBG_STATE dbg@ regs 8 + w!
   0 DBG_I dbg! \ set instruction register to 0 to read stacks
-  stack stack-depth 4* bounds DO  DBG_S[] I 2 dbg@s  4 +LOOP
+  stack stack-depth 2* 2* bounds DO  DBG_S[] I 2 dbg@s  4 +LOOP
   regs 6 + w@ DBG_I dbg! ;
 
 : .regs ( -- ) base @ >r hex
     ." P: " regs w@ 4 0.r ."  I: " regs 6 + w@ 4 0.r ."  S: " regs 8 + w@ 4 0.r cr
     ." T: " regs 2 + w@ 4 0.r
-    stack stack-depth 4* bounds DO  I w@ space 4 0.r 4 +LOOP cr
+    stack stack-depth 2* 2* bounds DO  I w@ space 4 0.r 4 +LOOP cr
     ." R: " regs 4 + w@ 4 0.r
-    stack 2+ stack-depth 4* bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
+    stack 2 + stack-depth 2* 2* bounds DO  I w@ space 4 0.r 4 +LOOP cr r> base ! ;
 
 : exec ( addr -- )  drop ( tbd ) ;
 
@@ -510,9 +508,6 @@ previous b16-asm also Forth
     hier >r prog r@ P ! 0 rp ! 4 slot ! ['] run catch drop r> org ;
 
 Forth
-[ELSE]
-b16-asm also Forth
-[THEN]
 
 [IFUNDEF] f+ import float also float
 [ELSE] : f-init ; [THEN]

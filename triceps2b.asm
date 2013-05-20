@@ -55,6 +55,7 @@ $0000 org
 
 |# destination 0 , 0 ,
 |# tremor 0 ,
+|# extra-cmd 0 ,
 
 $2000 org
 \ coordinate transforation constants
@@ -100,7 +101,7 @@ GPIO02 Value port
 \ #37750 Constant motor-gain#
 
 : ausschlag ( 0-ffff -- dtime )
-    tremor @ IF  $-40 # ELSE $40 # THEN +
+    tremor @ +
     motor-gain# # @ mul nip
     motor-min#  # @ + dup + 0 # dup +c  tick-after ;
 
@@ -300,14 +301,22 @@ macro: kugel-ablegen   ( n m -- )
     3 # 0 # spiel-feld  250 # wait
     lift                250 # wait ;
 
+\ extra commands for playing Go
+: wait-extra ( -- )
+    BEGIN  extra-cmd @ UNTIL ;
+: do-extras ( -- )
+    BEGIN  wait-extra  extra-cmd @ exec   0 # extra-cmd !  AGAIN ;
+
 \ boot
-$2800 org
+
+\ $2800 org
 : boot
     $00 # LED7 # !
     0 # dup dup #40 # z #  !+ !+ !+ !
-    0 # deltaz # !  0 # tremor !
+    0 # deltaz # !  0 # tremor !  0 # extra-cmd !
     init-port
     calibrate
+    extra-cmd @ IF  do-extras  THEN
     BEGIN
         &32 # freiablage # !
                            0 # 432einraeumen
@@ -353,6 +362,7 @@ $2800 org
         3 # 3 # spiel-feld
         #1000 # wait
     AGAIN ;
+| scratch
 
 $3FFE org
      boot ;;
