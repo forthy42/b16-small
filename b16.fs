@@ -42,6 +42,8 @@ $10000 allocate throw Value RAM  RAM $10000 erase
 
 \ Stack access
 
+Vocabulary b16-sim  also b16-sim definitions also Forth
+
 : T ( -- n )  sp @ 1+ cells sp + @ ;
 : N ( -- n )  sp @    cells sp + @ ;
 : R ( -- n )  rp @ 1+ cells rp + @ ;
@@ -54,8 +56,6 @@ $10000 allocate throw Value RAM  RAM $10000 erase
 : rpush ( n -- ) 1 rp +! ?rp !R ;
 
 \ Jumps
-
-Vocabulary b16-sim  also b16-sim definitions also Forth
 
 : nop   ;
 : (jmp)   slot @ 4 = IF  pop P ! EXIT  THEN
