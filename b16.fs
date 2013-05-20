@@ -501,7 +501,7 @@ previous b16-asm also Forth
 
 : prog ( >defs -- )  also b16-asm interpret previous inst, ;
 : comp ( >defs -- )
-    hier >r prog r@ RAM + hier r@ - r> dbg!s ;
+    hier >r prog r@ hier r@ - r> dbg-ram!s ;
 : eval ( >defs -- )
     hier >r comp r@ exec r> org &20 wait ?in ;
 : sim  ( >defs -- )

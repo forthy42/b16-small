@@ -124,10 +124,17 @@ Variable addr' -1 addr' !
 
 : dbg!s ( addr u dest-addr -- )
     do-serial 0= IF
-	2* bounds ?DO  I w@ over dbg! 2 +  2 +LOOP  drop
+	bounds ?DO  I w@ over dbg! 2 +  2 +LOOP  drop
 	EXIT  THEN
     ?open addr
     tuck bounds ?DO  I w@ addr' @ dbg!  2 +LOOP ;
+
+: dbg-ram!s ( addr u dest-addr -- )
+    do-serial 0= IF
+	bounds ?DO  I ram@ over dbg! 2 +  2 +LOOP  drop
+	EXIT  THEN
+    ?open addr
+    tuck bounds ?DO  I ram@ addr' @ dbg!  2 +LOOP ;
 
 : >dbgc ( u addr -- )  dup 1 and >r -2 and dup dbg> rot
     r> IF  $FF and swap $FF00 and or swap >dbg

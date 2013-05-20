@@ -58,6 +58,7 @@ macro: u<IF  com +c -cIF  end-macro
    over over -
    0<IF drop ELSE nip THEN ;
 
+macro: 2dup over over end-macro
 : umax ( n1 n2 -- n1 | n2 )
    2dup u<IF nip ELSE drop THEN ;
 
@@ -86,7 +87,6 @@ macro: 2* ( n1 -- 2*n1 )  dup + end-macro
 
 macro: d2* ( d -- 2*d )   over over d+ end-macro
 
-macro: 2dup over over end-macro
 macro: under swap over end-macro
 
 : u2/ >r $0000 # *+ drop r> $7FFF # and ;

@@ -306,6 +306,7 @@ macro: kugel-ablegen   ( n m -- )
     BEGIN  extra-cmd @ UNTIL ;
 : do-extras ( -- )
     BEGIN  wait-extra  extra-cmd @ exec   0 # extra-cmd !  AGAIN ;
+: start-extras ( -- ) ;
 
 \ boot
 
@@ -362,7 +363,7 @@ macro: kugel-ablegen   ( n m -- )
         3 # 3 # spiel-feld
         #1000 # wait
     AGAIN ;
-| scratch
+| scratchbuf
 
 $3FFE org
      boot ;;
