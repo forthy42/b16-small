@@ -51,27 +51,30 @@ $0000 org
 | stepz  0 , | errz 0 ,
 | speed  0 ,
 
-| freiablage &0 ,
+| freiablage 0 ,
 
 |# destination 0 , 0 ,
 |# tremor 0 ,
 |# extra-cmd 0 ,
+|# z-off 0 ,
+
+|# freiablage2 0 ,
 
 $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #335 ,        \ 33.5cm center to arm
-| arm      #200 ,        \ 20cm arm length
-| height   #140 ,        \ 14cm height
-| faden    #400 ,        \ 40cm string length
+| distance #335 ,        \ 34.5cm center to arm
+| arm      #193 ,        \ 20cm arm length
+| height   #157 ,        \ 14cm height
+| faden    #405 ,        \ 40cm string length
 
-| offset1 $-200 ,
-| offset2 $-600 ,
-| offset3 $-500 ,
+| offset1 $500 ,
+| offset2 $200 ,
+| offset3 $000 ,
 
 | motor-min#  #18300 ,
-| motor-gain# #45000 ,
+| motor-gain# #45500 ,
 
 $DDB3 Constant sqrt3/2
 
@@ -118,9 +121,9 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 : motor3  $0100 # port # ! ;
 
 : do-motor
-    motor1 pos1 # @ offset1 # @ + ausschlag till -motor
-    motor2 pos2 # @ offset2 # @ + ausschlag till -motor
-    motor3 pos3 # @ offset3 # @ + ausschlag till -motor
+    motor1  pos1 # @ offset1 # @ + ausschlag till -motor
+    motor2  pos2 # @ offset2 # @ + ausschlag till -motor
+    motor3  pos3 # @ offset3 # @ + ausschlag till -motor
     tremor @ com tremor ! ;
 
 \ arccos computation
@@ -191,7 +194,7 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
     BEGIN  motor-step  LOOP ;
 
-24 Constant speedlimit#
+60 Constant speedlimit#
 : >movez ( z -- )  z # @ - dup deltaz # !  abs 2* 2* 2* dist # !
     0 # dup stepx # !+ !
     0 # dup stepy # !+ !
@@ -212,20 +215,22 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
     stepz # @+ @. >r >r dup 0< r> z # @ d+ z # ! r> !
     dist # @. >r -1 # + dup 0<IF  drop 0 #  THEN  r> ! ;
 : movesteps ( -- )
-    speed # @ dist # @ umin  u2/ u2/
+    speed # @ dist # @ umin  u2/ \ u2/
     speedlimit# # umin u2/ u2/ 1 # +
-    BEGIN  movestep  1 # speed # +!  dist # @ -IF  drop ;  THEN
+    BEGIN  movestep  2 # speed # +!  dist # @ -IF  drop ;  THEN
     LOOP ;
 
 : >pos    BEGIN  movesteps motor-step  dist # @ -UNTIL ;
 : moveto ( x y -- )  2dup destination !+ !  >moveto  >pos ;
-: movez ( z -- )  >movez  >pos ;
+: movez ( z -- )  z-off @ + >movez  >pos ;
 
-: down     #15 # movez ;
-: lift     #40 # movez ;
-: release  #40 # z # ! 10 # wait ;
-: pick   down lift ;
-: place  #20 # wait  down release ;
+: z! ( n -- )  z-off @ + z # ! ;
+: down     #30 # movez #20 # z! 50 # wait #10 # z! 10 # wait ;
+: lift     #45 # movez ;
+: downr     #5 # movez ;
+: release  #45 # z! 10 # wait ;
+: pick   #30 # wait  down lift ;
+: place  #30 # wait  downr release ;
 
 \ game play: positions
 
@@ -241,8 +246,68 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 
 : ablage ( nr -- )  0 # #8 # div swap cells reihen # + @ goto ;
 
-: .stand &32 # freiablage # @ - 0 # 
-    &10 # div swap 2* 2* 2* 2* + LED7 # ! ;
+|# raumablage-xyz
+0 , 26 , 0 ,
+-13 , 26 , 0 ,
+-26 , 26 , 0 ,
+-26 , 13 , 0 ,
+-13 , 13 , 0 ,
+
+0 , 13 , 0 ,
+13 , 13 , 0 ,
+26 , 13 , 0 ,
+26 , 26 , 0 ,
+13 , 26 , 0 ,
+
+0 , 0 , 0 ,
+-13 , 0 , 0 ,
+-26 , 0 , 0 ,
+-26 , -12 , 0 ,
+-13 , -12 , 0 ,
+
+0 , -12 , 0 ,
+13 , -12 , 0 ,
+26 , -12 , 0 ,
+26 , 0 , 0 ,
+13 , 0 , 0 ,
+
+20 , 20 , 9 ,
+7 , 20 , 9 ,
+-6 , 20 , 9 ,
+-19 , 20 , 9 ,
+
+-19 , 6 , 9 ,
+-6 , 6 , 9 ,
+7 , 6 , 9 ,
+20 , 6 , 9 ,
+
+20 , -6 , 9 ,
+7 , -6 , 9 ,
+-6 , -6 , 9 ,
+-19 , -6 , 9 ,
+
+0 , 13 , 18 ,
+13 , 13 , 18 ,
+13 , 0 , 18 ,
+
+0 , 0 , 18 ,
+-13 , 0 , 18 ,
+-13 , 13 , 18 ,
+
+7 , 6 , 27 ,
+-6 , 6 , 27 ,
+
+: kugelstapel ( n -- x y z )
+    2* dup 2* + raumablage-xyz + @+ @+ @ ;
+: stapel1 ( n -- x y )
+    kugelstapel z-off !
+    -#139 # + >r #40 # + r> moveto ;
+: stapel2 ( n -- x y )
+    kugelstapel z-off !
+    -#139 # + >r -#40 # + r> moveto ;
+
+: .stand #40 # freiablage # @ - 0 # 
+    #10 # div swap 2* 2* 2* 2* + LED7 # ! ;
 
 macro: kugel-wegnehmen ( n m -- )
    spiel-feld pick end-macro
@@ -251,10 +316,14 @@ macro: kugel-ablegen   ( n m -- )
    spiel-feld place end-macro
 
 : kugel-entfernen
-   freiablage # @ ablage place  1 # freiablage # +!  .stand ;
+   freiablage # @ stapel1 place  1 # freiablage # +! 0 # z-off !  .stand ;
+
+: gefangene ( n m -- )
+    kugel-wegnehmen
+    freiablage2 @ stapel2 place  1 # freiablage2 +! 0 # z-off ! ;
 
 : kugel-holen
-   -1 # freiablage # +! freiablage # @ ablage pick  ;
+   -1 # freiablage # +! freiablage # @ stapel1 pick  0 # z-off ! ;
 
 : einraeumen
    kugel-holen kugel-ablegen  .stand ;
@@ -262,7 +331,9 @@ macro: kugel-ablegen   ( n m -- )
 : spiele1 ( n m -- )
     2dup          kugel-wegnehmen
     2dup >r 2- r> kugel-ablegen
-         >r 1- r> kugel-wegnehmen kugel-entfernen ;
+    >r 1- r>
+: aufraeumen
+    kugel-wegnehmen kugel-entfernen ;
 
 : spiele2 ( n m -- )
     2dup kugel-wegnehmen 2dup 2+ kugel-ablegen 1+
@@ -295,15 +366,16 @@ macro: kugel-ablegen   ( n m -- )
      0 # reihe3         250 # wait
      0 # reihe4         250 # wait
     3 # 3 # spiel-feld  250 # wait
-    down                250 # wait
-    6 # 3 # spiel-feld  250 # wait
-    3 # 6 # spiel-feld  250 # wait
-    3 # 0 # spiel-feld  250 # wait
-    lift                250 # wait ;
+\    down                250 # wait
+\    6 # 3 # spiel-feld  250 # wait
+\    3 # 6 # spiel-feld  250 # wait
+\    3 # 0 # spiel-feld  250 # wait
+\    lift                250 # wait
+;
 
 \ extra commands for playing Go
 : wait-extra ( -- )
-    BEGIN  extra-cmd @ UNTIL ;
+    BEGIN  1 # wait  extra-cmd @ UNTIL ;
 : do-extras ( -- )
     BEGIN  wait-extra  extra-cmd @ exec   0 # extra-cmd !  AGAIN ;
 : start-extras ( -- ) ;
@@ -313,13 +385,13 @@ macro: kugel-ablegen   ( n m -- )
 \ $2800 org
 : boot
     $00 # LED7 # !
-    0 # dup dup #40 # z #  !+ !+ !+ !
+    0 # dup dup #45 # z #  !+ !+ !+ !
     0 # deltaz # !  0 # tremor !  0 # extra-cmd !
     init-port
     calibrate
     extra-cmd @ IF  do-extras  THEN
     BEGIN
-        &32 # freiablage # !
+        #40 # freiablage # !  #0 # freiablage2 !
                            0 # 432einraeumen
                            1 # 432einraeumen
     2 # 654einraeumen  dup 3 # einraeumen  210einraeumen

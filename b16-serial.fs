@@ -31,7 +31,7 @@ dbg-empty
 	dup I @ = IF  drop I cell+ @ unloop  EXIT  THEN
     2 cells +LOOP  drop  0 ;
 
-: init ( addr u -- )  r/w bin open-file throw to b16
+: init-ser ( addr u -- )  r/w bin open-file throw to b16
     [IFDEF] key?-file  b16 key?-file drop  [THEN]
     [IFDEF] android
 	"stty </dev/ttyUSB0 raw cs8 230400" system
@@ -45,7 +45,7 @@ dbg-empty
 	s" /dev/ttyUSB0"
     [ELSE]
 	s" COM1"
-    [THEN] ['] init catch
+    [THEN] ['] init-ser catch
     IF
 	[IFDEF] backtrace
 	    backtrace $18 cells + off
@@ -127,14 +127,14 @@ Variable addr' -1 addr' !
 	bounds ?DO  I w@ over dbg! 2 +  2 +LOOP  drop
 	EXIT  THEN
     ?open addr
-    tuck bounds ?DO  I w@ addr' @ dbg!  2 +LOOP ;
+    bounds ?DO  I w@ addr' @ dbg!  2 +LOOP ;
 
 : dbg-ram!s ( addr u dest-addr -- )
     do-serial 0= IF
 	bounds ?DO  I ram@ over dbg! 2 +  2 +LOOP  drop
 	EXIT  THEN
     ?open addr
-    tuck bounds ?DO  I ram@ addr' @ dbg!  2 +LOOP ;
+    bounds ?DO  I ram@ addr' @ dbg!  2 +LOOP ;
 
 : >dbgc ( u addr -- )  dup 1 and >r -2 and dup dbg> rot
     r> IF  $FF and swap $FF00 and or swap >dbg
