@@ -4729,6 +4729,26 @@ module alu(res, carry, zero, T, N, c, inst);
 \end_layout
 
 \begin_layout Scrap
+`ifdef FPGA
+\end_layout
+
+\begin_layout Scrap
+   wire `L r3;
+\end_layout
+
+\begin_layout Scrap
+   wire cout;
+\end_layout
+
+\begin_layout Scrap
+   assign { cout, r3 } = T + N + ((c | selr) & andor); 
+\end_layout
+
+\begin_layout Scrap
+`endif
+\end_layout
+
+\begin_layout Scrap
 
 \end_layout
 
@@ -4765,11 +4785,31 @@ module alu(res, carry, zero, T, N, c, inst);
 \end_layout
 
 \begin_layout Scrap
+`ifdef FPGA
+\end_layout
+
+\begin_layout Scrap
+   assign res = prop ? r3 : selr ? r2 : r1;
+\end_layout
+
+\begin_layout Scrap
+   assign carry = prop ? cout : carries[l];
+\end_layout
+
+\begin_layout Scrap
+`else
+\end_layout
+
+\begin_layout Scrap
    assign res = (selr & ~prop) ? r2 : r1;
 \end_layout
 
 \begin_layout Scrap
    assign carry = carries[l];
+\end_layout
+
+\begin_layout Scrap
+`endif
 \end_layout
 
 \begin_layout Scrap

@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE EP2C20F484C7
 set_global_assignment -name TOP_LEVEL_ENTITY b16top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:58:38  MARCH 26, 2009"
-set_global_assignment -name LAST_QUARTUS_VERSION "11.1 SP2"
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name EDA_DESIGN_ENTRY_SYNTHESIS_TOOL "Design Compiler"
 set_global_assignment -name EDA_INPUT_VCC_NAME VDD -section_id eda_design_synthesis
 set_global_assignment -name EDA_LMF_FILE altsyn.lmf -section_id eda_design_synthesis

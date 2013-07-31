@@ -47,6 +47,11 @@ module alu(res, carry, zero, T, N, c, inst);
 
    wire        `L r1, r2;
    wire [l:0]  carries;
+`ifdef FPGA
+   wire `L r3;
+   wire cout;
+   assign { cout, r3 } = T + N + ((c | selr) & andor); 
+`endif
 
    assign r1 = T ^ N ^ carries;
    assign r2 = (T & N) | 
@@ -56,8 +61,13 @@ module alu(res, carry, zero, T, N, c, inst);
    assign carries = 
         prop ? { r2[l-1:0], (c | selr) & andor } 
              : { c, {(l){andor}}};
+`ifdef FPGA
+   assign res = prop ? r3 : selr ? r2 : r1;
+   assign carry = prop ? cout : carries[l];
+`else
    assign res = (selr & ~prop) ? r2 : r1;
    assign carry = carries[l];
+`endif
    assign zero = ~|T;
 endmodule // alu
 module stack(clk, sp, spdec, push, gwrite, in, out);

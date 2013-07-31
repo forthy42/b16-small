@@ -77,7 +77,7 @@ macro: +! ( n adr -- )
 : within ( n low high -- flag )
    over - >r - r> u< ;
 
-macro: d+ ( d1 d2 - d3 )  >r rot + swap r> +c end-macro
+macro: d+ ( d1 d2 - d3 )  >r swap >r + r> r> +c end-macro
 
 macro: d- ( d1 d2 - d3 )  >r com rot + swap r> com +c end-macro
 
