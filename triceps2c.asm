@@ -1,4 +1,4 @@
-\ triceps2c: new geometry, new servos
+\ triceps2
 
 include regmap.asm
 
@@ -64,17 +64,16 @@ $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #335 ,        \ 34.5cm center to arm
-| arm      #193 ,        \ 20cm arm length
-| height   #157 ,        \ 14cm height
+| distance #345 ,        \ 34.5cm center to arm
+| arm      #222 ,        \ 22.2cm arm length
+| height   #140 ,        \ 19cm height-5cm support
 | faden    #405 ,        \ 40cm string length
 
-| offset1 $500 ,
-| offset2 $200 ,
-| offset3 $000 ,
+| offset1 #3000 , #44200 ,
+| offset2 #0000 , #45000 ,
+| offset3 #0500 , #44500 ,
 
-| motor-min#  #18300 ,
-| motor-gain# #45500 ,
+| motor-min#  #19500 ,
 
 $DDB3 Constant sqrt3/2
 
@@ -103,10 +102,9 @@ GPIO02 Value port
 \ #19000 Constant motor-min#
 \ #37750 Constant motor-gain#
 
-: ausschlag ( 0-ffff -- dtime )
-    tremor @ +
-    motor-gain# # @ mul nip
-    motor-min#  # @ + dup + 0 # dup +c  tick-after ;
+: ausschlag ( addr -- dtime )
+    @+ >r + r> @ mul nip
+    motor-min#  # @ + 0 # dup +c d2*  tick-after ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
 
@@ -121,9 +119,9 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 : motor3  $0100 # port # ! ;
 
 : do-motor
-    motor1  pos1 # @ offset1 # @ + ausschlag till -motor
-    motor2  pos2 # @ offset2 # @ + ausschlag till -motor
-    motor3  pos3 # @ offset3 # @ + ausschlag till -motor
+    motor1  pos1 # @ offset1 # ausschlag till -motor
+    motor2  pos2 # @ offset2 # ausschlag till -motor
+    motor3  pos3 # @ offset3 # ausschlag till -motor
     tremor @ com tremor ! ;
 
 \ arccos computation
@@ -225,7 +223,7 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : movez ( z -- )  z-off @ + >movez  >pos ;
 
 : z! ( n -- )  z-off @ + z # ! ;
-: down     #30 # movez #20 # z! 50 # wait #10 # z! 10 # wait ;
+: down     #10 # movez ;
 : lift     #45 # movez ;
 : downr     #5 # movez ;
 : release  #45 # z! 10 # wait ;
@@ -247,55 +245,63 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : ablage ( nr -- )  0 # #8 # div swap cells reihen # + @ goto ;
 
 |# raumablage-xyz
-0 , 26 , 0 ,
--13 , 26 , 0 ,
--26 , 26 , 0 ,
--26 , 13 , 0 ,
--13 , 13 , 0 ,
-
-0 , 13 , 0 ,
-13 , 13 , 0 ,
-26 , 13 , 0 ,
-26 , 26 , 0 ,
-13 , 26 , 0 ,
-
-0 , 0 , 0 ,
--13 , 0 , 0 ,
--26 , 0 , 0 ,
 -26 , -12 , 0 ,
--13 , -12 , 0 ,
-
-0 , -12 , 0 ,
-13 , -12 , 0 ,
+-26 , 13 , 0 ,
+-26 , 0 , 0 ,
+-26 , 26 , 0 ,
+-26 , -25 , 0 ,
+26 , -25 , 0 ,
 26 , -12 , 0 ,
 26 , 0 , 0 ,
+26 , 13 , 0 ,
+26 , 26 , 0 ,
+0 , 26 , 0 ,
+-13 , 26 , 0 ,
+13 , 26 , 0 ,
+-13 , -25 , 0 ,
+0 , -25 , 0 ,
+13 , -25 , 0 ,
+-13 , -12 , 0 ,
+0 , -12 , 0 ,
+13 , -12 , 0 ,
+0 , 0 , 0 ,
+-13 , 0 , 0 ,
 13 , 0 , 0 ,
+-13 , 13 , 0 ,
+0 , 13 , 0 ,
+13 , 13 , 0 ,
 
 20 , 20 , 9 ,
 7 , 20 , 9 ,
 -6 , 20 , 9 ,
 -19 , 20 , 9 ,
-
--19 , 6 , 9 ,
--6 , 6 , 9 ,
-7 , 6 , 9 ,
 20 , 6 , 9 ,
-
+7 , 6 , 9 ,
+-6 , 6 , 9 ,
+-19 , 6 , 9 ,
 20 , -6 , 9 ,
 7 , -6 , 9 ,
 -6 , -6 , 9 ,
 -19 , -6 , 9 ,
+20 , -20 , 9 ,
+7 , -20 , 9 ,
+-6 , -20 , 9 ,
+-19 , -20 , 9 ,
 
-0 , 13 , 18 ,
 13 , 13 , 18 ,
+0 , 13 , 18 ,
+-13 , 13 , 18 ,
 13 , 0 , 18 ,
-
 0 , 0 , 18 ,
 -13 , 0 , 18 ,
--13 , 13 , 18 ,
+13 , -13 , 18 ,
+0 , -13 , 18 ,
+-13 , -13 , 18 ,
 
 7 , 6 , 27 ,
 -6 , 6 , 27 ,
+7 , -6 , 27 ,
+-6 , -6 , 27 ,
 
 : kugelstapel ( n -- x y z )
     2* dup 2* + raumablage-xyz + @+ @+ @ ;
@@ -360,6 +366,8 @@ macro: kugel-ablegen   ( n m -- )
     dup 2 # einraeumen  dup 1 # einraeumen  0 # einraeumen ;
 
 : calibrate
+\    $8000 # dup pos1 # ! dup pos2 # !  pos3 # !
+\    BEGIN  12 # after till 8 # after do-motor  till  AGAIN
     3 # 3 # spiel-feld  250 # wait
      0 # reihe1         250 # wait
      0 # reihe2         250 # wait
@@ -391,7 +399,7 @@ macro: kugel-ablegen   ( n m -- )
     calibrate
     extra-cmd @ IF  do-extras  THEN
     BEGIN
-        #40 # freiablage # !  #0 # freiablage2 !
+        #54 # freiablage # !  #0 # freiablage2 !
                            0 # 432einraeumen
                            1 # 432einraeumen
     2 # 654einraeumen  dup 3 # einraeumen  210einraeumen
