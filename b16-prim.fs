@@ -79,13 +79,13 @@ macro: +! ( n adr -- )
 
 macro: d+ ( d1 d2 - d3 )  >r swap >r + r> r> +c end-macro
 
-macro: d- ( d1 d2 - d3 )  >r com rot + swap r> com +c end-macro
+macro: d- ( d1 d2 - d3 )  com >r swap >r - r> r> +c end-macro
 
 macro: 2>r  over >r >r drop  end-macro
 
 macro: 2* ( n1 -- 2*n1 )  dup + end-macro
 
-macro: d2* ( d -- 2*d )   over over d+ end-macro
+macro: d2* ( d -- 2*d )   >r dup + r> dup +c end-macro
 
 macro: under swap over end-macro
 
@@ -101,11 +101,9 @@ macro: under swap over end-macro
 ;                       \ return to caller
 
 : usmul ( u1 s2 -- d )  \ unsigned by signed mul
-    dup 0<IF  over >r  ELSE  0 # >r  THEN
-    mul r> - ;
+    dup 0<IF  over ELSE  0 #  THEN  >r mul r> - ;
 : sumul ( s1 u2 -- d )  \ signed by unsigned mul
-    over 0<IF  dup >r  ELSE  0 # >r  THEN
-    mul r> - ;
+    over 0<IF  dup  ELSE  0 #  THEN  >r mul r> - ;
 
 : sdiv ( d udiv -- quot umod )
     over 0<IF  dup >r + r>  THEN

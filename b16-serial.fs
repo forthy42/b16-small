@@ -102,12 +102,15 @@ Variable addr' -1 addr' !
     addr s" rl" b16 write-file throw  2 check-in
     0 -rot bounds ?DO  8 lshift I c@ or  LOOP  2 addr' +! ;
 
+: bswaps ( addr u -- )
+    bounds ?DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP ;
+
 : dbg@s ( source-addr addr u -- )
     do-serial 0= IF  2* bounds ?DO  dup dbg@ I w! 2 + 2 +LOOP  drop
 	EXIT  THEN  ?open  rot addr
     BEGIN  2dup 8 min
 	dup 0 ?DO s" rl" b16 write-file throw LOOP
-	2* check-in 2dup bounds DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP
+	2* check-in 2dup bswaps
 	rot swap dup addr' +! move
     $10 safe/string  dup 0= UNTIL  2drop ;
 

@@ -64,9 +64,9 @@ $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #345 ,        \ 34.5cm center to arm
+| distance #355 ,        \ 35.5cm center to arm
 | arm      #222 ,        \ 22.2cm arm length
-| height   #140 ,        \ 19cm height-5cm support
+| height   #210 ,        \ 21cm height
 | faden    #405 ,        \ 40cm string length
 
 | offset1 #3000 , #44200 ,
@@ -155,10 +155,10 @@ macro: faden² faden # @ dup mul end-macro
     dup mul height # @ z # @ - abs dup mul d+ sqrt r> ! ;
 \ : >b>   ( addr -- )  @+ >r dup mul height # @ z # @ - dup mul d+ sqrt r> ! ;
 : >cos> ( c-addr b-addr -- ) @+ >r >r
-    @ u2/ dup dup mul drop
-    arm # @ 2/ dup mul drop r> 2/ dup mul drop - +
-    over >r >r drop 0 # r> 2/ r>
-    arm # @ mul drop sdiv drop r> ! ;
+    @ dup dup mul
+    arm # @ dup mul r> dup mul d- d+ 8 # sdiv drop
+    over >r >r drop 0 # r> r>
+    arm # @ u2/ mul drop sdiv drop r> ! ;
 : >alpha> ( addr -- ) @+ >r acos r> ! ;
 : >angle1 ( y-addr -- angle )  @ >r
     0 # height # @ z # @ - r> 2* sdiv drop acos ;
@@ -298,10 +298,10 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 0 , -13 , 18 ,
 -13 , -13 , 18 ,
 
-7 , 6 , 27 ,
--6 , 6 , 27 ,
 7 , -6 , 27 ,
 -6 , -6 , 27 ,
+7 , 6 , 27 ,
+-6 , 6 , 27 ,
 
 : kugelstapel ( n -- x y z )
     2* dup 2* + raumablage-xyz + @+ @+ @ ;
@@ -399,7 +399,7 @@ macro: kugel-ablegen   ( n m -- )
     calibrate
     extra-cmd @ IF  do-extras  THEN
     BEGIN
-        #54 # freiablage # !  #0 # freiablage2 !
+        #50 # freiablage # !  #0 # freiablage2 !
                            0 # 432einraeumen
                            1 # 432einraeumen
     2 # 654einraeumen  dup 3 # einraeumen  210einraeumen
