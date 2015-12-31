@@ -1,4 +1,9 @@
 \ b16 FPGA board regmap
+$FE00 org
+| RNGSUM 0 ,
+| RNGXOR 0 ,
+| RNGP 0 ,
+| RNGN 0 ,
 $FF00 org
 | LED7 0 ,
 $FF08 org

@@ -64,14 +64,15 @@ $2000 org
 \ coordinate transforation constants
 
 decimal
-| distance #355 ,        \ 35.5cm center to arm
-| arm      #222 ,        \ 22.2cm arm length
-| height   #210 ,        \ 21cm height
+| distance #305 ,        \ 35.5cm center to arm
+| arm      #215 ,        \ 22.2cm arm length
+| height   #215
+,        \ 21cm height
 | faden    #405 ,        \ 40cm string length
 
-| offset1 #3000 , #44200 ,
-| offset2 #0000 , #45000 ,
-| offset3 #0500 , #44500 ,
+| offset1 -$0500 , #45000 ,
+| offset2  $0000 , #45000 ,
+| offset3  $0300 , #45000 ,
 
 | motor-min#  #19500 ,
 
@@ -102,7 +103,7 @@ GPIO02 Value port
 \ #19000 Constant motor-min#
 \ #37750 Constant motor-gain#
 
-: ausschlag ( addr -- dtime )
+: ausschlag ( angle addr -- dtime )
     @+ >r + r> @ mul nip
     motor-min#  # @ + 0 # dup +c d2*  tick-after ;
 
@@ -271,32 +272,32 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 0 , 13 , 0 ,
 13 , 13 , 0 ,
 
-20 , 20 , 9 ,
-7 , 20 , 9 ,
--6 , 20 , 9 ,
--19 , 20 , 9 ,
-20 , 6 , 9 ,
-7 , 6 , 9 ,
--6 , 6 , 9 ,
--19 , 6 , 9 ,
-20 , -6 , 9 ,
-7 , -6 , 9 ,
--6 , -6 , 9 ,
--19 , -6 , 9 ,
-20 , -20 , 9 ,
 7 , -20 , 9 ,
 -6 , -20 , 9 ,
+20 , -20 , 9 ,
 -19 , -20 , 9 ,
+7 , -6 , 9 ,
+-6 , -6 , 9 ,
+20 , -6 , 9 ,
+-19 , -6 , 9 ,
+7 , 6 , 9 ,
+-6 , 6 , 9 ,
+20 , 6 , 9 ,
+-19 , 6 , 9 ,
+7 , 20 , 9 ,
+-6 , 20 , 9 ,
+20 , 20 , 9 ,
+-19 , 20 , 9 ,
 
-13 , 13 , 18 ,
-0 , 13 , 18 ,
--13 , 13 , 18 ,
-13 , 0 , 18 ,
-0 , 0 , 18 ,
--13 , 0 , 18 ,
-13 , -13 , 18 ,
 0 , -13 , 18 ,
+13 , -13 , 18 ,
 -13 , -13 , 18 ,
+0 , 0 , 18 ,
+13 , 0 , 18 ,
+-13 , 0 , 18 ,
+0 , 13 , 18 ,
+13 , 13 , 18 ,
+-13 , 13 , 18 ,
 
 7 , -6 , 27 ,
 -6 , -6 , 27 ,
@@ -322,7 +323,7 @@ macro: kugel-ablegen   ( n m -- )
    spiel-feld place end-macro
 
 : kugel-entfernen
-   freiablage # @ stapel1 place  1 # freiablage # +! 0 # z-off !  .stand ;
+   freiablage # @ stapel1 place  1 # freiablage # +! .stand 0 # z-off ! ;
 
 : gefangene ( n m -- )
     kugel-wegnehmen
@@ -343,16 +344,16 @@ macro: kugel-ablegen   ( n m -- )
 
 : spiele2 ( n m -- )
     2dup kugel-wegnehmen 2dup 2+ kugel-ablegen 1+
-    kugel-wegnehmen kugel-entfernen ;
+    aufraeumen ;
 
 : spiele3 ( n m -- )
     2dup          kugel-wegnehmen
     2dup >r 2+ r> kugel-ablegen
-         >r 1+ r> kugel-wegnehmen kugel-entfernen ;
+         >r 1+ r> aufraeumen ;
 
 : spiele4 ( n m -- )
     2dup kugel-wegnehmen 2dup 2- kugel-ablegen 1-
-    kugel-wegnehmen kugel-entfernen ;
+    aufraeumen nop ;
 
 : 2drops 2drop ;  \ weil 2drop ein Macro ist
 
@@ -368,12 +369,14 @@ macro: kugel-ablegen   ( n m -- )
 : calibrate
 \    $8000 # dup pos1 # ! dup pos2 # !  pos3 # !
 \    BEGIN  12 # after till 8 # after do-motor  till  AGAIN
-    3 # 3 # spiel-feld  250 # wait
-     0 # reihe1         250 # wait
-     0 # reihe2         250 # wait
-     0 # reihe3         250 # wait
-     0 # reihe4         250 # wait
-    3 # 3 # spiel-feld  250 # wait
+\    BEGIN
+	3 # 3 # spiel-feld  250 # wait
+	0 # reihe1         250 # wait
+	0 # reihe2         250 # wait
+	0 # reihe3         250 # wait
+	0 # reihe4         250 # wait
+	3 # 3 # spiel-feld  250 # wait
+\    AGAIN
 \    down                250 # wait
 \    6 # 3 # spiel-feld  250 # wait
 \    3 # 6 # spiel-feld  250 # wait

@@ -2,8 +2,6 @@
     include serial.fs
     
     dos also
-
-    : fileno ( file -- fd )  filehandle @ ;
 [ELSE]
     include unix/serial.fs
     : linux ;
@@ -36,7 +34,7 @@ dbg-empty
     [IFDEF] android
 	"stty </dev/ttyUSB0 raw cs8 230400" system
     [ELSE]
-	B230400 b16 fileno set-baud
+	B230400 b16 ( fileno ) set-baud
     [THEN] ;
 
 : ?open ( -- )  do-serial 0= ?EXIT
@@ -105,14 +103,26 @@ Variable addr' -1 addr' !
 : bswaps ( addr u -- )
     bounds ?DO  I 1+ c@ I c@ I 1+ c! I c!  2 +LOOP ;
 
-: dbg@s ( source-addr addr u -- )
-    do-serial 0= IF  2* bounds ?DO  dup dbg@ I w! 2 + 2 +LOOP  drop
-	EXIT  THEN  ?open  rot addr
-    BEGIN  2dup 8 min
-	dup 0 ?DO s" rl" b16 write-file throw LOOP
-	2* check-in 2dup bswaps
-	rot swap dup addr' +! move
-    $10 safe/string  dup 0= UNTIL  2drop ;
+[IFDEF] $tmp
+    : dbg@s ( source-addr addr u -- )
+	do-serial 0= IF  2* bounds ?DO  dup dbg@ I w! 2 + 2 +LOOP  drop
+	    EXIT  THEN  ?open  rot addr
+	BEGIN  2dup $200 min
+	    dup [: 0 ?DO ." rl" LOOP ;] $tmp b16 write-file throw
+	    2* check-in 2dup bswaps
+	    rot swap dup addr' +! move
+	$400 safe/string  dup 0= UNTIL  2drop ;
+[ELSE]
+    Variable dbg$
+    : dbg@s ( source-addr addr u -- )
+	do-serial 0= IF  2* bounds ?DO  dup dbg@ I w! 2 + 2 +LOOP  drop
+	    EXIT  THEN  ?open  rot addr
+	BEGIN  2dup $200 min  s" " dbg$ $!
+	    dup 0 ?DO s" rl" dbg$ $+! LOOP dbg$ $@ b16 write-file throw
+	    2* check-in 2dup bswaps
+	    rot swap dup addr' +! move
+	$400 safe/string  dup 0= UNTIL  2drop ;
+[THEN]
 
 : dbgc@ ( addr -- u )
     do-serial 0= IF  dup 1 and >r -2 and dbg>
@@ -127,7 +137,7 @@ Variable addr' -1 addr' !
 
 : dbg!s ( addr u dest-addr -- )
     do-serial 0= IF
-	bounds ?DO  I w@ over dbg! 2 +  2 +LOOP  drop
+	-rot bounds ?DO  I w@ over dbg! 2 +  2 +LOOP  drop
 	EXIT  THEN
     ?open addr
     bounds ?DO  I w@ addr' @ dbg!  2 +LOOP ;
