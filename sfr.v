@@ -10,7 +10,7 @@
 `define lb1 [23:16]
 
 module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
-	   LED7, gpio_0, gpio_1, irqrun, keys);
+	   LED7, gpio_0, gpio_1, irqrun, keys, pwm);
    input clk, nreset, drun, sel, r;
    input [7:0] addr;
    input [15:0] dwrite;
@@ -18,6 +18,7 @@ module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
    output [15:0] sfr_data, LED7;
    inout [35:0] gpio_0, gpio_1;
    input [12:0] keys;
+   input [35:0] pwm;
    output 	irqrun;
 
    reg [15:0] 	 sfr_data, LED7, tval0, tval1;
@@ -31,7 +32,7 @@ module sfr(clk, nreset, drun, sel, addr, r, w, dwrite, sfr_data,
    genvar 	 i;
    generate for(i=0; i<36; i=i+1)
      begin : triout
-	assign gpio_0[i] = gpio_0t[i] ? gpio_0o[i] : 1'bz;
+	assign gpio_0[i] = gpio_0t[i] ? gpio_0o[i] | pwm[i] : 1'bz;
 	assign gpio_1[i] = gpio_1t[i] ? gpio_1o[i] : 1'bz;
      end
    endgenerate

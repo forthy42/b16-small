@@ -65,16 +65,15 @@ $2000 org
 
 decimal
 | distance #305 ,        \ 35.5cm center to arm
-| arm      #215 ,        \ 22.2cm arm length
-| height   #215
-,        \ 21cm height
+| arm      #225 ,        \ 22.5cm arm length
+| height   #205 ,        \ 20.5cm height
 | faden    #405 ,        \ 40cm string length
 
-| offset1 -$0700 , #45000 ,
-| offset2  $0180 , #45000 ,
-| offset3  $0280 , #45000 ,
+| offset1  $0000 , #22500 , \ half gain
+| offset2  $0000 , #22500 ,
+| offset3  $0000 , #22500 ,
 
-| motor-min#  #19500 ,
+| motor-min#  #25000 , \ min for half gain
 
 $DDB3 Constant sqrt3/2
 
@@ -86,6 +85,9 @@ include b16-sqrt.fs
 
 : init-port
     TIMERVAL0 # @+ @  swap TVAL0 # !+ !
+    $8B0A # $2 # CYCLE0H # !+ !
+    $8B0A # $2 # CYCLE1H # !+ !
+    $8B0A # $2 # CYCLE2H # !+ !
     $0000 # GPIO02  # !  $1111 # GPIO02T # ! ;
 
 GPIO02 Value port
@@ -104,8 +106,9 @@ GPIO02 Value port
 \ #37750 Constant motor-gain#
 
 : ausschlag ( angle addr -- dtime )
-    @+ >r + r> @ mul nip
-    motor-min#  # @ + 0 # dup +c d2*  tick-after ;
+    >r com r>
+    @+ >r + r> @ mul nip tremor @ +
+    motor-min#  # @ + 0 # dup +c d2* ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
 
@@ -120,9 +123,9 @@ macro: >irq  0 # IRQACT # c!* drop end-macro
 : motor3  $0100 # port # ! ;
 
 : do-motor
-    motor1  pos1 # @ offset1 # ausschlag till -motor
-    motor2  pos2 # @ offset2 # ausschlag till -motor
-    motor3  pos3 # @ offset3 # ausschlag till -motor
+    pos1 # @ offset1 # ausschlag  THRES0H # !+ !
+    pos2 # @ offset2 # ausschlag  THRES1H # !+ !
+    pos3 # @ offset3 # ausschlag  THRES2H # !+ !
     tremor @ com tremor ! ;
 
 \ arccos computation
@@ -187,7 +190,7 @@ macro: faden² faden # @ dup mul end-macro
 \ wait loop
 
 : motor-step ( -- )
-    coord-calc  12 # after  till  8 # after  do-motor  till
+    14 # after  coord-calc  do-motor  till
     ( 1 # LED7 # +! ) ;
 macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
@@ -216,7 +219,7 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : movesteps ( -- )
     speed # @ dist # @ umin  u2/ \ u2/
     speedlimit# # umin u2/ u2/ 1 # +
-    BEGIN  movestep  2 # speed # +!  dist # @ -IF  drop ;  THEN
+    BEGIN  movestep  1 # speed # +!  dist # @ -IF  drop ;  THEN
     LOOP ;
 
 : >pos    BEGIN  movesteps motor-step  dist # @ -UNTIL ;
@@ -224,10 +227,14 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : movez ( z -- )  z-off @ + >movez  >pos ;
 
 : z! ( n -- )  z-off @ + z # ! ;
-: down     #10 # movez ;
+: down     #20 # movez #10 # movez ;
 : lift     #50 # movez ;
-: downr     #5 # movez ;
-: release  #50 # z! 10 # wait ;
+: downr    #20 # movez #5 # movez ;
+: release
+    #20 # z! 1 # wait
+    #30 # z! 1 # wait
+    #40 # z! 1 # wait
+    #50 # z! 7 # wait ;
 : pick   #30 # wait  down lift ;
 : place  #30 # wait  downr release ;
 
@@ -397,7 +404,7 @@ macro: kugel-ablegen   ( n m -- )
 : boot
     $00 # LED7 # !
     0 # dup dup #50 # z #  !+ !+ !+ !
-    0 # deltaz # !  0 # tremor !  0 # extra-cmd !
+    0 # deltaz # !  $0 # tremor !  0 # extra-cmd !
     init-port
     calibrate
     extra-cmd @ IF  do-extras  THEN

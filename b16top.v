@@ -195,7 +195,7 @@ assign { TDO, I2C_SCLK } = 1;
    wire [1:0] 	wc;
    wire [15:0] 	addrc, dwritec;
    reg [15:0] 	data;
-   reg [2:0] 	sel;
+   reg [3:0] 	sel;
    reg 	  READY;
 
    wire [7:0] od;
@@ -245,23 +245,29 @@ assign { TDO, I2C_SCLK } = 1;
        else READY <= -1;
      end
 
-   wire [15:0] sfr_data;
+   wire [15:0] sfr_data, pwm_data;
+   wire [2:0]  pwm;
    
    sfr sfr_block(clk, nreset, drun, sel[2], addr[7:0], r, w, dwrite, sfr_data,
-		 LED7, GPIO_0, GPIO_1, irqrun, { KEY[3:1], SW });
+		 LED7, GPIO_0, GPIO_1, irqrun, { KEY[3:1], SW },
+		 { 24'b0, 3'b0, pwm[2], 3'b0, pwm[1], 3'b0, pwm[0] });
+   pwm pwm_block(clk, nreset, drun, sel[3], addr[5:0], r, w, dwrite, pwm_data,
+		 pwm);
    
    always @*
      case({ r, sel })
-       4'b1100: data <= sfr_data;
-       4'b1010: data <= ramdata;
-       4'b1001: data <= SRAM_DQ;
+       5'b11000: data <= pwm_data;
+       5'b10100: data <= sfr_data;
+       5'b10010: data <= ramdata;
+       5'b10001: data <= SRAM_DQ;
        default: data <= 0;
      endcase // case(sel)
    
    always @(addr)
-     if(addr[15:8] == 8'hff) sel <= 3'b100;
-      else if(addr[15:13] == 3'h1) sel <= 3'b010;
-	   else sel <= 3'b001;
+     if(addr[15:8] == 8'hff) sel <= 4'b0100;
+     else if(addr[15:8] == 8'hfe) sel <= 4'b1000;
+     else if(addr[15:13] == 3'h1) sel <= 4'b0010;
+     else sel <= 4'b0001;
 
    assign SRAM_WE_N = ~sel[0] | (|w ? &READY : 1'b1);
    assign SRAM_CE_N = ~sel[0] | (|w ? &READY : ~r);
