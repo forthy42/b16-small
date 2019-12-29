@@ -69,11 +69,11 @@ decimal
 | height   #205 ,        \ 20.5cm height
 | faden    #405 ,        \ 40cm string length
 
-| offset1  $0000 , #22500 , \ half gain
-| offset2  $0000 , #22500 ,
-| offset3  $0000 , #22500 ,
+| offset1 -$0980 , #32750 , \ half gain
+| offset2 -$0800 , #32000 ,
+| offset3  $0800 , #32000 ,
 
-| motor-min#  #25000 , \ min for half gain
+| motor-min#  #18000 , \ min for half gain
 
 $DDB3 Constant sqrt3/2
 
@@ -107,7 +107,7 @@ GPIO02 Value port
 
 : ausschlag ( angle addr -- dtime )
     >r com r>
-    @+ >r + r> @ mul nip tremor @ +
+    @+ >r + r> @ mul nip
     motor-min#  # @ + 0 # dup +c d2* ;
 
 macro: >irq  0 # IRQACT # c!* drop end-macro
@@ -190,13 +190,13 @@ macro: faden² faden # @ dup mul end-macro
 \ wait loop
 
 : motor-step ( -- )
-    14 # after  coord-calc  do-motor  till
+    10 # after  coord-calc  do-motor  till
     ( 1 # LED7 # +! ) ;
 macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : wait ( n -- )
     BEGIN  motor-step  LOOP ;
 
-60 Constant speedlimit#
+30 Constant speedlimit#
 : >movez ( z -- )  z # @ - dup deltaz # !  abs 2* 2* 2* dist # !
     0 # dup stepx # !+ !
     0 # dup stepy # !+ !
@@ -227,16 +227,21 @@ macro: LOOP  -1 # + dup -UNTIL  drop  end-macro
 : movez ( z -- )  z-off @ + >movez  >pos ;
 
 : z! ( n -- )  z-off @ + z # ! ;
-: down     #20 # movez #10 # movez ;
+: down     #20 # movez #3 # wait #10 # movez ;
 : lift     #50 # movez ;
-: downr    #20 # movez #5 # movez ;
+: downr    #20 # movez #3 # wait #5 # movez ;
 : release
+    #10 # z! 1 # wait
+    #15 # z! 1 # wait
     #20 # z! 1 # wait
+    #25 # z! 1 # wait
     #30 # z! 1 # wait
+    #35 # z! 1 # wait
     #40 # z! 1 # wait
-    #50 # z! 7 # wait ;
-: pick   #30 # wait  down lift ;
-: place  #30 # wait  downr release ;
+    #45 # z! 1 # wait
+    #50 # z! #12 # wait ;
+: pick   #60 # wait  down lift ;
+: place  #60 # wait  downr release ;
 
 \ game play: positions
 
